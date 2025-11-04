@@ -1,0 +1,425 @@
+"""分析パイプラインの調停ロジック."""
+
+import json
+from pathlib import Path
+from typing import Optional
+
+import aiofiles
+
+from backend.models.apollo_client import ApolloClient
+from backend.models.gemini_client import GeminiClient
+from backend.models.risk_assessor import RiskAssessor
+from backend.models.whisper_client import WhisperClient
+from backend.store import (
+    PROJECT_STEPS,
+    PipelineAlreadyRunningError,
+    ProjectNotFoundError,
+    ProjectStore,
+)
+from backend.utils.logging_utils import setup_logger
+
+
+class AnalysisPipeline:
+    """動画分析の各ステップを順次実行する."""
+
+    def __init__(
+        self,
+        *,
+        store: ProjectStore,
+        whisper_client: WhisperClient,
+        gemini_client: GeminiClient,
+        apollo_client: Optional[ApolloClient],
+        risk_assessor: RiskAssessor,
+        logger_name: str = "analysis_pipeline",
+    ) -> None:
+        self.store = store
+        self.whisper_client = whisper_client
+        self.gemini_client = gemini_client
+        self.apollo_client = apollo_client
+        self.risk_assessor = risk_assessor
+        self.logger = setup_logger(logger_name)
+
+    async def run(self, project_id: str) -> None:
+        """パイプラインを実行するエントリポイント."""
+
+        try:
+            await self.store.mark_pipeline_started(project_id)
+        except PipelineAlreadyRunningError:
+            # 既にステータス更新済みであればそのまま継続
+            self.logger.info("Pipeline already running for project %s", project_id)
+        except ProjectNotFoundError:
+            self.logger.warning("Project %s not found. Abort pipeline.", project_id)
+            return
+
+        try:
+            project = await self.store.get_project(project_id)
+            video_path = Path(project.video_path)
+
+            workspace_dir = Path(project.workspace_dir)
+
+            (
+                transcript,
+                transcript_path,
+                transcript_source,
+                transcript_note,
+            ) = await self._run_transcription(project_id, video_path, workspace_dir)
+            ocr_text, ocr_path, ocr_note = await self._run_ocr(project_id, video_path, workspace_dir)
+            apollo_result, apollo_path, video_note = await self._run_apollo(
+                project_id, video_path, workspace_dir
+            )
+            risk_result, risk_path = await self._run_risk(
+                project_id,
+                transcript,
+                ocr_text,
+                apollo_result,
+                workspace_dir,
+            )
+            final_report = self._build_final_report(
+                transcript,
+                ocr_text,
+                apollo_result,
+                transcript_path,
+                ocr_path,
+                apollo_path,
+                risk_path,
+                risk_result,
+                transcript_source,
+                transcript_note,
+                ocr_note,
+                video_note,
+            )
+
+            await self.store.mark_pipeline_completed(project_id, final_report)
+            self.logger.info("Pipeline completed for project %s", project_id)
+        except Exception as exc:  # pylint: disable=broad-except
+            # エラー時はステータスを failed にしてログを残す
+            self.logger.exception("Pipeline execution failed for %s", project_id)
+            await self.store.mark_pipeline_failed(project_id, str(exc))
+            raise
+
+    async def _run_transcription(
+        self, project_id: str, video_path: Path, workspace_dir: Path
+    ) -> tuple[str, Path, str, Optional[str]]:
+        """音声文字起こしステップ."""
+
+        step = PROJECT_STEPS[0]
+        await self.store.mark_step_running(project_id, step)
+        transcript_source = "whisper"
+        transcript_note: Optional[str] = None
+        try:
+            transcript = await self.whisper_client.transcribe_audio(video_path)
+            if transcript.startswith("[stub]"):
+                raise RuntimeError("Whisper returned stub placeholder.")
+        except Exception as whisper_error:
+            self.logger.info(
+                "Whisper transcription unavailable for %s. Falling back to Gemini. (%s)",
+                project_id,
+                whisper_error,
+            )
+            try:
+                transcript = await self.gemini_client.transcribe_audio(video_path)
+                transcript_source = "gemini"
+                transcript_note = "Whisper transcription unavailable; Gemini transcription used."
+            except Exception as gemini_error:
+                self.logger.warning(
+                    "Gemini transcription fallback failed for %s: %s",
+                    project_id,
+                    gemini_error,
+                )
+                transcript = (
+                    "文字起こしを実行できませんでした。音声が確認できないため、"
+                    "再度アップロードや別モデルでの解析を検討してください。"
+                )
+                transcript_source = "fallback"
+                transcript_note = (
+                    "Whisper/Gemini ともに失敗したため、プレースホルダー文章を返却しました。"
+                )
+        formatted = self._format_transcript(transcript)
+        transcript_path = await self._save_text_file(workspace_dir, "transcription.txt", transcript)
+        await self.store.update_status(
+            project_id,
+            step,
+            formatted,
+            data={
+                "transcript": transcript,
+                "formatted": formatted,
+                "file_path": str(transcript_path),
+                "source": transcript_source,
+                "note": transcript_note,
+            },
+        )
+        return transcript, transcript_path, transcript_source, transcript_note
+
+    async def _run_ocr(
+        self, project_id: str, video_path: Path, workspace_dir: Path
+    ) -> tuple[str, Path, Optional[str]]:
+        """OCR ステップ."""
+
+        step = PROJECT_STEPS[1]
+        await self.store.mark_step_running(project_id, step)
+        ocr_note: Optional[str] = None
+        try:
+            ocr_text = await self.gemini_client.extract_ocr(video_path)
+        except Exception as exc:
+            self.logger.warning(
+                "Gemini OCR failed for %s: %s", project_id, exc
+            )
+            ocr_text = (
+                "OCR 抽出を実行できませんでした。該当フレームの文字が取得できなかった可能性があります。"
+            )
+            ocr_note = "Gemini OCR に失敗したため、プレースホルダー文章を返却しました。"
+        formatted = self._format_ocr_text(ocr_text)
+        ocr_path = await self._save_text_file(workspace_dir, "ocr.txt", ocr_text)
+        await self.store.update_status(
+            project_id,
+            step,
+            formatted,
+            data={
+                "ocr_text": ocr_text,
+                "formatted": formatted,
+                "file_path": str(ocr_path),
+                "note": ocr_note,
+            },
+        )
+        return ocr_text, ocr_path, ocr_note
+
+    async def _run_apollo(
+        self, project_id: str, video_path: Path, workspace_dir: Path
+    ) -> tuple[dict, Path, Optional[str]]:
+        """映像解析ステップ."""
+
+        step = PROJECT_STEPS[2]
+        await self.store.mark_step_running(project_id, step)
+        video_note: Optional[str] = None
+        try:
+            if self.apollo_client is None:
+                raise RuntimeError("Apollo client not configured.")
+            apollo_result = await self.apollo_client.analyse_video(video_path)
+        except Exception as apollo_error:
+            self.logger.info(
+                "Apollo video analysis unavailable for %s. Falling back to Gemini. (%s)",
+                project_id,
+                apollo_error,
+            )
+            try:
+                apollo_result = await self.gemini_client.analyze_video_segments(video_path)
+                video_note = "Apollo 分析が利用できなかったため Gemini によるシーン解析を使用しました。"
+            except Exception as gemini_error:
+                self.logger.warning(
+                    "Gemini video analysis fallback failed for %s: %s",
+                    project_id,
+                    gemini_error,
+                )
+                apollo_result = {
+                    "summary": (
+                        "映像解析を実行できませんでした。API キー設定を確認し再度実行してください。"
+                    ),
+                    "segments": [],
+                    "risk_flags": ["analysis-unavailable"],
+                }
+                video_note = (
+                    "Apollo/Gemini いずれの映像解析にも失敗したため、プレースホルダー結果を返却しました。"
+                )
+        formatted = self._format_video_analysis(apollo_result)
+        if self._is_stub_video_result(apollo_result):
+            self.logger.info(
+                "Apollo returned stub result for %s. Attempting Gemini enhancement.",
+                project_id,
+            )
+            try:
+                gemini_result = await self.gemini_client.analyze_video_segments(video_path)
+                apollo_result = gemini_result
+                formatted = self._format_video_analysis(apollo_result)
+                video_note = (
+                    "Apollo から十分な情報が得られなかったため Gemini による解析結果を採用しました。"
+                )
+            except Exception as gemini_error:  # pragma: no cover - fallback path
+                self.logger.warning(
+                    "Gemini enhancement failed for %s: %s", project_id, gemini_error
+                )
+        apollo_path = await self._save_json_file(workspace_dir, "video_analysis.json", apollo_result)
+        await self.store.update_status(
+            project_id,
+            step,
+            formatted,
+            data={
+                "raw": apollo_result,
+                "formatted": formatted,
+                "file_path": str(apollo_path),
+                "note": video_note,
+            },
+        )
+        return apollo_result, apollo_path, video_note
+
+    async def _run_risk(
+        self,
+        project_id: str,
+        transcript: str,
+        ocr_text: str,
+        video_result: dict,
+        workspace_dir: Path,
+    ) -> tuple[dict, Path]:
+        """Gemini を用いた統合リスク評価."""
+
+        step = PROJECT_STEPS[3]
+        await self.store.mark_step_running(project_id, step)
+        try:
+            risk_result = await self.risk_assessor.assess(
+                transcript=transcript,
+                ocr_text=ocr_text,
+                video_summary=video_result,
+            )
+        except Exception as exc:  # pragma: no cover
+            self.logger.exception("Risk assessment failed for %s", project_id)
+            risk_result = {
+                "social": {
+                    "grade": "C",
+                    "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+                },
+                "legal": {
+                    "grade": "修正検討",
+                    "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+                    "recommendations": "Gemini の設定を確認し、再度実行してください。",
+                },
+                "matrix": {"x_axis": "法務評価", "y_axis": "社会的感度", "position": [1, 2]},
+                "note": str(exc),
+            }
+        formatted = self._format_risk(risk_result)
+        risk_path = await self._save_json_file(workspace_dir, "risk_assessment.json", risk_result)
+        await self.store.update_status(
+            project_id,
+            step,
+            formatted,
+            data={
+                "risk": risk_result,
+                "formatted": formatted,
+                "file_path": str(risk_path),
+            },
+        )
+        return risk_result, risk_path
+
+    def _build_final_report(
+        self,
+        transcript: str,
+        ocr_text: str,
+        apollo_result: dict,
+        transcript_path: Path,
+        ocr_path: Path,
+        apollo_path: Path,
+        risk_path: Path,
+        risk_result: dict,
+        transcription_source: str,
+        transcription_note: Optional[str],
+        ocr_note: Optional[str],
+        video_note: Optional[str],
+    ) -> dict:
+        """各モジュールの結果を人が読みやすい形式でまとめる."""
+
+        transcript_section = self._format_transcript(transcript)
+        ocr_section = self._format_ocr_text(ocr_text)
+        video_section = self._format_video_analysis(apollo_result)
+
+        social_grade = risk_result.get("social", {}).get("grade", "N/A")
+        legal_grade = risk_result.get("legal", {}).get("grade", "N/A")
+
+        return {
+            "summary": f"分析が完了しました。社会的感度は {social_grade}、法務評価は {legal_grade} です。詳細をご確認ください。",
+            "sections": {
+                "transcription": transcript_section,
+                "ocr": ocr_section,
+                "video_analysis": video_section,
+            },
+            "files": {
+                "transcription": str(transcript_path),
+                "ocr": str(ocr_path),
+                "video_analysis": str(apollo_path),
+                "risk_assessment": str(risk_path),
+            },
+            "metadata": {
+                **{
+                    "transcription_source": transcription_source,
+                },
+                **(
+                    {"transcription_note": transcription_note}
+                    if transcription_note
+                    else {}
+                ),
+                **({"ocr_note": ocr_note} if ocr_note else {}),
+                **({"video_note": video_note} if video_note else {}),
+            },
+            "risk": risk_result,
+        }
+
+    def _format_transcript(self, transcript: str) -> str:
+        excerpt = transcript.strip() or "音声から有効なテキストは取得できませんでした。"
+        return f"🗣️ 音声文字起こし\n{excerpt}"
+
+    def _format_ocr_text(self, ocr_text: str) -> str:
+        excerpt = ocr_text.strip() or "字幕情報は検出されませんでした。"
+        return f"📝 OCR字幕抜粋\n{excerpt}"
+
+    def _format_video_analysis(self, apollo_result: dict) -> str:
+        summary = apollo_result.get("summary") or "映像に関する特記事項はありません。"
+        segments = apollo_result.get("segments") or []
+        lines = [f"🎬 映像解析レポート\n{summary}"]
+        if segments:
+            lines.append("\n📋 表現パターングループ")
+            for segment in segments:
+                label = segment.get("label", "未分類の表現")
+                description = segment.get("description", "")
+                lines.append(f"- {label}")
+                if description:
+                    lines.append(f"  ・{description}")
+                shots = segment.get("shots") or []
+                for shot in shots:
+                    timecode = shot.get("timecode", "timecode不明")
+                    detail = shot.get("description", "")
+                    lines.append(f"    - {timecode}: {detail}")
+        risk_flags = apollo_result.get("risk_flags") or []
+        if risk_flags:
+            lines.append("\n⚠️ 注目ポイント")
+            for flag in risk_flags:
+                lines.append(f"- {flag}")
+        return "\n".join(lines)
+
+    def _format_risk(self, risk_result: dict) -> str:
+        social = risk_result.get("social", {})
+        legal = risk_result.get("legal", {})
+        matrix = risk_result.get("matrix", {})
+        lines = [
+            "⚖️ 統合リスク評価",
+            f"社会的感度: {social.get('grade', 'N/A')} - {social.get('reason', '')}",
+            f"法務評価: {legal.get('grade', 'N/A')} - {legal.get('reason', '')}",
+        ]
+        recommendations = legal.get("recommendations")
+        if recommendations:
+            lines.append(f"改善提案: {recommendations}")
+        position = matrix.get("position")
+        if position:
+            lines.append(f"ポジション: X={position[0]} / Y={position[1]}")
+        return "\n".join(lines)
+
+    @staticmethod
+    def _is_stub_video_result(result: dict) -> bool:
+        summary = result.get("summary", "")
+        risk_flags = result.get("risk_flags") or []
+        if isinstance(summary, str) and summary.startswith("[stub]"):
+            return True
+        return "insight-unavailable" in risk_flags
+
+    async def _save_text_file(self, workspace_dir: Path, filename: str, content: str) -> Path:
+        """テキスト結果を uploads ディレクトリに保存."""
+
+        output_path = workspace_dir / filename
+        async with aiofiles.open(output_path, "w", encoding="utf-8") as file_obj:
+            await file_obj.write(content)
+        return output_path
+
+    async def _save_json_file(self, workspace_dir: Path, filename: str, payload: dict) -> Path:
+        """JSON 結果を uploads ディレクトリに保存."""
+
+        output_path = workspace_dir / filename
+        async with aiofiles.open(output_path, "w", encoding="utf-8") as file_obj:
+            json_payload = json.dumps(payload, ensure_ascii=False, indent=2)
+            await file_obj.write(json_payload)
+        return output_path

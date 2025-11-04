@@ -1,0 +1,19 @@
+{
+  "social": {
+    "grade": "C",
+    "reason": "[stub] API キー未設定のためダミー評価です。"
+  },
+  "legal": {
+    "grade": "修正検討",
+    "reason": "[stub] API キー未設定のためダミー評価です。",
+    "recommendations": "API キーを設定し、再度評価を実行してください。"
+  },
+  "matrix": {
+    "x_axis": "legal",
+    "y_axis": "social",
+    "position": [
+      1,
+      2
+    ]
+  }
+}

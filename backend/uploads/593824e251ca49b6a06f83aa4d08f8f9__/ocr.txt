@@ -1,0 +1,1 @@
+[stub] OCR subtitles captured from demo.mp4. Set GEMINI_API_KEY to enable OCR extraction.
