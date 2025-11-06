@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# Node.js
+frontend/node_modules/
+frontend/.next/
+frontend/.turbo/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Uploads or runtime data
+backend/uploads/
+
+# Build artifacts
+dist/
+build/
