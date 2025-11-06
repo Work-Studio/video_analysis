@@ -1,1 +1,0 @@
-[stub] Gemini transcription for demo.mp4. Set GEMINI_API_KEY to enable transcription.
