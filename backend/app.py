@@ -18,7 +18,6 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
-from backend.models.apollo_client import ApolloClient
 from backend.models.gemini_client import GeminiClient
 from backend.models.risk_assessor import RiskAssessor
 from backend.models.whisper_client import WhisperClient
@@ -62,7 +61,6 @@ LEGAL_REFERENCE_PATH = REFERENCE_ROOT / "law" / "JAL　法律リスト.xlsx"
 store = ProjectStore()
 whisper_client = WhisperClient()
 gemini_client = GeminiClient()
-apollo_client = None
 risk_assessor = RiskAssessor(
     gemini_client,
     social_case_path=SOCIAL_CASE_PATH,
@@ -74,7 +72,6 @@ analysis_pipeline = AnalysisPipeline(
     store=store,
     whisper_client=whisper_client,
     gemini_client=gemini_client,
-    apollo_client=apollo_client,
     risk_assessor=risk_assessor,
 )
 

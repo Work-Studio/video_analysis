@@ -6,7 +6,6 @@ from typing import Optional
 
 import aiofiles
 
-from backend.models.apollo_client import ApolloClient
 from backend.models.gemini_client import GeminiClient
 from backend.models.risk_assessor import RiskAssessor
 from backend.models.whisper_client import WhisperClient
@@ -28,14 +27,12 @@ class AnalysisPipeline:
         store: ProjectStore,
         whisper_client: WhisperClient,
         gemini_client: GeminiClient,
-        apollo_client: Optional[ApolloClient],
         risk_assessor: RiskAssessor,
         logger_name: str = "analysis_pipeline",
     ) -> None:
         self.store = store
         self.whisper_client = whisper_client
         self.gemini_client = gemini_client
-        self.apollo_client = apollo_client
         self.risk_assessor = risk_assessor
         self.logger = setup_logger(logger_name)
 
@@ -68,23 +65,23 @@ class AnalysisPipeline:
                 project_id, video_path, workspace_dir, media_type
             )
             ocr_text, ocr_path, ocr_note = await self._run_ocr(project_id, video_path, workspace_dir)
-            apollo_result, apollo_path, video_note = await self._run_apollo(
+            video_result, video_path_json, video_note = await self._run_visual_analysis(
                 project_id, video_path, workspace_dir, media_type
             )
             risk_result, risk_path = await self._run_risk(
                 project_id,
                 transcript,
                 ocr_text,
-                apollo_result,
+                video_result,
                 workspace_dir,
             )
             final_report = self._build_final_report(
                 transcript,
                 ocr_text,
-                apollo_result,
+                video_result,
                 transcript_path,
                 ocr_path,
-                apollo_path,
+                video_path_json,
                 risk_path,
                 risk_result,
                 transcript_source,
@@ -207,7 +204,7 @@ class AnalysisPipeline:
         )
         return ocr_text, ocr_path, ocr_note
 
-    async def _run_apollo(
+    async def _run_visual_analysis(
         self, project_id: str, media_path: Path, workspace_dir: Path, media_type: str
     ) -> tuple[dict, Path, Optional[str]]:
         """映像解析ステップ."""
@@ -217,74 +214,44 @@ class AnalysisPipeline:
         video_note: Optional[str] = None
         try:
             if media_type == "image":
-                apollo_result = await self.gemini_client.analyze_image(media_path)
-                video_note = "静止画コンテンツとして Gemini によるビジュアル解析を実施しました。"
+                video_result = await self.gemini_client.analyze_image(media_path)
+                video_note = "Gemini による静止画解析を実施しました。"
             else:
-                if self.apollo_client is None:
-                    raise RuntimeError("Apollo client not configured.")
-                apollo_result = await self.apollo_client.analyse_video(media_path)
-        except Exception as apollo_error:
-            self.logger.info(
-                "Primary visual analysis unavailable for %s. Falling back to Gemini. (%s)",
+                video_result = await self.gemini_client.analyze_video_segments(media_path)
+        except Exception as visual_error:
+            self.logger.warning(
+                "Gemini visual analysis failed for %s: %s",
                 project_id,
-                apollo_error,
+                visual_error,
             )
-            try:
-                if media_type == "image":
-                    apollo_result = await self.gemini_client.analyze_image(media_path)
-                    video_note = "Gemini による静止画解析を使用しました。"
-                else:
-                    apollo_result = await self.gemini_client.analyze_video_segments(media_path)
-                    video_note = "Apollo 分析が利用できなかったため Gemini によるシーン解析を使用しました。"
-            except Exception as gemini_error:
-                self.logger.warning(
-                    "Gemini visual analysis fallback failed for %s: %s",
-                    project_id,
-                    gemini_error,
-                )
-                apollo_result = {
-                    "summary": (
-                        "映像解析を実行できませんでした。API キー設定を確認し再度実行してください。"
-                    ),
-                    "segments": [],
-                    "risk_flags": ["analysis-unavailable"],
-                }
-                video_note = (
-                    "Apollo/Gemini いずれの映像解析にも失敗したため、プレースホルダー結果を返却しました。"
-                )
-        formatted = self._format_video_analysis(apollo_result)
-        if self._is_stub_video_result(apollo_result):
-            self.logger.info(
-                "Apollo returned stub result for %s. Attempting Gemini enhancement.",
-                project_id,
+            video_result = {
+                "summary": (
+                    "映像解析を実行できませんでした。Gemini API キーの設定を確認し再度実行してください。"
+                ),
+                "segments": [],
+                "risk_flags": ["analysis-unavailable"],
+            }
+            video_note = (
+                "Gemini の映像解析に失敗したため、プレースホルダー結果を返却しました。"
             )
-            try:
-                if media_type == "image":
-                    gemini_result = await self.gemini_client.analyze_image(media_path)
-                else:
-                    gemini_result = await self.gemini_client.analyze_video_segments(media_path)
-                apollo_result = gemini_result
-                formatted = self._format_video_analysis(apollo_result)
-                video_note = (
-                    "Apollo から十分な情報が得られなかったため Gemini による解析結果を採用しました。"
-                )
-            except Exception as gemini_error:  # pragma: no cover - fallback path
-                self.logger.warning(
-                    "Gemini enhancement failed for %s: %s", project_id, gemini_error
-                )
-        apollo_path = await self._save_json_file(workspace_dir, "video_analysis.json", apollo_result)
+        formatted = self._format_video_analysis(video_result)
+        if self._is_stub_video_result(video_result):
+            if video_note is None:
+                video_note = "Gemini API キー未設定のためスタブ解析結果を返却しました。"
+            self.logger.info("Visual analysis returned stub result for %s.", project_id)
+        video_path = await self._save_json_file(workspace_dir, "video_analysis.json", video_result)
         await self.store.update_status(
             project_id,
             step,
             formatted,
             data={
-                "raw": apollo_result,
+                "raw": video_result,
                 "formatted": formatted,
-                "file_path": str(apollo_path),
+                "file_path": str(video_path),
                 "note": video_note,
             },
         )
-        return apollo_result, apollo_path, video_note
+        return video_result, video_path, video_note
 
     async def _run_risk(
         self,
@@ -354,10 +321,10 @@ class AnalysisPipeline:
         self,
         transcript: str,
         ocr_text: str,
-        apollo_result: dict,
+        video_result: dict,
         transcript_path: Path,
         ocr_path: Path,
-        apollo_path: Path,
+        video_path: Path,
         risk_path: Path,
         risk_result: dict,
         transcription_source: str,
@@ -369,7 +336,7 @@ class AnalysisPipeline:
 
         transcript_section = self._format_transcript(transcript)
         ocr_section = self._format_ocr_text(ocr_text)
-        video_section = self._format_video_analysis(apollo_result)
+        video_section = self._format_video_analysis(video_result)
 
         ocr_annotations = [
             line.strip()
@@ -410,7 +377,7 @@ class AnalysisPipeline:
             "files": {
                 "transcription": str(transcript_path),
                 "ocr": str(ocr_path),
-                "video_analysis": str(apollo_path),
+                "video_analysis": str(video_path),
                 "risk_assessment": str(risk_path),
             },
             "metadata": metadata,
@@ -425,9 +392,9 @@ class AnalysisPipeline:
         excerpt = ocr_text.strip() or "字幕情報は検出されませんでした。"
         return f"📝 OCR字幕抜粋\n{excerpt}"
 
-    def _format_video_analysis(self, apollo_result: dict) -> str:
-        summary = apollo_result.get("summary") or "映像に関する特記事項はありません。"
-        segments = apollo_result.get("segments") or []
+    def _format_video_analysis(self, video_result: dict) -> str:
+        summary = video_result.get("summary") or "映像に関する特記事項はありません。"
+        segments = video_result.get("segments") or []
         lines = [f"🎬 映像解析レポート\n{summary}"]
         if segments:
             lines.append("\n📋 表現パターングループ")
@@ -442,7 +409,7 @@ class AnalysisPipeline:
                     timecode = shot.get("timecode", "timecode不明")
                     detail = shot.get("description", "")
                     lines.append(f"    - {timecode}: {detail}")
-        risk_flags = apollo_result.get("risk_flags") or []
+        risk_flags = video_result.get("risk_flags") or []
         if risk_flags:
             lines.append("\n⚠️ 注目ポイント")
             for flag in risk_flags:

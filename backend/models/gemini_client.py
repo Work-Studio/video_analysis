@@ -315,7 +315,7 @@ class GeminiClient:
         base_name = video_path.name
         return {
             "summary": (
-                f"[stub] {base_name} の映像解析。Gemini または Apollo の API キーを設定すると"
+                f"[stub] {base_name} の映像解析。Gemini の API キーを設定すると"
                 "実際のカット分析結果が返却されます。"
             ),
             "segments": [
