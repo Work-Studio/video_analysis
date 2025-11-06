@@ -57,15 +57,19 @@ class AnalysisPipeline:
 
             workspace_dir = Path(project.workspace_dir)
 
+            media_type = project.media_type
+
             (
                 transcript,
                 transcript_path,
                 transcript_source,
                 transcript_note,
-            ) = await self._run_transcription(project_id, video_path, workspace_dir)
+            ) = await self._run_transcription(
+                project_id, video_path, workspace_dir, media_type
+            )
             ocr_text, ocr_path, ocr_note = await self._run_ocr(project_id, video_path, workspace_dir)
             apollo_result, apollo_path, video_note = await self._run_apollo(
-                project_id, video_path, workspace_dir
+                project_id, video_path, workspace_dir, media_type
             )
             risk_result, risk_path = await self._run_risk(
                 project_id,
@@ -98,7 +102,7 @@ class AnalysisPipeline:
             raise
 
     async def _run_transcription(
-        self, project_id: str, video_path: Path, workspace_dir: Path
+        self, project_id: str, media_path: Path, workspace_dir: Path, media_type: str
     ) -> tuple[str, Path, str, Optional[str]]:
         """音声文字起こしステップ."""
 
@@ -106,36 +110,50 @@ class AnalysisPipeline:
         await self.store.mark_step_running(project_id, step)
         transcript_source = "whisper"
         transcript_note: Optional[str] = None
-        try:
-            transcript = await self.whisper_client.transcribe_audio(video_path)
-            if transcript.startswith("[stub]"):
-                raise RuntimeError("Whisper returned stub placeholder.")
-        except Exception as whisper_error:
-            self.logger.info(
-                "Whisper transcription unavailable for %s. Falling back to Gemini. (%s)",
-                project_id,
-                whisper_error,
+        if media_type == "image":
+            self.logger.info("Skipping transcription for %s (image asset).", project_id)
+            transcript = ""
+            transcript_source = "skipped"
+            transcript_note = "静止画コンテンツのため音声文字起こしをスキップしました。"
+            formatted = "🗣️ 音声文字起こし\n静止画コンテンツのため音声文字起こしは実施しません。"
+            transcript_path = await self._save_text_file(
+                workspace_dir,
+                "transcription.txt",
+                "静止画コンテンツのため音声文字起こしは実施しません。",
             )
+        else:
             try:
-                transcript = await self.gemini_client.transcribe_audio(video_path)
-                transcript_source = "gemini"
-                transcript_note = "Whisper transcription unavailable; Gemini transcription used."
-            except Exception as gemini_error:
-                self.logger.warning(
-                    "Gemini transcription fallback failed for %s: %s",
+                transcript = await self.whisper_client.transcribe_audio(media_path)
+                if transcript.startswith("[stub]"):
+                    raise RuntimeError("Whisper returned stub placeholder.")
+            except Exception as whisper_error:
+                self.logger.info(
+                    "Whisper transcription unavailable for %s. Falling back to Gemini. (%s)",
                     project_id,
-                    gemini_error,
+                    whisper_error,
                 )
-                transcript = (
-                    "文字起こしを実行できませんでした。音声が確認できないため、"
-                    "再度アップロードや別モデルでの解析を検討してください。"
-                )
-                transcript_source = "fallback"
-                transcript_note = (
-                    "Whisper/Gemini ともに失敗したため、プレースホルダー文章を返却しました。"
-                )
-        formatted = self._format_transcript(transcript)
-        transcript_path = await self._save_text_file(workspace_dir, "transcription.txt", transcript)
+                try:
+                    transcript = await self.gemini_client.transcribe_audio(media_path)
+                    transcript_source = "gemini"
+                    transcript_note = "Whisper transcription unavailable; Gemini transcription used."
+                except Exception as gemini_error:
+                    self.logger.warning(
+                        "Gemini transcription fallback failed for %s: %s",
+                        project_id,
+                        gemini_error,
+                    )
+                    transcript = (
+                        "文字起こしを実行できませんでした。音声が確認できないため、"
+                        "再度アップロードや別モデルでの解析を検討してください。"
+                    )
+                    transcript_source = "fallback"
+                    transcript_note = (
+                        "Whisper/Gemini ともに失敗したため、プレースホルダー文章を返却しました。"
+                    )
+            formatted = self._format_transcript(transcript)
+            transcript_path = await self._save_text_file(
+                workspace_dir, "transcription.txt", transcript or formatted
+            )
         await self.store.update_status(
             project_id,
             step,
@@ -168,6 +186,11 @@ class AnalysisPipeline:
                 "OCR 抽出を実行できませんでした。該当フレームの文字が取得できなかった可能性があります。"
             )
             ocr_note = "Gemini OCR に失敗したため、プレースホルダー文章を返却しました。"
+        annotations = [
+            line.strip()
+            for line in ocr_text.splitlines()
+            if "※" in line
+        ]
         formatted = self._format_ocr_text(ocr_text)
         ocr_path = await self._save_text_file(workspace_dir, "ocr.txt", ocr_text)
         await self.store.update_status(
@@ -179,12 +202,13 @@ class AnalysisPipeline:
                 "formatted": formatted,
                 "file_path": str(ocr_path),
                 "note": ocr_note,
+                "annotations": annotations,
             },
         )
         return ocr_text, ocr_path, ocr_note
 
     async def _run_apollo(
-        self, project_id: str, video_path: Path, workspace_dir: Path
+        self, project_id: str, media_path: Path, workspace_dir: Path, media_type: str
     ) -> tuple[dict, Path, Optional[str]]:
         """映像解析ステップ."""
 
@@ -192,21 +216,29 @@ class AnalysisPipeline:
         await self.store.mark_step_running(project_id, step)
         video_note: Optional[str] = None
         try:
-            if self.apollo_client is None:
-                raise RuntimeError("Apollo client not configured.")
-            apollo_result = await self.apollo_client.analyse_video(video_path)
+            if media_type == "image":
+                apollo_result = await self.gemini_client.analyze_image(media_path)
+                video_note = "静止画コンテンツとして Gemini によるビジュアル解析を実施しました。"
+            else:
+                if self.apollo_client is None:
+                    raise RuntimeError("Apollo client not configured.")
+                apollo_result = await self.apollo_client.analyse_video(media_path)
         except Exception as apollo_error:
             self.logger.info(
-                "Apollo video analysis unavailable for %s. Falling back to Gemini. (%s)",
+                "Primary visual analysis unavailable for %s. Falling back to Gemini. (%s)",
                 project_id,
                 apollo_error,
             )
             try:
-                apollo_result = await self.gemini_client.analyze_video_segments(video_path)
-                video_note = "Apollo 分析が利用できなかったため Gemini によるシーン解析を使用しました。"
+                if media_type == "image":
+                    apollo_result = await self.gemini_client.analyze_image(media_path)
+                    video_note = "Gemini による静止画解析を使用しました。"
+                else:
+                    apollo_result = await self.gemini_client.analyze_video_segments(media_path)
+                    video_note = "Apollo 分析が利用できなかったため Gemini によるシーン解析を使用しました。"
             except Exception as gemini_error:
                 self.logger.warning(
-                    "Gemini video analysis fallback failed for %s: %s",
+                    "Gemini visual analysis fallback failed for %s: %s",
                     project_id,
                     gemini_error,
                 )
@@ -227,7 +259,10 @@ class AnalysisPipeline:
                 project_id,
             )
             try:
-                gemini_result = await self.gemini_client.analyze_video_segments(video_path)
+                if media_type == "image":
+                    gemini_result = await self.gemini_client.analyze_image(media_path)
+                else:
+                    gemini_result = await self.gemini_client.analyze_video_segments(media_path)
                 apollo_result = gemini_result
                 formatted = self._format_video_analysis(apollo_result)
                 video_note = (
@@ -269,20 +304,37 @@ class AnalysisPipeline:
                 ocr_text=ocr_text,
                 video_summary=video_result,
             )
+            risk_result.setdefault("tags", [])
+            burn_risk = self.risk_assessor.calculate_burn_risk(risk_result.get("tags") or [])
+            risk_result["burn_risk"] = burn_risk
         except Exception as exc:  # pragma: no cover
             self.logger.exception("Risk assessment failed for %s", project_id)
             risk_result = {
                 "social": {
                     "grade": "C",
                     "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+                    "findings": [],
                 },
                 "legal": {
-                    "grade": "修正検討",
+                    "grade": "抵触する可能性がある",
                     "reason": "リスク評価に失敗したため暫定評価を返却しています。",
                     "recommendations": "Gemini の設定を確認し、再度実行してください。",
+                    "violations": [],
+                    "findings": [],
                 },
                 "matrix": {"x_axis": "法務評価", "y_axis": "社会的感度", "position": [1, 2]},
                 "note": str(exc),
+                "tags": [
+                    {
+                        "name": tag.get("name", "不明タグ"),
+                        "grade": "C",
+                        "reason": "暫定評価。詳細評価に失敗しました。",
+                        "detected_text": "",
+                        "related_sub_tags": [],
+                    }
+                    for tag in getattr(self.risk_assessor, "tag_structure", [])
+                ],
+                "burn_risk": {"count": 0, "details": []},
             }
         formatted = self._format_risk(risk_result)
         risk_path = await self._save_json_file(workspace_dir, "risk_assessment.json", risk_result)
@@ -319,11 +371,37 @@ class AnalysisPipeline:
         ocr_section = self._format_ocr_text(ocr_text)
         video_section = self._format_video_analysis(apollo_result)
 
+        ocr_annotations = [
+            line.strip()
+            for line in ocr_text.splitlines()
+            if "※" in line
+        ]
+
+        burn_risk = risk_result.get("burn_risk") if isinstance(risk_result, dict) else None
+
         social_grade = risk_result.get("social", {}).get("grade", "N/A")
         legal_grade = risk_result.get("legal", {}).get("grade", "N/A")
 
+        disclaimer = (
+            "*本分析結果は参考用途のみを目的としており、社会的・法的リスクの不存在を保証するものではありません。"
+        )
+
+        metadata: dict[str, object] = {
+            "transcription_source": transcription_source,
+        }
+        if transcription_note:
+            metadata["transcription_note"] = transcription_note
+        if ocr_note:
+            metadata["ocr_note"] = ocr_note
+        if video_note:
+            metadata["video_note"] = video_note
+        if ocr_annotations:
+            metadata["ocr_annotations"] = ocr_annotations
+        if burn_risk:
+            metadata["burn_risk"] = burn_risk
+
         return {
-            "summary": f"分析が完了しました。社会的感度は {social_grade}、法務評価は {legal_grade} です。詳細をご確認ください。",
+            "summary": disclaimer,
             "sections": {
                 "transcription": transcript_section,
                 "ocr": ocr_section,
@@ -335,18 +413,7 @@ class AnalysisPipeline:
                 "video_analysis": str(apollo_path),
                 "risk_assessment": str(risk_path),
             },
-            "metadata": {
-                **{
-                    "transcription_source": transcription_source,
-                },
-                **(
-                    {"transcription_note": transcription_note}
-                    if transcription_note
-                    else {}
-                ),
-                **({"ocr_note": ocr_note} if ocr_note else {}),
-                **({"video_note": video_note} if video_note else {}),
-            },
+            "metadata": metadata,
             "risk": risk_result,
         }
 
@@ -391,12 +458,51 @@ class AnalysisPipeline:
             f"社会的感度: {social.get('grade', 'N/A')} - {social.get('reason', '')}",
             f"法務評価: {legal.get('grade', 'N/A')} - {legal.get('reason', '')}",
         ]
+        social_findings = social.get("findings") or []
+        if social_findings:
+            lines.append("  ・社会的感度指摘:")
+            for finding in social_findings[:5]:
+                lines.append(
+                    f"    - {finding.get('timecode', 'N/A')}: {finding.get('detail', '')}"
+                )
         recommendations = legal.get("recommendations")
         if recommendations:
             lines.append(f"改善提案: {recommendations}")
+        legal_findings = legal.get("findings") or []
+        if legal_findings:
+            lines.append("  ・法務指摘:")
+            for finding in legal_findings[:5]:
+                lines.append(
+                    f"    - {finding.get('timecode', 'N/A')}: {finding.get('detail', '')}"
+                )
+        violations = legal.get("violations") or []
+        if violations:
+            lines.append("  ・想定される抵触表現:")
+            for violation in violations[:5]:
+                reference = violation.get("reference")
+                expression = violation.get("expression", "")
+                severity = violation.get("severity")
+                detail = expression
+                if severity:
+                    detail = f"[{severity}] {detail}"
+                if reference:
+                    detail = f"{reference}: {detail}"
+                lines.append(f"    - {detail}")
+        burn_risk = risk_result.get("burn_risk") or {}
+        if burn_risk.get("count"):
+            lines.append(
+                f"炎上補正: {burn_risk.get('grade', 'N/A')} ({burn_risk.get('label', '')}) 平均リスク {burn_risk.get('average', 'N/A')}"
+            )
         position = matrix.get("position")
         if position:
             lines.append(f"ポジション: X={position[0]} / Y={position[1]}")
+        tags = risk_result.get("tags") or []
+        if tags:
+            lines.append("\n🧩 タグ別評価")
+            for tag in tags[:5]:
+                lines.append(
+                    f"- {tag.get('name', '不明')}: {tag.get('grade', 'N/A')} / {tag.get('reason', '')}"
+                )
         return "\n".join(lines)
 
     @staticmethod
@@ -405,7 +511,9 @@ class AnalysisPipeline:
         risk_flags = result.get("risk_flags") or []
         if isinstance(summary, str) and summary.startswith("[stub]"):
             return True
-        return "insight-unavailable" in risk_flags
+        return any(
+            flag in {"insight-unavailable", "analysis-unavailable"} for flag in risk_flags
+        )
 
     async def _save_text_file(self, workspace_dir: Path, filename: str, content: str) -> Path:
         """テキスト結果を uploads ディレクトリに保存."""

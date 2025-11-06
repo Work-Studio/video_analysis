@@ -48,6 +48,10 @@ async def test_project_pipeline_flow() -> None:
         assert status_payload["status"] == "completed"
         assert status_payload["analysis_progress"] == pytest.approx(1.0)
         assert len(status_payload["steps"]) == 4
+        assert status_payload["analysis_started_at"] is not None
+        assert status_payload["analysis_completed_at"] is not None
+        assert status_payload["analysis_duration_seconds"] is not None
+        assert status_payload["analysis_duration_seconds"] >= 0
 
         report_resp = await client.get(f"/projects/{project_id}/report")
         assert report_resp.status_code == 200
@@ -71,3 +75,10 @@ async def test_project_pipeline_flow() -> None:
         assert "social" in risk
         assert "legal" in risk
         assert "matrix" in risk
+
+    # 後片付け: テストで作成したワークスペースを削除
+    workspace_dir = transcription_path.parent
+    if workspace_dir.exists():
+        import shutil
+
+        shutil.rmtree(workspace_dir, ignore_errors=True)

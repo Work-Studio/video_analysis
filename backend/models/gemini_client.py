@@ -48,8 +48,9 @@ class GeminiClient:
             payload_json = await self._invoke_gemini(
                 video_path,
                 instruction=(
-                    "以下のコンテンツからテロップや字幕、画面上の注釈と思われるテキストを抽出し、"
-                    "時間情報が不明でも構わないので箇条書きで要約してください。"
+                    "以下の動画または画像から画面内に表示されるテキストを漏れなく抽出してください。"
+                    "タイトルや大きなテロップはもちろん、画面隅に表示される小さな注釈・脚注・免責事項・括弧内の補足・注釈番号(※)なども省略せずに含めてください。"
+                    "改行を使って1行ずつ箇条書きで出力し、テキストが短くてもそのまま記載してください。"
                 ),
             )
         except GeminiAPIError as exc:
@@ -139,6 +140,65 @@ class GeminiClient:
 
         raise RuntimeError("Gemini API から映像解析結果を JSON 形式で取得できませんでした。")
 
+    async def analyze_image(self, image_path: Path) -> dict:
+        """静止画コンテンツの構図とリスク要素を分析する."""
+
+        if not self.api_key:
+            return {
+                "summary": (
+                    f"[stub] {image_path.name} の静止画解析結果。Gemini API を設定すると"
+                    "構図や表現リスクに関する詳細な洞察が得られます。"
+                ),
+                "segments": [
+                    {
+                        "label": "静止画全体",
+                        "description": "API キー未設定のため詳細解析は行われていません。",
+                        "shots": [
+                            {"timecode": "静止画", "description": "画像全景"},
+                        ],
+                    }
+                ],
+                "risk_flags": ["analysis-unavailable"],
+            }
+
+        instruction = (
+            "提供された画像の構図・被写体・背景要素を分析し、"
+            "社会的感度や法務リスクにつながり得る表現を特定してください。"
+            "JSON 形式で以下の構造に従って返答してください:\n"
+            "{"
+            '"summary": "<全体要約>",' 
+            '"segments": ['
+            '{"label": "<注目領域>", "description": "<特徴説明>", '
+            '"shots": [{"timecode": "静止画", "description": "<詳細>"}]}'
+            "]"
+            "}\n"
+            "timecode には静止画である旨を必ず明記してください。"
+        )
+
+        try:
+            payload_json = await self._invoke_gemini(
+                image_path,
+                instruction=instruction,
+                response_mime_type="application/json",
+            )
+        except GeminiAPIError as exc:
+            raise RuntimeError(f"Gemini image analysis failed: {exc}") from exc
+
+        candidates = payload_json.get("candidates") or []
+        for candidate in candidates:
+            content = candidate.get("content") or {}
+            parts = content.get("parts") or []
+            for part in parts:
+                text = part.get("text")
+                if not text:
+                    continue
+                try:
+                    return json.loads(text)
+                except json.JSONDecodeError:
+                    continue
+
+        raise RuntimeError("Gemini API から静止画解析結果を JSON 形式で取得できませんでした。")
+
     async def generate_structured_judgement(self, instruction: str, content: str) -> dict:
         """テキストのみを対象に JSON 形式の回答を生成する."""
 
@@ -149,11 +209,13 @@ class GeminiClient:
                     "reason": "[stub] API キー未設定のためダミー評価です。",
                 },
                 "legal": {
-                    "grade": "修正検討",
+                    "grade": "抵触する可能性がある",
                     "reason": "[stub] API キー未設定のためダミー評価です。",
                     "recommendations": "API キーを設定し、再度評価を実行してください。",
+                    "violations": [],
                 },
                 "matrix": {"x_axis": "legal", "y_axis": "social", "position": [1, 2]},
+                "tags": [],
             }
 
         payload = {

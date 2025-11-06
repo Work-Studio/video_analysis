@@ -7,7 +7,7 @@ import copy
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 PROJECT_STEPS = ["音声文字起こし", "OCR字幕抽出", "映像解析", "リスク統合"]
 
@@ -28,6 +28,7 @@ class Project:
     file_name: str
     workspace_dir: Path
     model: str
+    media_type: str = "video"
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     status: str = "created"
     analysis_progress: float = 0.0
@@ -37,6 +38,9 @@ class Project:
     final_report: Optional[Dict[str, Any]] = None
     analysis_started: bool = False
     last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
+    analysis_started_at: Optional[datetime] = None
+    analysis_completed_at: Optional[datetime] = None
+    analysis_duration_seconds: Optional[float] = None
 
 
 class ProjectNotFoundError(KeyError):
@@ -65,6 +69,7 @@ class ProjectStore:
         file_name: str,
         workspace_dir: Path,
         model: str,
+        media_type: str,
     ) -> Project:
         """新規プロジェクトを登録する."""
 
@@ -77,6 +82,7 @@ class ProjectStore:
             file_name=file_name,
             workspace_dir=workspace_dir,
             model=model,
+            media_type=media_type,
         )
         project.logs.append("プロジェクト作成")
 
@@ -103,10 +109,14 @@ class ProjectStore:
             if project.analysis_started and project.status == "analyzing":
                 raise PipelineAlreadyRunningError(project_id)
 
+            now = datetime.now(UTC)
             project.analysis_started = True
             project.status = "analyzing"
+            project.analysis_started_at = now
+            project.analysis_completed_at = None
+            project.analysis_duration_seconds = None
             project.logs.append("分析パイプライン開始")
-            project.last_updated = datetime.now(UTC)
+            project.last_updated = now
             self._db[project_id] = project
             return copy.deepcopy(project)
 
@@ -164,11 +174,18 @@ class ProjectStore:
             if project is None:
                 raise ProjectNotFoundError(project_id)
 
+            completed_at = datetime.now(UTC)
             project.status = "completed"
             project.analysis_progress = 1.0
             project.final_report = final_report
             project.logs.append("分析パイプライン完了")
-            project.last_updated = datetime.now(UTC)
+            project.analysis_completed_at = completed_at
+            if project.analysis_started_at:
+                duration = (completed_at - project.analysis_started_at).total_seconds()
+                project.analysis_duration_seconds = max(duration, 0.0)
+            else:
+                project.analysis_duration_seconds = None
+            project.last_updated = completed_at
             self._db[project_id] = project
             return copy.deepcopy(project)
 
@@ -190,11 +207,24 @@ class ProjectStore:
             if project is None:
                 raise ProjectNotFoundError(project_id)
 
+            now = datetime.now(UTC)
             project.status = "failed"
             project.logs.append(f"分析パイプライン失敗: {reason}")
-            project.last_updated = datetime.now(UTC)
+            project.analysis_completed_at = now
+            if project.analysis_started_at:
+                duration = (now - project.analysis_started_at).total_seconds()
+                project.analysis_duration_seconds = max(duration, 0.0)
+            project.last_updated = now
             self._db[project_id] = project
             return copy.deepcopy(project)
+
+    async def list_projects(self) -> List[Project]:
+        """全プロジェクトを最新更新日時順に取得."""
+
+        async with self._lock:
+            projects = list(self._db.values())
+        projects.sort(key=lambda proj: proj.last_updated, reverse=True)
+        return [copy.deepcopy(project) for project in projects]
 
     def _calculate_progress(self, project: Project) -> float:
         completed = sum(1 for status in project.step_status.values() if status == "completed")

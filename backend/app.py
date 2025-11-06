@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import re
 import uuid
 from pathlib import Path
+from typing import List
 
 import aiofiles
 from fastapi import (
@@ -16,6 +16,7 @@ from fastapi import (
     UploadFile,
 )
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from backend.models.apollo_client import ApolloClient
 from backend.models.gemini_client import GeminiClient
@@ -25,11 +26,14 @@ from backend.pipeline import AnalysisPipeline
 from backend.schemas.project_schema import (
     ProjectCreatedResponse,
     ProjectReportResponse,
+    ProjectSummary,
     ProjectStatusResponse,
     build_created_response,
+    build_project_summaries,
     build_report_response,
     build_status_response,
 )
+from backend.utils.media_utils import detect_media_type, guess_mime_type
 from backend.store import (
     PipelineAlreadyRunningError,
     ProjectNotFoundError,
@@ -64,6 +68,7 @@ risk_assessor = RiskAssessor(
     social_case_path=SOCIAL_CASE_PATH,
     social_tag_path=SOCIAL_TAG_PATH,
     legal_reference_path=LEGAL_REFERENCE_PATH,
+    tag_list_path=SOCIAL_TAG_PATH,
 )
 analysis_pipeline = AnalysisPipeline(
     store=store,
@@ -72,6 +77,20 @@ analysis_pipeline = AnalysisPipeline(
     apollo_client=apollo_client,
     risk_assessor=risk_assessor,
 )
+
+
+def _sanitize_component(value: str, default: str) -> str:
+    """ファイル名の安全なコンポーネントを生成する（日本語保持）."""
+
+    sanitized = (value or "").strip()
+    if not sanitized:
+        return default
+    forbidden = set('<>:"\\|?*')
+    sanitized = "".join("_" if ch in forbidden else ch for ch in sanitized)
+    sanitized = sanitized.replace("/", "_")
+    sanitized = sanitized.replace("\0", "")
+    sanitized = sanitized[:120]
+    return sanitized or default
 
 
 @app.post("/projects", response_model=ProjectCreatedResponse)
@@ -88,13 +107,22 @@ async def create_project(
         raise HTTPException(status_code=400, detail="動画ファイルが指定されていません。")
 
     project_id = uuid.uuid4().hex
-    safe_company = re.sub(r"[^A-Za-z0-9._-]+", "_", company_name.strip()) or "company"
-    safe_product = re.sub(r"[^A-Za-z0-9._-]+", "_", product_name.strip()) or "product"
-    safe_title = re.sub(r"[^A-Za-z0-9._-]+", "_", title.strip()) or "project"
-    project_dir = UPLOAD_DIR / f"{project_id}_{safe_company}_{safe_product}_{safe_title}"
+    safe_company = _sanitize_component(company_name, "company")
+    safe_product = _sanitize_component(product_name, "product")
+    safe_title = _sanitize_component(title, "project")
+    base_folder_name = "_".join(
+        filter(None, [safe_company, safe_product, safe_title])
+    ) or project_id
+    project_dir = UPLOAD_DIR / base_folder_name
+    suffix = 1
+    while project_dir.exists():
+        candidate_name = f"{base_folder_name}_{suffix:02d}"
+        project_dir = UPLOAD_DIR / candidate_name
+        suffix += 1
     project_dir.mkdir(parents=True, exist_ok=True)
     sanitized_name = video_file.filename.replace("/", "_")
     output_path = project_dir / sanitized_name
+    media_type = detect_media_type(video_file.content_type, sanitized_name)
 
     # 動画ファイルを非同期で保存
     async with aiofiles.open(output_path, "wb") as out_file:
@@ -110,9 +138,38 @@ async def create_project(
         file_name=sanitized_name,
         workspace_dir=project_dir,
         model=model,
+        media_type=media_type,
     )
 
     return build_created_response(project)
+
+
+@app.get("/projects", response_model=List[ProjectSummary])
+async def list_projects() -> List[ProjectSummary]:
+    """分析済みプロジェクトの一覧を取得."""
+
+    projects = await store.list_projects()
+    return build_project_summaries(projects)
+
+
+@app.get("/projects/{project_id}/media")
+async def get_project_media(project_id: str) -> FileResponse:
+    """プロジェクトの元メディアを返却."""
+
+    try:
+        project = await store.get_project(project_id)
+    except ProjectNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="プロジェクトが存在しません。") from exc
+
+    media_path = project.video_path
+    if not media_path.exists():
+        raise HTTPException(status_code=404, detail="メディアファイルが存在しません。")
+
+    return FileResponse(
+        media_path,
+        media_type=guess_mime_type(media_path),
+        filename=media_path.name,
+    )
 
 
 @app.post("/projects/{project_id}/analyze")
