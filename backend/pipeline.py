@@ -8,7 +8,6 @@ import aiofiles
 
 from backend.models.gemini_client import GeminiClient
 from backend.models.risk_assessor import RiskAssessor
-from backend.models.whisper_client import WhisperClient
 from backend.store import (
     PROJECT_STEPS,
     PipelineAlreadyRunningError,
@@ -25,13 +24,11 @@ class AnalysisPipeline:
         self,
         *,
         store: ProjectStore,
-        whisper_client: WhisperClient,
         gemini_client: GeminiClient,
         risk_assessor: RiskAssessor,
         logger_name: str = "analysis_pipeline",
     ) -> None:
         self.store = store
-        self.whisper_client = whisper_client
         self.gemini_client = gemini_client
         self.risk_assessor = risk_assessor
         self.logger = setup_logger(logger_name)
@@ -105,7 +102,7 @@ class AnalysisPipeline:
 
         step = PROJECT_STEPS[0]
         await self.store.mark_step_running(project_id, step)
-        transcript_source = "whisper"
+        transcript_source = "gemini"
         transcript_note: Optional[str] = None
         if media_type == "image":
             self.logger.info("Skipping transcription for %s (image asset).", project_id)
@@ -120,33 +117,21 @@ class AnalysisPipeline:
             )
         else:
             try:
-                transcript = await self.whisper_client.transcribe_audio(media_path)
-                if transcript.startswith("[stub]"):
-                    raise RuntimeError("Whisper returned stub placeholder.")
-            except Exception as whisper_error:
-                self.logger.info(
-                    "Whisper transcription unavailable for %s. Falling back to Gemini. (%s)",
+                transcript = await self.gemini_client.transcribe_audio(media_path)
+            except Exception as gemini_error:
+                self.logger.warning(
+                    "Gemini transcription failed for %s: %s",
                     project_id,
-                    whisper_error,
+                    gemini_error,
                 )
-                try:
-                    transcript = await self.gemini_client.transcribe_audio(media_path)
-                    transcript_source = "gemini"
-                    transcript_note = "Whisper transcription unavailable; Gemini transcription used."
-                except Exception as gemini_error:
-                    self.logger.warning(
-                        "Gemini transcription fallback failed for %s: %s",
-                        project_id,
-                        gemini_error,
-                    )
-                    transcript = (
-                        "文字起こしを実行できませんでした。音声が確認できないため、"
-                        "再度アップロードや別モデルでの解析を検討してください。"
-                    )
-                    transcript_source = "fallback"
-                    transcript_note = (
-                        "Whisper/Gemini ともに失敗したため、プレースホルダー文章を返却しました。"
-                    )
+                transcript = (
+                    "文字起こしを実行できませんでした。音声が確認できないため、"
+                    "再度アップロードや別モデルでの解析を検討してください。"
+                )
+                transcript_source = "fallback"
+                transcript_note = (
+                    "Gemini での文字起こしに失敗したため、プレースホルダー文章を返却しました。"
+                )
             formatted = self._format_transcript(transcript)
             transcript_path = await self._save_text_file(
                 workspace_dir, "transcription.txt", transcript or formatted
@@ -291,16 +276,7 @@ class AnalysisPipeline:
                 },
                 "matrix": {"x_axis": "法務評価", "y_axis": "社会的感度", "position": [1, 2]},
                 "note": str(exc),
-                "tags": [
-                    {
-                        "name": tag.get("name", "不明タグ"),
-                        "grade": "C",
-                        "reason": "暫定評価。詳細評価に失敗しました。",
-                        "detected_text": "",
-                        "related_sub_tags": [],
-                    }
-                    for tag in getattr(self.risk_assessor, "tag_structure", [])
-                ],
+                "tags": [],
                 "burn_risk": {"count": 0, "details": []},
             }
         formatted = self._format_risk(risk_result)

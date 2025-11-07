@@ -18,9 +18,10 @@ from fastapi import (
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
+from dotenv import load_dotenv
+
 from backend.models.gemini_client import GeminiClient
 from backend.models.risk_assessor import RiskAssessor
-from backend.models.whisper_client import WhisperClient
 from backend.pipeline import AnalysisPipeline
 from backend.schemas.project_schema import (
     ProjectCreatedResponse,
@@ -58,8 +59,10 @@ SOCIAL_CASE_PATH = REFERENCE_ROOT / "炎上" / "viral list" / "炎上事例.xlsx
 SOCIAL_TAG_PATH = REFERENCE_ROOT / "炎上" / "tag_list" / "タグリスト.xlsx"
 LEGAL_REFERENCE_PATH = REFERENCE_ROOT / "law" / "JAL　法律リスト.xlsx"
 
+load_dotenv(BASE_DIR / ".env", override=True)
+load_dotenv(BASE_DIR.parent / ".env", override=True)
+
 store = ProjectStore()
-whisper_client = WhisperClient()
 gemini_client = GeminiClient()
 risk_assessor = RiskAssessor(
     gemini_client,
@@ -70,7 +73,6 @@ risk_assessor = RiskAssessor(
 )
 analysis_pipeline = AnalysisPipeline(
     store=store,
-    whisper_client=whisper_client,
     gemini_client=gemini_client,
     risk_assessor=risk_assessor,
 )
