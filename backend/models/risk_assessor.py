@@ -150,42 +150,29 @@ class RiskAssessor:
             legal["findings"] = _normalize_findings(legal.get("findings"))
         tags = response.get("tags")
         if isinstance(tags, list):
+            filtered_tags: List[dict] = []
             for tag in tags:
-                if isinstance(tag, dict):
-                    tag.setdefault("detected_text", "")
-                    tag.setdefault("related_sub_tags", [])
-                    tag_name = str(tag.get("name", ""))
-                    if tag_name:
-                        tag["risk_level"] = self.tag_risk_map.get(tag_name)
-                    sub_tags = tag.get("related_sub_tags")
-                    if isinstance(sub_tags, list):
-                        for sub_tag in sub_tags:
-                            if isinstance(sub_tag, dict):
-                                sub_tag.setdefault("detected_text", "")
-                                sub_name = str(sub_tag.get("name", ""))
-                                if sub_name:
-                                    sub_tag["risk_level"] = self.tag_risk_map.get(sub_name)
-            if not tags:
-                tags.extend(
-                    {
-                        "name": item.get("name", "不明タグ"),
-                        "grade": "C",
-                        "reason": item.get("definition", "リスク評価の詳細が取得できませんでした。"),
-                        "detected_text": "",
-                        "risk_level": item.get("risk"),
-                        "related_sub_tags": [
-                            {
-                                "name": sub.get("name", "サブタグ"),
-                                "grade": "C",
-                                "reason": sub.get("definition", "") or "該当サブタグの概要",
-                                "detected_text": "",
-                                "risk_level": sub.get("risk"),
-                            }
-                            for sub in item.get("sub_tags", [])[:3]
-                        ],
-                    }
-                    for item in self.tag_structure
-                )
+                if not isinstance(tag, dict):
+                    continue
+                tag.setdefault("detected_text", "")
+                tag.setdefault("related_sub_tags", [])
+                tag_name = str(tag.get("name", ""))
+                if tag_name:
+                    tag["risk_level"] = self.tag_risk_map.get(tag_name)
+                sub_tags = tag.get("related_sub_tags")
+                if isinstance(sub_tags, list):
+                    normalized_subs: List[dict] = []
+                    for sub_tag in sub_tags:
+                        if not isinstance(sub_tag, dict):
+                            continue
+                        sub_tag.setdefault("detected_text", "")
+                        sub_name = str(sub_tag.get("name", ""))
+                        if sub_name:
+                            sub_tag["risk_level"] = self.tag_risk_map.get(sub_name)
+                        normalized_subs.append(sub_tag)
+                    tag["related_sub_tags"] = normalized_subs
+                filtered_tags.append(tag)
+            response["tags"] = filtered_tags
         else:
             response["tags"] = []
         return response
