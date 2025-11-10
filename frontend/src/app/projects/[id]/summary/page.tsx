@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import useSWR from "swr";
 
@@ -789,11 +790,16 @@ export function MediaPreview({
 }) {
   if (mediaType === "image") {
     return (
-      <img
-        src={src}
-        alt="アップロードされた画像"
-        className="max-h-[420px] w-full object-contain"
-      />
+      <div className="relative h-[420px] w-full">
+        <Image
+          src={src}
+          alt="アップロードされた画像"
+          fill
+          unoptimized
+          className="object-contain"
+          sizes="(max-width: 768px) 100vw, 640px"
+        />
+      </div>
     );
   }
   return (
@@ -843,9 +849,10 @@ export function PrintableSummary({
     [legalGrade, socialGrade]
   );
 
-  const tagAssessments = Array.isArray(report.final_report.risk.tags)
-    ? report.final_report.risk.tags
-    : [];
+  const tagAssessments = useMemo(() => {
+    const tags = report.final_report.risk.tags;
+    return Array.isArray(tags) ? tags : [];
+  }, [report.final_report.risk.tags]);
   const socialFindings = Array.isArray(report.final_report.risk.social.findings)
     ? report.final_report.risk.social.findings
     : [];

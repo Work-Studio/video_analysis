@@ -4,9 +4,9 @@ FastAPI バックエンドが提供する REST API の概要と主要エンド�
 
 ## OpenAPI 定義の取得
 1. バックエンドを起動: `uvicorn backend.app:app --reload`
-2. ブラウザまたは `curl` で `http://localhost:8000/openapi.json` にアクセス
-3. ファイルとして保存したい場合: `curl http://localhost:8000/openapi.json -o docs/openapi.json`
-4. Swagger UI (`/docs`) と Redoc (`/redoc`) も同じサーバで利用できます
+2. `python3 scripts/export_openapi.py` を実行すると `docs/openapi.json` が自動生成されます
+   - もしくは `curl http://localhost:8000/openapi.json -o docs/openapi.json` でも取得可能
+3. Swagger UI (`/docs`) と Redoc (`/redoc`) も同じサーバで利用できます
 
 ## ベース URL と共通設定
 | 環境 | ベース URL | 備考 |
