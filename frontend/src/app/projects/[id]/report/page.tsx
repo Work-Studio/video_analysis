@@ -9,7 +9,7 @@ import {
   fetchProjectReport,
   ProjectReportResponse
 } from "@/lib/apiClient";
-import { PrintableSummary, MediaPreview } from "../summary/page";
+import { PrintableSummary, MediaPreview } from "../summary/shared";
 
 interface ReportPageProps {
   params: {

@@ -1,1 +1,3 @@
-[]
+[
+  "tests/test_risk_assessor.py::test_calculate_burn_risk_enriches_details"
+]

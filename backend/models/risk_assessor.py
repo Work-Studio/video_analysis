@@ -328,40 +328,75 @@ class RiskAssessor:
         risk_entries: List[Dict[str, object]] = []
         seen: set[str] = set()
 
-        def _register(name: Optional[str], risk: Optional[int], entry_type: str) -> None:
-            if not name or risk is None:
+        def _clean_text(value: object) -> Optional[str]:
+            if value is None:
+                return None
+            text = str(value).strip()
+            return text or None
+
+        def _register(
+            *,
+            name: Optional[str],
+            risk: Optional[int],
+            entry_type: str,
+            detected_text: Optional[str] = None,
+            reason: Optional[str] = None,
+            parent_tag: Optional[str] = None,
+        ) -> None:
+            if risk is None:
                 return
-            key = f"{entry_type}:{name}"
+            display_name = _clean_text(name)
+            if not display_name:
+                display_name = f"{entry_type.upper()}_{len(risk_entries) + 1}"
+            key = f"{entry_type}:{display_name}"
             if key in seen:
                 return
             seen.add(key)
             risk_entries.append(
                 {
-                    "name": name,
+                    "name": display_name,
                     "risk": risk,
                     "label": self._risk_label(float(risk)),
                     "type": entry_type,
+                    "detected_text": _clean_text(detected_text),
+                    "reason": _clean_text(reason),
+                    "parent_tag": _clean_text(parent_tag) if entry_type == "subtag" else None,
                 }
             )
 
         for tag in tags:
             if not isinstance(tag, dict):
                 continue
-            tag_name = tag.get("name")
+            raw_tag_name = tag.get("name")
+            tag_name = _clean_text(raw_tag_name)
             tag_risk = tag.get("risk_level")
             if tag_risk is None:
                 tag_risk = self.tag_risk_map.get(str(tag_name)) if tag_name else None
-            _register(str(tag_name) if tag_name else None, tag_risk, "tag")
+            _register(
+                name=tag_name,
+                risk=tag_risk,
+                entry_type="tag",
+                detected_text=_clean_text(tag.get("detected_text")),
+                reason=_clean_text(tag.get("reason")),
+            )
             sub_tags = tag.get("related_sub_tags")
             if isinstance(sub_tags, list):
                 for sub in sub_tags:
                     if not isinstance(sub, dict):
                         continue
-                    sub_name = sub.get("name")
+                    sub_name = _clean_text(sub.get("name"))
                     sub_risk = sub.get("risk_level")
                     if sub_risk is None:
                         sub_risk = self.tag_risk_map.get(str(sub_name)) if sub_name else None
-                    _register(str(sub_name) if sub_name else None, sub_risk, "subtag")
+                    _register(
+                        name=sub_name,
+                        risk=sub_risk,
+                        entry_type="subtag",
+                        detected_text=_clean_text(sub.get("detected_text"))
+                        or _clean_text(tag.get("detected_text")),
+                        reason=_clean_text(sub.get("reason")) or _clean_text(tag.get("reason")),
+                        parent_tag=tag_name,
+                    )
 
         if not risk_entries:
             return {"count": 0, "details": []}

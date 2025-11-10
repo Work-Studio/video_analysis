@@ -5,20 +5,13 @@ import Link from "next/link";
 import useSWR from "swr";
 
 import ProgressPanel from "@/components/ProgressPanel";
-import PreviewPane from "@/components/PreviewPane";
 import {
   API_BASE_URL,
   fetchAnalysisStatus,
   fetchProjectReport,
   ProjectReportResponse,
 } from "@/lib/apiClient";
-import {
-  formatSecondsHuman,
-  MediaPreview,
-  MatrixView,
-  PrintableSummary,
-  normalizeMatrixPosition,
-} from "./shared";
+import { formatSecondsHuman, MediaPreview, PrintableSummary } from "./shared";
 
 interface SummaryPageClientProps {
   params: {
@@ -196,11 +189,19 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
   return (
     <main className="min-h-screen bg-[#0b1120] text-gray-100">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 pb-20 pt-10">
+        <div className="flex flex-col gap-2 text-xs text-indigo-200 sm:flex-row sm:items-center sm:justify-between">
+          <Link
+            href="/projects"
+            className="inline-flex items-center gap-2 rounded-full border border-indigo-500 px-3 py-1 font-semibold text-indigo-200 transition hover:bg-indigo-500/20"
+          >
+            ← ホームに戻る
+          </Link>
+          <span className="text-slate-400">Project ID: {data.id}</span>
+        </div>
         <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-300">Creative Guard</p>
             <h1 className="mt-2 text-4xl font-bold text-white">プロジェクト解析サマリー</h1>
-            <p className="mt-2 text-sm text-indigo-200">プロジェクトID: {data.id}</p>
             <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-indigo-100 md:grid-cols-4">
               <div>
                 <p className="text-indigo-300">メディア種別</p>
@@ -299,14 +300,6 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
         </section>
 
         <section className="rounded-2xl border border-indigo-900/40 bg-slate-900/40 p-6 shadow-xl">
-          <h2 className="text-lg font-semibold text-white">プレビュー表示</h2>
-          <p className="mt-2 text-xs text-indigo-200">分析結果に基づく整形済みプレビューを確認できます。</p>
-          <div className="mt-4 overflow-hidden rounded-xl border border-indigo-900/40 bg-slate-950">
-            <PreviewPane steps={data.steps} />
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-indigo-900/40 bg-slate-900/40 p-6 shadow-xl">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 className="text-lg font-semibold text-white">レポート</h2>
@@ -400,20 +393,6 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
                   />
                 </div>
 
-                <section className="rounded-lg border border-indigo-900/30 bg-slate-900/40 p-4">
-                  <h3 className="text-sm font-semibold text-indigo-200">リスクマトリクス</h3>
-                  <div className="mt-3 overflow-hidden rounded-lg border border-indigo-900/30 bg-slate-950 p-3">
-                    <MatrixView
-                      xLabel={report.final_report.risk.matrix.x_axis}
-                      yLabel={report.final_report.risk.matrix.y_axis}
-                      position={normalizeMatrixPosition(
-                        report.final_report.risk.matrix.position,
-                        report.final_report.risk.legal.grade,
-                        report.final_report.risk.social.grade,
-                      )}
-                    />
-                  </div>
-                </section>
               </div>
             )}
           </div>

@@ -19,9 +19,11 @@ export default function PreviewPane({ steps }: PreviewPaneProps) {
           <summary className="cursor-pointer text-sm font-semibold text-gray-200">
             {step.name}
           </summary>
-          <pre className="mt-2 whitespace-pre-wrap text-xs text-gray-300">
-            {step.payload?.preview || "処理中..."}
-          </pre>
+          <div className="mt-2 max-h-[65vh] overflow-auto rounded bg-gray-950/40 p-3 text-xs text-gray-100">
+            <pre className="whitespace-pre-wrap text-[13px] leading-relaxed">
+              {step.payload?.preview || "処理中..."}
+            </pre>
+          </div>
         </details>
       ))}
     </div>

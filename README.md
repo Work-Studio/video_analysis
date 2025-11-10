@@ -57,6 +57,19 @@ cp .env.example backend/.env
 1. バックエンド: `http://localhost:8000/docs` で FastAPI のドキュメントが開けること。
 2. フロントエンド: `http://localhost:3000` にアクセスし、動画アップロード → ステータス確認 → レポート表示のフローを試す。
 
+## Docker での起動
+ローカル環境を汚さずに動かしたい場合は Docker Compose を利用できます。
+
+1. `.env` に Gemini/OpenAI などのキーを設定する（`cp .env.example .env` から編集）
+2. Docker Desktop などコンテナランタイムを用意
+3. ルートで以下を実行
+   ```bash
+   docker compose up --build
+   ```
+4. フロントエンド: `http://localhost:3000`、バックエンド: `http://localhost:8000`
+
+`backend/uploads` はホストと共有されるため、アップロードしたファイルはコンテナ停止後も保持されます。`reference` ディレクトリも読み取り専用でマウントされるので、Excel などの参照データを更新したい場合はホスト側でファイルを置き換えてください。
+
 ## コミット運用のヒント
 - README や `.env.example` のような共有情報を最初にコミットし、次に API や UI の小さな変更を積み上げるとレビューしやすくなります。
 - `pytest` と `npm run lint`/`npm run typecheck` を変更単位で流し、ローカルと共有環境で挙動を揃えてください。

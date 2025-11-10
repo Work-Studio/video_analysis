@@ -23,6 +23,8 @@ type StatusProfile = {
 
 type NormalizedLegal = "適切" | "修正検討" | "要修正";
 type SocialGrade = "A" | "B" | "C" | "D" | "E";
+type RiskTagItem = NonNullable<ProjectReportResponse["final_report"]["risk"]["tags"]>[number];
+type RelatedSubTag = NonNullable<RiskTagItem["related_sub_tags"]>[number];
 
 const LEGAL_STATUS_BRIDGE = {
   抵触していない: "適切",
@@ -152,8 +154,8 @@ const DEFAULT_STATUS_PROFILE: StatusProfile = {
   matrixText: "text-white"
 };
 
-export const MATRIX_X_LABELS = ["抵触していない", "抵触する可能性がある", "抵触している"] as const;
-export const MATRIX_Y_LABELS = ["E", "D", "C", "B", "A"] as const;
+const MATRIX_X_LABELS = ["抵触していない", "抵触する可能性がある", "抵触している"] as const;
+const MATRIX_Y_LABELS = ["E", "D", "C", "B", "A"] as const;
 
 const EVAL_MAP = {
   A: {
@@ -270,29 +272,6 @@ function getStatusProfile(legalGrade: string, socialGrade: string): StatusProfil
   return DEFAULT_STATUS_PROFILE;
 }
 
-export function normalizeMatrixPosition(
-  rawPosition: number[] | undefined,
-  legalGrade: string,
-  socialGrade: string
-): number[] {
-  const xIndex = MATRIX_X_LABELS.indexOf(legalGrade as (typeof MATRIX_X_LABELS)[number]);
-  const yIndex = MATRIX_Y_LABELS.indexOf(socialGrade as (typeof MATRIX_Y_LABELS)[number]);
-
-  const position = Array.isArray(rawPosition) && rawPosition.length === 2
-    ? [...rawPosition]
-    : [Math.max(xIndex, 0), Math.max(yIndex, 0)];
-
-  if (xIndex >= 0) {
-    position[0] = xIndex;
-  }
-  if (yIndex >= 0) {
-    position[1] = yIndex;
-  }
-  position[0] = Math.min(Math.max(position[0], 0), MATRIX_X_LABELS.length - 1);
-  position[1] = Math.min(Math.max(position[1], 0), MATRIX_Y_LABELS.length - 1);
-  return position;
-}
-
 function resolveActionStatus(legalGrade: string, socialGrade: string): ActionStatusProfile {
   const profile = getStatusProfile(legalGrade, socialGrade);
   return {
@@ -303,6 +282,22 @@ function resolveActionStatus(legalGrade: string, socialGrade: string): ActionSta
   };
 }
 
+function normalizeMatrixPosition(
+  rawPosition: number[] | undefined,
+  legalGrade: string,
+  socialGrade: string
+): number[] {
+  const position =
+    Array.isArray(rawPosition) && rawPosition.length === 2 ? [...rawPosition] : [0, 0];
+  const xIndex = MATRIX_X_LABELS.indexOf(legalGrade as (typeof MATRIX_X_LABELS)[number]);
+  const yIndex = MATRIX_Y_LABELS.indexOf(socialGrade as (typeof MATRIX_Y_LABELS)[number]);
+  if (xIndex >= 0) position[0] = xIndex;
+  if (yIndex >= 0) position[1] = yIndex;
+  position[0] = Math.min(Math.max(position[0], 0), MATRIX_X_LABELS.length - 1);
+  position[1] = Math.min(Math.max(position[1], 0), MATRIX_Y_LABELS.length - 1);
+  return position;
+}
+
 type MatrixCellProfile = {
   headline: string;
   description: string;
@@ -310,7 +305,7 @@ type MatrixCellProfile = {
   textClass: string;
 };
 
-export function resolveMatrixCell(legalGrade: string, socialGrade: string): MatrixCellProfile {
+function resolveMatrixCell(legalGrade: string, socialGrade: string): MatrixCellProfile {
   const profile = getStatusProfile(legalGrade, socialGrade);
   return {
     headline: profile.badge,
@@ -318,6 +313,64 @@ export function resolveMatrixCell(legalGrade: string, socialGrade: string): Matr
     bgClass: profile.matrixBg,
     textClass: profile.matrixText
   };
+}
+
+type MatrixViewProps = {
+  xLabel: string;
+  yLabel: string;
+  position: number[];
+};
+
+function MatrixView({ xLabel, yLabel, position }: MatrixViewProps) {
+  const xLabels = MATRIX_X_LABELS;
+  const yLabels = MATRIX_Y_LABELS;
+  const [activeX, activeY] = position;
+  const gridTemplateColumns = `auto repeat(${xLabels.length}, minmax(0, 1fr))`;
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="overflow-hidden rounded-lg border border-slate-200">
+        <div className="grid text-xs font-semibold text-slate-600" style={{ gridTemplateColumns }}>
+          <div className="bg-white" />
+          {xLabels.map((label) => (
+            <div key={label} className="bg-slate-100 px-2 py-2 text-center text-[11px]">
+              {label}
+            </div>
+          ))}
+          {yLabels.map((label, yIdx) => (
+            <React.Fragment key={`row-${label}`}>
+              <div className="bg-slate-100 px-2 py-6 text-center text-[11px]">{label}</div>
+              {xLabels.map((xLabelValue, xIdx) => {
+                const isActive = activeX === xIdx && activeY === yIdx;
+                const profile = resolveMatrixCell(xLabelValue, label);
+                const inactiveClasses = "bg-slate-900 text-slate-400";
+                const activeClasses = `${profile.bgClass} ${profile.textClass} border-2 border-amber-300`;
+                return (
+                  <div
+                    key={`${xLabelValue}-${label}`}
+                    className={`matrix-cell flex min-h-[90px] items-center justify-center border border-slate-800 p-3 text-[11px] font-semibold transition duration-300 ${
+                      isActive ? activeClasses : inactiveClasses
+                    }`}
+                  >
+                    <div className="text-center leading-tight">
+                      <span className="block text-xs font-semibold">{profile.headline}</span>
+                      {profile.description && (
+                        <span className="mt-1 block text-[10px] font-normal">{profile.description}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+      <div className="mt-3 flex flex-col gap-1 text-[11px] text-slate-500 md:flex-row md:items-center md:justify-between">
+        <span>社会的感度基準: {yLabel}</span>
+        <span>法務評価基準: {xLabel}</span>
+      </div>
+    </div>
+  );
 }
 
 type MediaPreviewProps = {
@@ -390,27 +443,106 @@ export function PrintableSummary({
     [legalGrade, socialGrade]
   );
 
-  const tagAssessments = useMemo(() => {
+  const tagAssessments = useMemo<RiskTagItem[]>(() => {
     const tags = report.final_report.risk.tags;
-    return Array.isArray(tags) ? tags : [];
+    return Array.isArray(tags) ? (tags as RiskTagItem[]) : [];
   }, [report.final_report.risk.tags]);
-  const socialFindings = Array.isArray(report.final_report.risk.social.findings)
-    ? report.final_report.risk.social.findings
-    : [];
-  const legalFindings = Array.isArray(report.final_report.risk.legal.findings)
-    ? report.final_report.risk.legal.findings
-    : [];
-  const legalViolations = Array.isArray(report.final_report.risk.legal.violations)
-    ? report.final_report.risk.legal.violations
-    : [];
+  const tagMainMap = useMemo(() => {
+    const map = new Map<string, RiskTagItem>();
+    tagAssessments.forEach((tag) => map.set(tag.name, tag));
+    return map;
+  }, [tagAssessments]);
+  const subTagLookup = useMemo(() => {
+    const map = new Map<string, { parent: RiskTagItem; subTag: RelatedSubTag }>();
+    tagAssessments.forEach((tag) => {
+      if (Array.isArray(tag.related_sub_tags)) {
+        tag.related_sub_tags.forEach((subTag) => {
+          if (subTag?.name) {
+            map.set(subTag.name, {
+              parent: tag,
+              subTag: subTag as RelatedSubTag
+            });
+          }
+        });
+      }
+    });
+    return map;
+  }, [tagAssessments]);
+  const socialFindings = useMemo(() => {
+    const findings = report.final_report.risk.social.findings;
+    return Array.isArray(findings) ? findings : [];
+  }, [report.final_report.risk.social.findings]);
+  const legalFindings = useMemo(() => {
+    const findings = report.final_report.risk.legal.findings;
+    return Array.isArray(findings) ? findings : [];
+  }, [report.final_report.risk.legal.findings]);
+  const legalViolations = useMemo(() => {
+    const violations = report.final_report.risk.legal.violations;
+    return Array.isArray(violations) ? violations : [];
+  }, [report.final_report.risk.legal.violations]);
   const burnRisk = report.final_report.risk.burn_risk;
-  const burnRiskDetails = useMemo(() => {
+  const burnRiskDetails = useMemo<BurnRiskDetail[]>(() => {
     if (!burnRisk || !Array.isArray(burnRisk.details)) {
-      return [] as Array<{ name: string; risk: number; label?: string; type?: string }>;
+      return [];
     }
-    return (burnRisk.details as Array<{ name: string; risk: number; label?: string; type?: string }>).
-      slice(0, 4);
-  }, [burnRisk]);
+    type BaseDetail = {
+      name?: string;
+      risk: number;
+      label?: string;
+      type?: string;
+      detected_text?: string | null;
+      reason?: string | null;
+      parent_tag?: string | null;
+    };
+    const normalize = (value?: string | null) => {
+      if (typeof value !== "string") {
+        return undefined;
+      }
+      const trimmed = value.trim();
+      return trimmed.length > 0 ? trimmed : undefined;
+    };
+
+    return (burnRisk.details as BaseDetail[]).slice(0, 4).map((detail, index) => {
+      let detailName = normalize(detail.name) ?? detail.name ?? undefined;
+      let detectedText = normalize(detail.detected_text);
+      let reason = normalize(detail.reason);
+      let parentTag = normalize(detail.parent_tag);
+
+      if (detail.type === "subtag") {
+        if (!parentTag && detailName) {
+          parentTag = subTagLookup.get(detailName)?.parent.name;
+        }
+        if ((!detectedText || !reason) && detailName) {
+          const lookup = subTagLookup.get(detailName);
+          if (lookup) {
+            detectedText = detectedText ?? normalize(lookup.subTag.detected_text ?? lookup.parent.detected_text);
+            reason = reason ?? normalize(lookup.subTag.reason ?? lookup.parent.reason);
+          }
+        }
+      } else if (detailName) {
+        const tag = tagMainMap.get(detailName);
+        if (tag) {
+          detectedText = detectedText ?? normalize(tag.detected_text);
+          reason = reason ?? normalize(tag.reason);
+          parentTag = parentTag ?? tag.name;
+        }
+      }
+
+      if (!detailName) {
+        detailName = parentTag ?? `要素 ${index + 1}`;
+      }
+
+      return {
+        name: detailName,
+        risk: detail.risk,
+        label: detail.label,
+        type: detail.type,
+        detectedText,
+        reason,
+        parentTag
+      };
+    });
+  }, [burnRisk, subTagLookup, tagMainMap]);
   const burnRiskCount = burnRisk?.count ?? 0;
   const riskSummaryGridClass = `grid grid-cols-1 gap-4 ${burnRiskCount > 0 ? "md:grid-cols-3" : "md:grid-cols-2"}`;
   const ocrAnnotations = useMemo(() => {
@@ -428,14 +560,52 @@ export function PrintableSummary({
     return [];
   }, [report.final_report.metadata]);
   const mediaLabel = mediaType === "image" ? "画像" : "動画";
-
-  type TagChartItem = {
-    tag: string;
-    subTag: string;
-    grade: keyof typeof EVAL_MAP;
-    reason?: string;
-    detectedText?: string;
+  const summarizeText = (text?: string, fallback?: string, max = 350) => {
+    const base = (text && text.trim()) || fallback || "";
+    if (!base) {
+      return "詳細な総評はありません。";
+    }
+    return base.length > max ? `${base.slice(0, max)}…` : base;
   };
+  const socialSummaryText = summarizeText(
+    report.final_report.risk.social.summary,
+    report.final_report.risk.social.reason
+  );
+  const matchSocialFindings = useMemo(() => {
+    const prepared = socialFindings.map((finding) => ({
+      ...finding,
+      detailLower: (finding.detail || "").toLowerCase()
+    }));
+    return (tagName: string, subTag: string, detectedText?: string) => {
+      const keywords = [tagName, subTag, detectedText]
+        .filter(Boolean)
+        .map((keyword) => (keyword || "").toLowerCase());
+      if (!keywords.length) {
+        return [];
+      }
+      return prepared.filter((finding) =>
+        keywords.some((keyword) => keyword && finding.detailLower.includes(keyword))
+      );
+    };
+  }, [socialFindings]);
+
+type TagChartItem = {
+  tag: string;
+  subTag: string;
+  grade: keyof typeof EVAL_MAP;
+  reason?: string;
+  detectedText?: string;
+};
+
+type BurnRiskDetail = {
+  name: string;
+  risk: number;
+  label?: string;
+  type?: string;
+  detectedText?: string;
+  reason?: string;
+  parentTag?: string;
+};
 
   const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
     if (grade && grade in EVAL_MAP) {
@@ -482,13 +652,6 @@ export function PrintableSummary({
     });
     return map;
   }, [tagChartData]);
-
-  const tagMainMap = useMemo(() => {
-    const map = new Map<string, (typeof tagAssessments)[number]>();
-    tagAssessments.forEach((tag) => map.set(tag.name, tag));
-    return map;
-  }, [tagAssessments]);
-
   const socialTagBars = useMemo(() => {
     const rows: Array<{
       tag: string;
@@ -600,7 +763,7 @@ export function PrintableSummary({
       `}</style>
 
       <div className="printable-summary mx-auto flex w-full flex-col gap-6 rounded-lg bg-white p-6 shadow-lg">
-        <header className="flex flex-col gap-3 border-b border-slate-100 pb-4">
+        <header className="flex flex-col gap-4 border-b border-slate-100 pb-4 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="text-xs uppercase tracking-wide text-slate-400">Creative Guard Report</p>
             <h1 className="text-2xl font-bold text-slate-900">{projectTitle}</h1>
@@ -609,11 +772,11 @@ export function PrintableSummary({
             <p className="text-sm text-slate-600">メディア種別: {mediaLabel}</p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${actionStatus.bgColor} ${actionStatus.textColor}`}>
+          <div className="flex flex-col items-start gap-2 text-right md:items-end">
+            <span className={`inline-flex items-center gap-3 rounded-full px-4 py-2 text-base font-semibold ${actionStatus.bgColor} ${actionStatus.textColor}`}>
               {actionStatus.badge}
             </span>
-            <span className="text-xs text-slate-500">{actionStatus.description}</span>
+            <span className="text-xs text-slate-500 max-w-sm text-right">{actionStatus.description}</span>
           </div>
         </header>
 
@@ -623,21 +786,7 @@ export function PrintableSummary({
             <p className={`mt-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold ${socialStyle.borderColor} ${socialStyle.textColor}`}>
               {report.final_report.risk.social.grade} / {socialStyle.label}
             </p>
-            <p className="mt-2 text-xs text-slate-500">{report.final_report.risk.social.summary}</p>
-            {socialFindings.length > 0 && (
-              <ul className="mt-2 space-y-2 text-[11px] text-slate-600">
-                {socialFindings.map((finding, index) => (
-                  <li key={`social-${index}`} className="rounded bg-slate-50 p-2">
-                    {finding.timecode && (
-                      <span className="mr-2 font-semibold text-slate-500">
-                        [{finding.timecode}]
-                      </span>
-                    )}
-                    {finding.detail}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <p className="mt-2 text-xs text-slate-500">総評: {socialSummaryText}</p>
           </article>
 
           <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
@@ -647,15 +796,15 @@ export function PrintableSummary({
             </p>
             <p className="mt-2 text-xs text-slate-500">{report.final_report.risk.legal.summary}</p>
             {legalFindings.length > 0 && (
-              <ul className="mt-2 space-y-2 text-[11px] text-slate-600">
+              <ul className="mt-2 space-y-2 rounded bg-slate-50 p-3 text-[11px] text-slate-600">
                 {legalFindings.map((finding, index) => (
-                  <li key={`legal-${index}`} className="rounded bg-slate-50 p-2">
+                  <li key={`legal-${index}`} className="rounded bg-white p-2">
                     {finding.timecode && (
                       <span className="mr-2 font-semibold text-slate-500">
                         [{finding.timecode}]
                       </span>
                     )}
-                    {finding.detail}
+                    文言/表現: {finding.detail}
                   </li>
                 ))}
               </ul>
@@ -669,7 +818,7 @@ export function PrintableSummary({
                       {violation.reference && (
                         <span className="font-semibold text-slate-700">[{violation.reference}]</span>
                       )}{" "}
-                      {violation.expression}
+                      文言/表現: {violation.expression}
                       {violation.severity && (
                         <span className="ml-1 rounded bg-slate-200 px-1 text-[9px] font-semibold text-slate-700">
                           {violation.severity}
@@ -695,20 +844,65 @@ export function PrintableSummary({
                 {burnRisk?.label ?? "-"}（平均リスク {burnRisk?.average ?? "-"} / 件数 {burnRiskCount}）
               </p>
               {burnRiskDetails.length > 0 && (
-                <ul className="mt-2 space-y-1 text-[11px] text-slate-600">
-                  {burnRiskDetails.map((detail, index) => (
-                    <li key={`${detail.name}-${index}`} className="leading-snug">
-                      <span className="font-semibold text-slate-700">{detail.name}</span>
-                      <span className="ml-2">リスクスコア: {detail.risk}</span>
-                      {detail.label && <span className="ml-2 text-slate-500">{detail.label}</span>}
-                      {detail.type && <span className="ml-2 text-slate-400">({detail.type})</span>}
-                    </li>
-                  ))}
+                <ul className="mt-2 space-y-3 text-[11px] text-slate-600">
+                  {burnRiskDetails.map((detail, index) => {
+                    const heading =
+                      detail.parentTag && detail.parentTag !== detail.name
+                        ? `${detail.parentTag} / ${detail.name}`
+                        : detail.name || `要素 ${index + 1}`;
+                    const possibilityLabel = detail.label ?? `リスクスコア ${detail.risk}`;
+                    return (
+                      <li
+                        key={`${detail.name ?? "detail"}-${index}`}
+                        className="rounded border border-rose-100 bg-rose-50/60 p-3 leading-relaxed"
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-xs font-semibold text-slate-700">{heading}</p>
+                          {detail.type && (
+                            <span className="rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-semibold text-rose-500">
+                              {detail.type}
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 text-[11px] text-slate-500">
+                          <span className="font-semibold text-rose-600">炎上する可能性:</span>{" "}
+                          {possibilityLabel}
+                        </p>
+                        {detail.detectedText && (
+                          <p className="mt-1 text-[11px] text-slate-500">
+                            <span className="font-semibold text-slate-700">検知された理由:</span>{" "}
+                            <span className="font-mono text-[10px] text-slate-700">
+                              {detail.detectedText}
+                            </span>
+                          </p>
+                        )}
+                        {detail.reason && (
+                          <p className="mt-1 text-[11px] text-slate-500">
+                            <span className="font-semibold text-slate-700">炎上なりうる理由:</span>{" "}
+                            {detail.reason}
+                          </p>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </article>
           )}
         </section>
+
+        {ocrAnnotations.length > 0 && (
+          <section className="mt-6" style={blockStyle}>
+            <h3 className="text-lg font-semibold text-slate-800">OCR 注釈（※を含む字幕）</h3>
+            <ul className="mt-3 space-y-1 rounded border border-slate-200 bg-slate-50 p-3 text-[11px] text-slate-600">
+              {ocrAnnotations.map((annotation, index) => (
+                <li key={`ocr-annotation-${index}`} className="leading-snug">
+                  {annotation}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section className="mt-6" style={blockStyle}>
           <h3 className="text-lg font-semibold text-slate-800">リスクマトリクス</h3>
@@ -726,27 +920,48 @@ export function PrintableSummary({
           )}
         </section>
 
-        {ocrAnnotations.length > 0 && (
-          <section className="mt-6" style={blockStyle}>
-            <h3 className="text-lg font-semibold text-slate-800">OCR 注釈（※を含む字幕）</h3>
-            <ul className="mt-3 space-y-1 rounded border border-slate-200 bg-slate-50 p-3 text-[11px] text-slate-600">
-              {ocrAnnotations.map((annotation, index) => (
-                <li key={`ocr-annotation-${index}`} className="leading-snug">
-                  {annotation}
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
         {groupedTagData.size > 0 && (
           <section className="mt-6" style={blockStyle}>
             <h3 className="text-lg font-semibold text-slate-800">タグ別 詳細分析</h3>
+            {socialTagBars.length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-sm font-semibold text-slate-600">社会的感度タグサマリー</h4>
+                <div className="mt-3 flex flex-wrap items-end gap-4">
+                  {socialTagBars.map((entry) => {
+                    const style = EVAL_MAP[entry.grade] ?? EVAL_MAP["N/A"];
+                    return (
+                      <div
+                        key={`social-tag-bar-${entry.tag}-${entry.subTag}`}
+                        className="flex w-28 max-w-[8rem] flex-col items-center gap-2 text-center text-xs text-slate-700"
+                      >
+                        <div className="flex h-32 w-full items-end justify-center rounded bg-slate-200 shadow-inner">
+                          <div
+                            className={`w-full rounded-t ${style.color}`}
+                            style={{ height: `${style.width}%` }}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <span className="block text-[11px] font-semibold text-slate-900">
+                            {entry.tag}
+                          </span>
+                          <span className="block text-[10px] text-slate-600">{entry.subTag}</span>
+                          {entry.detectedText && (
+                            <span className="block text-[9px] text-slate-500">
+                              抽出: {entry.detectedText}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             <div className="space-y-4">
               {[...groupedTagData.entries()].map(([tagName, items]) => {
                 const mainInfo = tagMainMap.get(tagName);
-                const subTags = Array.isArray(mainInfo?.related_sub_tags)
-                  ? mainInfo?.related_sub_tags
+                const subTags: RelatedSubTag[] = Array.isArray(mainInfo?.related_sub_tags)
+                  ? (mainInfo?.related_sub_tags as RelatedSubTag[])
                   : [];
                 const mainEval =
                   mainInfo?.grade && mainInfo.grade in EVAL_MAP ? mainInfo.grade : "N/A";
@@ -769,45 +984,52 @@ export function PrintableSummary({
                     <div className="mt-3 space-y-3">
                       {items.map((item) => {
                         const style = EVAL_MAP[item.grade] ?? EVAL_MAP["N/A"];
+                        const detectedText =
+                          item.detectedText ??
+                          subTags.find((sub) => sub.name === item.subTag)?.detected_text ??
+                          mainInfo?.detected_text;
+                        const matchingFindings = matchSocialFindings(tagName, item.subTag, detectedText);
                         return (
-                          <div key={`${tagName}-${item.subTag}`} className="rounded border border-slate-200 bg-slate-50 p-3 text-[11px]">
+                          <div
+                            key={`${tagName}-${item.subTag}`}
+                            className="rounded border border-slate-200 bg-slate-50 p-3 text-[11px]"
+                          >
                             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                               <div>
                                 <p className="text-xs font-semibold text-slate-700">{item.subTag}</p>
-                                {item.reason && <p className="text-[11px] text-slate-500">{item.reason}</p>}
+                                {item.reason && (
+                                  <p className="text-[11px] text-slate-500">理由: {item.reason}</p>
+                                )}
+                                {detectedText && (
+                                  <p className="text-[10px] text-slate-600">
+                                    該当表現: <span className="font-mono">{detectedText}</span>
+                                  </p>
+                                )}
+                                {matchingFindings.length > 0 && (
+                                  <ul className="mt-2 space-y-1 rounded bg-white p-2 text-[10px] text-slate-600">
+                                    {matchingFindings.map((finding, idx) => (
+                                      <li key={`${tagName}-${item.subTag}-finding-${idx}`}>
+                                        {finding.timecode && (
+                                          <span className="mr-1 font-semibold text-slate-500">
+                                            [{finding.timecode}]
+                                          </span>
+                                        )}
+                                        {finding.detail}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
                               </div>
-                              <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-semibold ${style.borderColor} ${style.textColor}`}>
+                              <span
+                                className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-semibold ${style.borderColor} ${style.textColor}`}
+                              >
                                 {item.grade} / {style.label}
                               </span>
                             </div>
-                            {item.detectedText && (
-                              <p className="mt-2 rounded bg-white px-2 py-1 text-[10px] text-slate-600">
-                                抽出テキスト: {item.detectedText}
-                              </p>
-                            )}
                           </div>
                         );
                       })}
                     </div>
-
-                    {subTags.length > 0 && (
-                      <div className="mt-3 rounded border border-slate-200 bg-white p-3 text-[11px] text-slate-600">
-                        <h5 className="text-xs font-semibold text-slate-700">関連サブタグ</h5>
-                        <ul className="mt-2 space-y-1">
-                          {subTags.map((subTag, index) => {
-                            const style = EVAL_MAP[toEvalGrade(subTag.grade)] ?? EVAL_MAP["N/A"];
-                            return (
-                              <li key={`${tagName}-sub-${index}`} className="flex items-center justify-between rounded bg-slate-50 px-2 py-1">
-                                <span>{subTag.name}</span>
-                                <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${style.borderColor} ${style.textColor}`}>
-                                  {subTag.grade ?? "N/A"}
-                                </span>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    )}
                   </article>
                 );
               })}
@@ -831,104 +1053,21 @@ export function PrintableSummary({
           </div>
         </section>
       </div>
-    </div>
-  );
-}
 
-type MatrixViewProps = {
-  xLabel: string;
-  yLabel: string;
-  position: number[] | undefined;
-};
-
-export function MatrixView({ xLabel, yLabel, position }: MatrixViewProps) {
-  const xLabels = MATRIX_X_LABELS;
-  const yLabels = MATRIX_Y_LABELS;
-  const isArray = Array.isArray(position);
-  const activeX = isArray ? position[0] : -1;
-  const activeY = isArray ? position[1] : -1;
-
-  return (
-    <div className="space-y-2">
-      <div className="flex flex-col md:flex-row items-stretch">
-        <div className="flex md:flex-col justify-around text-sm font-semibold text-center md:text-right mt-4 md:mt-0 md:mr-4 md:justify-start">
-          <div className="flex-1 p-2 md:p-0 md:text-center md:mb-4 md:h-16 flex items-center justify-center text-xs text-gray-300">
-            {yLabel}
-          </div>
-          {yLabels.map((label) => (
-            <div
-              key={label}
-              className="h-16 md:h-24 flex items-center justify-center text-lg font-bold"
-            >
-              <span
-                className={
-                  label === "E"
-                    ? "text-red-400"
-                    : label === "D"
-                    ? "text-orange-400"
-                    : label === "C"
-                    ? "text-yellow-400"
-                    : label === "B"
-                    ? "text-lime-400"
-                    : "text-green-400"
-                }
-              >
-                {label}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex-grow grid grid-cols-3 border border-gray-600 rounded-lg overflow-hidden">
-          {yLabels.map((yLabelValue, yIdx) =>
-            xLabels.map((xLabelValue, xIdx) => {
-              const isActive = activeX === xIdx && activeY === yIdx;
-              const profile = resolveMatrixCell(xLabelValue, yLabelValue);
-              const inactiveClasses = "bg-gray-800 text-gray-500";
-              const activeClasses = `${profile.bgClass} ${profile.textClass} border-4 border-amber-400 scale-105`;
-              return (
-                <div
-                  key={`${xLabelValue}-${yLabelValue}`}
-                  className={`matrix-cell border border-gray-700 p-3 flex items-center justify-center text-sm font-bold h-28 transition duration-300 ease-in-out ${
-                    isActive ? activeClasses : inactiveClasses
-                  }`}
-                >
-                  <div className="text-center leading-tight">
-                    <span className="block text-sm font-semibold">{profile.headline}</span>
-                    {profile.description && (
-                      <span className="mt-1 block text-[10px] font-normal">
-                        {profile.description}
-                      </span>
-                    )}
-                    {isActive && (
-                      <span className="mt-2 block text-[10px] font-semibold">
-                        現在位置: {yLabelValue} / {xLabelValue}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </div>
-      <div className="flex justify-around mt-4 text-sm font-semibold text-center md:ml-16 text-gray-200">
-        {xLabels.map((label) => (
-          <div
-            key={label}
-            className={
-              label === "抵触していない"
-                ? "w-1/3 text-green-400"
-                : label === "抵触する可能性がある"
-                ? "w-1/3 text-yellow-400"
-                : "w-1/3 text-red-400"
-            }
-          >
-            {label}
-          </div>
+      <div className="mt-8 rounded-lg bg-white p-6 text-slate-900 shadow-lg print:break-before-page">
+        <h2 className="text-xl font-semibold text-slate-900">付録: 取得データ全文</h2>
+        <p className="text-xs text-slate-500">取得した全文データを以下にまとめています。</p>
+        <div className="mt-4 space-y-6">
+          {detailSections.map((section, index) => (
+            <article key={`${section.title}-${index}`} className="rounded border border-slate-200 bg-slate-50 p-4">
+              <h3 className="text-sm font-semibold text-slate-700">{section.title}</h3>
+            <pre className="mt-2 max-h-[70vh] overflow-auto whitespace-pre-wrap rounded bg-white p-3 text-[11px] leading-relaxed text-slate-700">
+              {section.content?.trim() || "内容はまだ生成されていません。"}
+            </pre>
+          </article>
         ))}
       </div>
-      <div className="text-center mt-1 text-xs text-gray-400 md:ml-16">{xLabel}</div>
     </div>
+  </div>
   );
 }
