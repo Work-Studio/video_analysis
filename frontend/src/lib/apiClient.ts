@@ -74,6 +74,7 @@ export interface ProjectReportResponse {
       social: {
         grade: string;
         reason: string;
+        summary?: string;
         findings?: Array<{
           timecode: string;
           detail: string;
@@ -82,6 +83,7 @@ export interface ProjectReportResponse {
       legal: {
         grade: string;
         reason: string;
+        summary?: string;
         recommendations?: string;
         violations?: Array<{
           reference?: string;
@@ -126,6 +128,11 @@ export interface ProjectReportResponse {
         }>;
       }>;
     };
+    recommendation?: {
+      action_plan?: string;
+      [key: string]: unknown;
+    };
+    generated_at?: string;
   };
 }
 
