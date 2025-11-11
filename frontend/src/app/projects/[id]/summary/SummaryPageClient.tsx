@@ -1,14 +1,17 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import useSWR from "swr";
+import clsx from "clsx";
 
 import ProgressPanel from "@/components/ProgressPanel";
 import {
   API_BASE_URL,
   fetchAnalysisStatus,
   fetchProjectReport,
+  AnalysisStep,
   ProjectReportResponse,
 } from "@/lib/apiClient";
 import { formatSecondsHuman, MediaPreview, PrintableSummary } from "./shared";
@@ -20,6 +23,20 @@ interface SummaryPageClientProps {
 }
 
 const POLL_INTERVAL_MS = 3000;
+
+const NODE_ICON_SOURCES = {
+  upload: "/icons/アップロード.svg",
+  audio: "/icons/音声解析.svg",
+  subtitle: "/icons/字幕摘出.svg",
+  visual: "/icons/映像表現.svg",
+  "risk-a": "/icons/リスク分析1.svg",
+  "risk-b": "/icons/リスク分析2.svg",
+  "risk-c": "/icons/リスク分析3.svg",
+  "risk-merge": "/icons/リスク分析統合.svg",
+  report: "/icons/レポート作成.svg"
+} as const;
+
+type NodeIconKey = keyof typeof NODE_ICON_SOURCES;
 
 declare global {
   interface Window {
@@ -42,6 +59,11 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
       refreshInterval: POLL_INTERVAL_MS,
     },
   );
+  useEffect(() => {
+    if (data) {
+      console.log("[SummaryPage] analysis status payload", data);
+    }
+  }, [data]);
 
   const isImageProject = data?.media_type === "image";
   const isCompleted =
@@ -63,6 +85,7 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
       return;
     }
     if (report) {
+      console.log("[SummaryPage] report already loaded", report.id);
       return;
     }
 
@@ -75,6 +98,7 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
         const result = await fetchProjectReport(id);
         if (isMounted) {
           setReport(result);
+          console.log("[SummaryPage] fetched report payload", result);
         }
       } catch (err) {
         console.error(err);
@@ -98,6 +122,18 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
   useEffect(() => {
     setVideoDuration(null);
   }, [mediaUrl, isImageProject]);
+
+  useEffect(() => {
+    if (report) {
+      console.log("[SummaryPage] report state changed", report);
+    }
+  }, [report]);
+
+  useEffect(() => {
+    if (reportError) {
+      console.warn("[SummaryPage] report error", reportError);
+    }
+  }, [reportError]);
 
   const mediaType = data?.media_type;
   const rawAnalysisDuration = data?.analysis_duration_seconds;
@@ -269,12 +305,13 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
           </div>
         </header>
 
-        <section className="grid gap-6 lg:grid-cols-[minmax(0,0.55fr)_minmax(0,0.45fr)]">
+        <section className="flex flex-col gap-6">
           <div className="rounded-2xl border border-indigo-900/40 bg-slate-900/40 p-6 shadow-xl">
             <h2 className="text-lg font-semibold text-white">解析プロセス</h2>
             <p className="mt-2 text-xs text-indigo-200">バックエンドパイプラインのステップごとの状況</p>
-            <div className="mt-4 space-y-4">
-              <ProgressPanel steps={data.steps} />
+            <AnalysisNodeGraph steps={data.steps ?? []} />
+            <div className="mt-6 space-y-4">
+              <ProgressPanel steps={data.steps ?? []} />
             </div>
           </div>
 
@@ -399,6 +436,447 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
         </section>
       </div>
     </main>
+  );
+}
+
+type NodeStatus = "pending" | "running" | "success" | "failed";
+
+type GraphNode = {
+  id: NodeIconKey;
+  label: string;
+  iconKey: NodeIconKey;
+  position: { top: string; left: string };
+  dependencies: NodeIconKey[];
+  description: string;
+  stepName?: string;
+};
+
+const BASE_GRAPH_NODES: GraphNode[] = [
+  {
+    id: "upload",
+    label: "アップロード",
+    iconKey: "upload",
+    dependencies: [],
+    position: { top: "20%", left: "8%" },
+    description: "メディアファイルを安全なワークスペースへ配置し、以降の処理キューを起動します。"
+  },
+  {
+    id: "audio",
+    label: "音声解析",
+    iconKey: "audio",
+    dependencies: ["upload"],
+    position: { top: "20%", left: "24%" },
+    stepName: "音声文字起こし",
+    description: "音声トラックを抽出し、話者ごとのテキスト・タイムコードを生成します。"
+  },
+  {
+    id: "subtitle",
+    label: "字幕摘出",
+    iconKey: "subtitle",
+    dependencies: ["audio"],
+    position: { top: "20%", left: "40%" },
+    stepName: "OCR字幕抽出",
+    description: "フレーム単位でテロップ文字をOCRし、音声との差分も併せて補完します。"
+  },
+  {
+    id: "visual",
+    label: "映像表現",
+    iconKey: "visual",
+    dependencies: ["subtitle"],
+    position: { top: "20%", left: "56%" },
+    stepName: "映像解析",
+    description: "構図・人物・シンボルの表現を抽出し、タグ分析に必要なシーン情報を整理します。"
+  },
+  {
+    id: "risk-a",
+    label: "リスク分析1（並列）",
+    iconKey: "risk-a",
+    dependencies: ["visual"],
+    position: { top: "45%", left: "40%" },
+    stepName: "リスク統合",
+    description: "社会的感度を中心に炎上事例DBと照合し、偏見・差別リスクを評価します。"
+  },
+  {
+    id: "risk-b",
+    label: "リスク分析2（並列）",
+    iconKey: "risk-b",
+    dependencies: ["visual"],
+    position: { top: "45%", left: "56%" },
+    stepName: "リスク統合",
+    description: "広告・表示関連法規の観点で法務NGワードや表現をスキャンします。"
+  },
+  {
+    id: "risk-c",
+    label: "リスク分析3（並列）",
+    iconKey: "risk-c",
+    dependencies: ["visual"],
+    position: { top: "45%", left: "72%" },
+    stepName: "リスク統合",
+    description: "ブランド毀損・ジェンダーバランスなど独自指標で炎上可能性を再検証します。"
+  },
+  {
+    id: "risk-merge",
+    label: "リスク分析統合",
+    iconKey: "risk-merge",
+    dependencies: ["risk-a", "risk-b", "risk-c"],
+    position: { top: "70%", left: "56%" },
+    stepName: "リスク統合",
+    description: "3種の分析結果を集約し、最悪グレード・検出文言を確定します。"
+  },
+  {
+    id: "report",
+    label: "レポート作成",
+    iconKey: "report",
+    dependencies: ["risk-merge"],
+    position: { top: "70%", left: "80%" },
+    description: "最終的なダッシュボード／PDF用レポートデータを生成します。"
+  }
+];
+
+const statusLabelMap: Record<NodeStatus, string> = {
+  pending: "待機中",
+  running: "処理中",
+  success: "完了",
+  failed: "失敗"
+};
+
+const statusIconMap: Record<NodeStatus, string> = {
+  pending: "🕓",
+  running: "⏳",
+  success: "✅",
+  failed: "⚠️"
+};
+
+const stepStatusToNode = (status?: string): NodeStatus => {
+  switch (status) {
+    case "running":
+      return "running";
+    case "completed":
+      return "success";
+    case "failed":
+      return "failed";
+    default:
+      return "pending";
+  }
+};
+
+type RenderGraphNode = GraphNode & {
+  status: NodeStatus;
+  detail: string;
+};
+
+type ConnectorPath = {
+  id: string;
+  d: string;
+  status: NodeStatus;
+};
+
+function AnalysisNodeGraph({ steps }: { steps: AnalysisStep[] }) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [paths, setPaths] = useState<ConnectorPath[]>([]);
+
+  const stepStatusMap = useMemo(() => {
+    const map: Record<string, NodeStatus> = {};
+    steps.forEach((step) => {
+      map[step.name] = stepStatusToNode(step.status);
+    });
+    return map;
+  }, [steps]);
+
+  const nodes = useMemo<RenderGraphNode[]>(() => {
+    return BASE_GRAPH_NODES.map((node) => {
+      const matchingStep = node.stepName
+        ? steps.find((step) => step.name === node.stepName)
+        : undefined;
+      let status: NodeStatus = "pending";
+      if (node.stepName) {
+        status = stepStatusMap[node.stepName] ?? "pending";
+      } else if (node.id === "upload") {
+        status = steps.some((step) => step.status !== "pending") ? "success" : "pending";
+      } else if (node.id === "report") {
+        const finalStatus = stepStatusMap["リスク統合"];
+        status = finalStatus ? finalStatus : "pending";
+      }
+      const detailBase = node.description || "";
+      const detail =
+        status === "failed"
+          ? `${detailBase} 現在: エラー検知。ログから詳細を確認してください。`
+          : `${detailBase} 現在: ${statusLabelMap[status]}`;
+      return {
+        ...node,
+        status,
+        detail
+      };
+    });
+  }, [stepStatusMap, steps]);
+
+  useLayoutEffect(() => {
+    const computePaths = () => {
+      const container = containerRef.current;
+      if (!container) return;
+      const containerRect = container.getBoundingClientRect();
+      const newPaths: ConnectorPath[] = [];
+      nodes.forEach((node) => {
+        node.dependencies.forEach((depId) => {
+          const fromEl = nodeRefs.current[depId];
+          const toEl = nodeRefs.current[node.id];
+          if (!fromEl || !toEl) return;
+          const fromRect = fromEl.getBoundingClientRect();
+          const toRect = toEl.getBoundingClientRect();
+          const x1 = fromRect.left - containerRect.left + fromRect.width / 2;
+          const y1 = fromRect.top - containerRect.top + fromRect.height / 2;
+          const x2 = toRect.left - containerRect.left + toRect.width / 2;
+          const y2 = toRect.top - containerRect.top + toRect.height / 2;
+          const controlOffsetX = (x2 - x1) * 0.5;
+          const controlOffsetY = (y2 - y1) * 0.5;
+          const d = `M ${x1} ${y1} C ${x1 + controlOffsetX} ${y1}, ${x2 - controlOffsetX} ${y2}, ${x2} ${y2}`;
+          newPaths.push({
+            id: `${depId}-${node.id}`,
+            d,
+            status: node.status
+          });
+        });
+      });
+      setPaths(newPaths);
+    };
+
+    computePaths();
+    window.addEventListener("resize", computePaths);
+    return () => window.removeEventListener("resize", computePaths);
+  }, [nodes]);
+
+  const statusClass = (status: NodeStatus) =>
+    clsx("analysis-node", {
+      "status-pending": status === "pending",
+      "status-running": status === "running",
+      "status-success": status === "success",
+      "status-failed": status === "failed"
+    });
+
+  return (
+    <div className="mt-4">
+      <div ref={containerRef} className="analysis-node-container">
+        <svg className="connector-svg">
+          {paths.map((path) => (
+            <path
+              key={path.id}
+              d={path.d}
+              className={clsx("connector-line", {
+                "status-running": path.status === "running",
+                "status-success": path.status === "success",
+                "status-failed": path.status === "failed"
+              })}
+            />
+          ))}
+        </svg>
+        {nodes.map((node) => {
+          const iconSrc = NODE_ICON_SOURCES[node.iconKey];
+          return (
+            <div
+              key={node.id}
+              ref={(el) => {
+                nodeRefs.current[node.id] = el;
+              }}
+              className={statusClass(node.status)}
+              style={{ top: node.position.top, left: node.position.left }}
+            >
+              <div className="node-pill" aria-label={node.label}>
+                <Image
+                  src={iconSrc}
+                  alt={`${node.label} アイコン`}
+                  width={36}
+                  height={36}
+                  className="node-icon"
+                />
+                <span className="sr-only">{node.label}</span>
+                <div className="node-tooltip">
+                  <p className="node-title">
+                    {statusIconMap[node.status]} {node.label}
+                  </p>
+                  <p className="node-tooltip-text">{node.detail}</p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <style jsx>{`
+        .analysis-node-container {
+          position: relative;
+          width: 100%;
+          max-width: 100%;
+          height: 640px;
+          margin-top: 1rem;
+          border-radius: 1.25rem;
+          border: 1px solid rgba(99, 102, 241, 0.4);
+          background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+          overflow: visible;
+        }
+        .analysis-node {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 72px;
+          height: 72px;
+          border-radius: 9999px;
+          z-index: 5;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .analysis-node .node-pill {
+          position: relative;
+          width: 60px;
+          height: 60px;
+          border-radius: 9999px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background-color: rgba(15, 23, 42, 0.85);
+          border: 1.5px solid rgba(148, 163, 184, 0.6);
+          box-shadow: 0 8px 20px rgba(15, 23, 42, 0.35);
+          cursor: default;
+        }
+        .analysis-node .node-pill::after {
+          content: "";
+          position: absolute;
+          inset: -6px;
+          border-radius: 9999px;
+          border: 1.5px dashed rgba(148, 163, 184, 0.5);
+          opacity: 0.7;
+        }
+        .analysis-node.status-running .node-pill::after {
+          border-color: rgba(96, 165, 250, 0.8);
+          animation: rotate-ring 1.2s linear infinite;
+        }
+        .analysis-node .node-icon {
+          width: 36px;
+          height: 36px;
+          object-fit: contain;
+        }
+        .analysis-node .node-tooltip {
+          position: absolute;
+          bottom: calc(100% + 12px);
+          left: 50%;
+          transform: translate(-50%, 10px);
+          min-width: 220px;
+          padding: 0.75rem;
+          border-radius: 0.6rem;
+          background: rgba(15, 23, 42, 0.95);
+          border: 1px solid rgba(148, 163, 184, 0.4);
+          color: #e2e8f0;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.2s ease, transform 0.2s ease;
+          box-shadow: 0 12px 30px rgba(15, 23, 42, 0.6);
+          text-align: left;
+        }
+        .analysis-node .node-tooltip::after {
+          content: "";
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border-width: 6px;
+          border-style: solid;
+          border-color: rgba(15, 23, 42, 0.95) transparent transparent transparent;
+        }
+        .analysis-node .node-title {
+          font-weight: 600;
+          font-size: 0.85rem;
+          margin-bottom: 0.2rem;
+          display: block;
+        }
+        .analysis-node .node-tooltip-text {
+          font-size: 0.75rem;
+          line-height: 1.4;
+          color: #cbd5f5;
+        }
+        .analysis-node .node-pill:hover .node-tooltip {
+          opacity: 1;
+          transform: translate(-50%, 0);
+        }
+        .analysis-node .node-pill:focus-visible {
+          outline: 2px solid #818cf8;
+          outline-offset: 4px;
+        }
+        .sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          border: 0;
+        }
+        .analysis-node.status-running .node-pill {
+          border-color: #60a5fa;
+          box-shadow: 0 0 25px rgba(96, 165, 250, 0.4);
+        }
+        .analysis-node.status-success .node-pill {
+          border-color: #34d399;
+          box-shadow: 0 0 25px rgba(52, 211, 153, 0.4);
+        }
+        .analysis-node.status-failed .node-pill {
+          border-color: #f87171;
+          box-shadow: 0 0 25px rgba(248, 113, 113, 0.5);
+        }
+        .connector-svg {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+        }
+        .connector-line {
+          stroke: #475569;
+          stroke-width: 3px;
+          stroke-linecap: round;
+          stroke-dasharray: 6 6;
+          fill: none;
+          filter: drop-shadow(0 0 6px rgba(148, 163, 184, 0.4));
+        }
+        .connector-line.status-running {
+          stroke: #60a5fa;
+          stroke-dasharray: 6 6;
+          animation: flow 1.2s linear infinite;
+        }
+        .connector-line.status-success {
+          stroke: #34d399;
+        }
+        .connector-line.status-failed {
+          stroke: #f87171;
+        }
+        @media (max-width: 768px) {
+          .analysis-node-container {
+            height: 560px;
+          }
+          .analysis-node {
+            width: 56px;
+            height: 56px;
+          }
+          .analysis-node .node-pill {
+            width: 48px;
+            height: 48px;
+          }
+        }
+        @keyframes flow {
+          from {
+            stroke-dashoffset: 0;
+          }
+          to {
+            stroke-dashoffset: -20;
+          }
+        }
+        @keyframes rotate-ring {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
+    </div>
   );
 }
 

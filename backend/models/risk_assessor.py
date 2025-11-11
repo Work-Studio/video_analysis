@@ -3,13 +3,40 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
-from typing import Dict, List, Optional
+import logging
 import statistics
+from collections import Counter, defaultdict
+from pathlib import Path
+from textwrap import dedent
+from typing import Dict, List, Optional
 
 import pandas as pd
 
 from backend.models.gemini_client import GeminiClient
+
+logger = logging.getLogger(__name__)
+
+GRADE_SCORE_MAP = {"A": 1, "B": 2, "C": 3, "D": 4, "E": 5}
+
+
+def _grade_to_score(grade: Optional[str]) -> int:
+    if not grade:
+        return 0
+    return GRADE_SCORE_MAP.get(grade, 0)
+
+
+def _score_to_grade(score: float) -> str:
+    if score >= 4.5:
+        return "E"
+    if score >= 3.5:
+        return "D"
+    if score >= 2.5:
+        return "C"
+    if score >= 1.5:
+        return "B"
+    if score > 0:
+        return "A"
+    return "N/A"
 
 
 class RiskAssessor:
@@ -43,71 +70,88 @@ class RiskAssessor:
         """Gemini にコンテキストを渡してリスク判定を取得."""
 
         video_segments_text = json.dumps(video_summary, ensure_ascii=False, indent=2)
-
-        instruction = (
-            "You are a compliance analyst for Japanese media content. "
-            "Given the supplied transcript, OCR subtitles, structured video summary, "
-            "and the reference knowledge bases (social cases, tag taxonomy, legal guidelines), "
-            "evaluate the risk from two perspectives: Social Sensitivity and Legal Compliance. "
-            "Do not cite specific past case titles; instead, explain the core themes or risk factors from the references. "
-            "Return JSON using the following schema strictly:\n"
-            "{\n"
-            '  "social": {\n'
-            '    "grade": "A|B|C|D|E",\n'
-            '    "reason": "<Japanese explanation connecting core issues to the supplied content and references without naming specific historical cases>",\n'
-            '    "findings": [\n'
-            '      {"timecode": "<mm:ss または 静止画>", "detail": "<問題となる表現の要約>"}\n'
-            '    ]\n'
-            "  },\n"
-            '  "legal": {\n'
-            '    "grade": "抵触していない|抵触する可能性がある|抵触している",\n'
-            '    "reason": "<Japanese explanation referencing the law list. When grade is not \'抵触していない\', clearly describe which expressions or depictions may violate which guideline.>",\n'
-            '    "recommendations": "<Specific improvement proposals in Japanese>",\n'
-            '    "violations": [\n'
-            '      {"reference": "<law or guideline from the legal list>", "expression": "<具体的な文言・表現手法>", "severity": "高|中|低"}\n'
-            "    ],\n"
-            '    "findings": [\n'
-            '      {"timecode": "<mm:ss または 静止画>", "detail": "<潜在的な抵触要因の説明>"}\n'
-            "    ]\n"
-            "  },\n"
-            '  "matrix": {\n'
-            '    "x_axis": "法務評価",\n'
-            '    "y_axis": "社会的感度",\n'
-            '    "position": [<xIndex 0-2>, <yIndex 0-4>]\n'
-            "  },\n"
-            '  "tags": [\n'
-            '    {\n'
-            '      "name": "<タグ1名>",\n'
-            '      "grade": "A|B|C|D|E",\n'
-            '      "reason": "<Japanese explanation focusing on the core reason this category is a risk>",\n'
-            '      "related_sub_tags": [\n'
-            '        {"name": "<サブタグ名>", "grade": "A|B|C|D|E", "reason": "<簡潔な説明>"}\n'
-            '      ]\n'
-            '    }\n'
-            '  ]\n'
-            "}\n"
-            "Include only sub-tags that are relevant to the detected risk. "
-            "Grades must strictly follow the enumerated values. Ensure `position` indexes correspond to the grade levels (0 best). "
-            "Always reference the approximate timecode of the problematic expression using mm:ss format. If precise timing is not available, use '静止画' or 'N/A'."
+        logger.info(
+            "Starting risk assessment: transcript_chars=%d ocr_chars=%d segments=%d",
+            len(transcript),
+            len(ocr_text),
+            len(video_summary.get("segments") or []),
         )
 
-        content_blocks = (
-            "## Transcript\n"
-            f"{transcript[:5000]}\n\n"
-            "## OCR\n"
-            f"{ocr_text[:5000]}\n\n"
-            "## Video Segments\n"
-            f"{video_segments_text}\n\n"
-            "## Tag Taxonomy (JSON)\n"
-            f"{self.tag_structure_json}\n\n"
-            "## Tag Taxonomy Summary\n"
-            f"{self.tag_structure_summary}\n\n"
-            "## Social Sensitivity Cases Digest\n"
-            f"{self.social_case_digest}\n\n"
-            "## Social Tag List Digest\n"
-            f"{self.social_tag_digest}\n\n"
-            "## Legal Reference Digest\n"
-            f"{self.legal_digest}\n"
+        instruction = dedent(
+            """
+            You are a compliance analyst for Japanese media content.
+            Given the supplied transcript, OCR subtitles, structured video summary,
+            and the reference knowledge bases (social cases, tag taxonomy, legal guidelines),
+            evaluate the risk from two perspectives: Social Sensitivity and Legal Compliance.
+            Do not cite specific past case titles; instead, explain the core themes or risk factors from the references.
+            Return JSON using the following schema strictly:
+            {
+              "social": {
+                "grade": "A|B|C|D|E",
+                "reason": "<Japanese explanation connecting core issues to the supplied content and references without naming specific historical cases>",
+                "findings": [
+                  {"timecode": "<mm:ss または 静止画>", "detail": "<問題となる表現の要約>"}
+                ]
+              },
+              "legal": {
+                "grade": "抵触していない|抵触する可能性がある|抵触している",
+                "reason": "<Japanese explanation referencing the law list. When grade is not '抵触していない', clearly describe which expressions or depictions may violate which guideline.>",
+                "recommendations": "<Specific improvement proposals in Japanese>",
+                "violations": [
+                  {"reference": "<law or guideline from the legal list>", "expression": "<具体的な文言・表現手法>", "severity": "高|中|低"}
+                ],
+                "findings": [
+                  {"timecode": "<mm:ss または 静止画>", "detail": "<潜在的な抵触要因の説明>"}
+                ]
+              },
+              "matrix": {
+                "x_axis": "法務評価",
+                "y_axis": "社会的感度",
+                "position": [<xIndex 0-2>, <yIndex 0-4>]
+              },
+              "tags": [
+                {
+                  "name": "<タグ1名>",
+                  "grade": "A|B|C|D|E",
+                  "reason": "<Japanese explanation focusing on the core reason this category is a risk>",
+                  "related_sub_tags": [
+                    {"name": "<サブタグ名>", "grade": "A|B|C|D|E", "reason": "<簡潔な説明>"}
+                  ]
+                }
+              ]
+            }
+            Include only sub-tags that are relevant to the detected risk.
+            Grades must strictly follow the enumerated values. Ensure `position` indexes correspond to the grade levels (0 best).
+            Always reference the approximate timecode of the problematic expression using mm:ss format. If precise timing is not available, use '静止画' or 'N/A'.
+            """
+        )
+
+        content_blocks = dedent(
+            f"""
+            ## Transcript
+            {transcript[:5000]}
+
+            ## OCR
+            {ocr_text[:5000]}
+
+            ## Video Segments
+            {video_segments_text}
+
+            ## Tag Taxonomy (JSON)
+            {self.tag_structure_json}
+
+            ## Tag Taxonomy Summary
+            {self.tag_structure_summary}
+
+            ## Social Sensitivity Cases Digest
+            {self.social_case_digest}
+
+            ## Social Tag List Digest
+            {self.social_tag_digest}
+
+            ## Legal Reference Digest
+            {self.legal_digest}
+            """
         )
 
         response = await self.gemini_client.generate_structured_judgement(
@@ -175,7 +219,246 @@ class RiskAssessor:
             response["tags"] = filtered_tags
         else:
             response["tags"] = []
+        logger.info(
+            "Gemini response summary: social=%s legal=%s tag_count=%d",
+            social.get("grade") if isinstance(social, dict) else "N/A",
+            legal.get("grade") if isinstance(legal, dict) else "N/A",
+            len(response["tags"]),
+        )
+        for idx, tag in enumerate(response["tags"][:5]):
+            logger.debug(
+                "Tag[%d] %s grade=%s detected_text=%s sub_tags=%d",
+                idx,
+                tag.get("name"),
+                tag.get("grade"),
+                (tag.get("detected_text") or "")[:80],
+                len(tag.get("related_sub_tags") or []),
+            )
         return response
+
+    async def assess_with_enrichment(
+        self,
+        *,
+        transcript: str,
+        ocr_text: str,
+        video_summary: Dict[str, object],
+        passes: int = 3
+    ) -> Dict[str, object]:
+        """複数回の Gemini 実行とタグリスト照合による統合結果を返す."""
+
+        passes = max(1, passes)
+        base_results: List[Dict[str, object]] = []
+        for attempt in range(passes):
+            try:
+                result = await self.assess(
+                    transcript=transcript,
+                    ocr_text=ocr_text,
+                    video_summary=video_summary
+                )
+                base_results.append(result)
+            except Exception as exc:  # pragma: no cover
+                logger.warning("Gemini assess pass %d failed: %s", attempt + 1, exc)
+        if not base_results:
+            return await self.assess(
+                transcript=transcript,
+                ocr_text=ocr_text,
+                video_summary=video_summary
+            )
+
+        keyword_matches = self._scan_tag_matches(transcript, ocr_text)
+        aggregated = self._aggregate_risk_results(base_results, keyword_matches)
+        return aggregated
+
+    def _scan_tag_matches(self, transcript: str, ocr_text: str) -> List[Dict[str, object]]:
+        combined = f"{transcript}\n{ocr_text}".lower()
+        matches: List[Dict[str, object]] = []
+
+        def extract_keywords(definition: Optional[str]) -> List[str]:
+            if not definition:
+                return []
+            tokens = [
+                token.strip()
+                for token in definition.replace("/", " ").replace("|", " ").replace(",", " ").split()
+                if token.strip()
+            ]
+            return tokens
+
+        def find_keyword(keywords: List[str]) -> Optional[str]:
+            for kw in keywords:
+                if kw and kw.lower() in combined:
+                    return kw
+            return None
+
+        for tag in self.tag_structure:
+            tag_name = str(tag.get("name", ""))
+            definition = tag.get("definition") or ""
+            keywords = extract_keywords(definition)
+            keyword_hit = find_keyword(keywords)
+            sub_tags = tag.get("sub_tags") or []
+            related_matches: List[Dict[str, object]] = []
+
+            for sub in sub_tags:
+                sub_name = str(sub.get("name", ""))
+                sub_keywords = extract_keywords(sub.get("definition"))
+                sub_hit = find_keyword(sub_keywords)
+                if sub_name and sub_hit:
+                    grade = self._risk_grade(float(sub.get("risk") or tag.get("risk") or 3))
+                    related_matches.append(
+                        {
+                            "name": sub_name,
+                            "grade": grade,
+                            "reason": f"キーワード『{sub_hit}』が検出されました。",
+                            "detected_text": sub_hit,
+                            "detected_timecode": "N/A"
+                        }
+                    )
+
+            if tag_name and (keyword_hit or related_matches):
+                base_risk = float(tag.get("risk") or 3)
+                grade = self._risk_grade(base_risk)
+                matches.append(
+                    {
+                        "name": tag_name,
+                        "grade": grade,
+                        "reason": (
+                            f"キーワード『{keyword_hit or '（サブタグ検出）'}』が検出されたため。"
+                            if keyword_hit or related_matches
+                            else definition
+                        ),
+                        "detected_text": keyword_hit or (related_matches[0]["detected_text"] if related_matches else ""),
+                        "detected_timecode": "N/A",
+                        "related_sub_tags": related_matches
+                    }
+                )
+        logger.info("Keyword scan produced %d matches", len(matches))
+        return matches
+
+    def _aggregate_risk_results(
+        self,
+        base_results: List[Dict[str, object]],
+        keyword_matches: List[Dict[str, object]]
+    ) -> Dict[str, object]:
+        def worst_grade(values: List[str]) -> str:
+            return _score_to_grade(max((_grade_to_score(val) for val in values), default=0))
+
+        social_grades = [res.get("social", {}).get("grade") for res in base_results if res.get("social") is not None]
+        legal_grades = [res.get("legal", {}).get("grade") for res in base_results if res.get("legal") is not None]
+        merged_social = base_results[0].get("social", {}).copy() if base_results[0].get("social") else {}
+        merged_legal = base_results[0].get("legal", {}).copy() if base_results[0].get("legal") else {}
+        if social_grades:
+            merged_social["grade"] = worst_grade([grade for grade in social_grades if grade])
+        if legal_grades:
+            merged_legal["grade"] = worst_grade([grade for grade in legal_grades if grade])
+
+        def merge_reason(field: str) -> Optional[str]:
+            counter: Counter[str] = Counter()
+            for res in base_results:
+                value = res.get(field, {}).get("reason") if isinstance(res.get(field), dict) else None
+                if value:
+                    counter[value] += 1
+            return counter.most_common(1)[0][0] if counter else None
+
+        social_reason = merge_reason("social")
+        legal_reason = merge_reason("legal")
+        if social_reason:
+            merged_social["reason"] = social_reason
+        if legal_reason:
+            merged_legal["reason"] = legal_reason
+
+        tag_buckets: Dict[str, Dict[str, object]] = {}
+
+        def get_tag_bucket(tag_name: str) -> Dict[str, object]:
+            bucket = tag_buckets.setdefault(
+                tag_name,
+                {
+                    "name": tag_name,
+                    "scores": [],
+                    "reasons": Counter(),
+                    "detected": [],
+                    "timecodes": [],
+                    "subs": {}
+                }
+            )
+            return bucket
+
+        def ingest_tag(tag_payload: Dict[str, object]) -> None:
+            tag_name = tag_payload.get("name")
+            if not tag_name:
+                return
+            bucket = get_tag_bucket(tag_name)
+            bucket["scores"].append(_grade_to_score(tag_payload.get("grade")))
+            if tag_payload.get("reason"):
+                bucket["reasons"][tag_payload["reason"]] += 1
+            if tag_payload.get("detected_text"):
+                bucket["detected"].append(tag_payload["detected_text"])
+            if tag_payload.get("detected_timecode"):
+                bucket["timecodes"].append(tag_payload["detected_timecode"])
+            subs = bucket.setdefault("subs", {})
+            for sub in tag_payload.get("related_sub_tags") or []:
+                sub_name = sub.get("name")
+                if not sub_name:
+                    continue
+                sub_bucket = subs.setdefault(
+                    sub_name,
+                    {
+                        "name": sub_name,
+                        "scores": [],
+                        "reasons": Counter(),
+                        "detected": [],
+                        "timecodes": []
+                    }
+                )
+                sub_bucket["scores"].append(_grade_to_score(sub.get("grade")))
+                if sub.get("reason"):
+                    sub_bucket["reasons"][sub["reason"]] += 1
+                if sub.get("detected_text"):
+                    sub_bucket["detected"].append(sub["detected_text"])
+                if sub.get("detected_timecode"):
+                    sub_bucket["timecodes"].append(sub["detected_timecode"])
+
+        for result in base_results:
+            for tag in result.get("tags") or []:
+                ingest_tag(tag)
+        for manual_tag in keyword_matches:
+            ingest_tag(manual_tag)
+
+        merged_tags: List[Dict[str, object]] = []
+        for tag_name, bucket in tag_buckets.items():
+            final_grade = _score_to_grade(max(bucket["scores"] or [0]))
+            reason = bucket["reasons"].most_common(1)[0][0] if bucket["reasons"] else ""
+            detected_text = bucket["detected"][0] if bucket["detected"] else ""
+            timecode = bucket["timecodes"][0] if bucket["timecodes"] else None
+            related_sub_tags: List[Dict[str, object]] = []
+            for sub_name, sub_bucket in bucket.get("subs", {}).items():
+                sub_grade = _score_to_grade(max(sub_bucket["scores"] or [0]))
+                sub_reason = sub_bucket["reasons"].most_common(1)[0][0] if sub_bucket["reasons"] else ""
+                sub_detected = sub_bucket["detected"][0] if sub_bucket["detected"] else ""
+                sub_timecode = sub_bucket["timecodes"][0] if sub_bucket["timecodes"] else None
+                related_sub_tags.append(
+                    {
+                        "name": sub_name,
+                        "grade": sub_grade,
+                        "reason": sub_reason,
+                        "detected_text": sub_detected,
+                        "detected_timecode": sub_timecode
+                    }
+                )
+            merged_tags.append(
+                {
+                    "name": tag_name,
+                    "grade": final_grade,
+                    "reason": reason,
+                    "detected_text": detected_text,
+                    "detected_timecode": timecode,
+                    "related_sub_tags": related_sub_tags
+                }
+            )
+
+        aggregated = base_results[0].copy()
+        aggregated["social"] = merged_social
+        aggregated["legal"] = merged_legal
+        aggregated["tags"] = merged_tags
+        return aggregated
 
     def _load_excel_digest(self, path: Path, label: str) -> str:
         """Excel の内容を簡潔なテキストに変換する."""
@@ -327,6 +610,7 @@ class RiskAssessor:
 
         risk_entries: List[Dict[str, object]] = []
         seen: set[str] = set()
+        logger.debug("Calculating burn risk from %d tags/subtags", len(tags))
 
         def _clean_text(value: object) -> Optional[str]:
             if value is None:
@@ -412,4 +696,10 @@ class RiskAssessor:
             "max": max(risks),
             "details": sorted(risk_entries, key=lambda item: item["risk"]),
         }
+        logger.info(
+            "Burn risk profile: total_entries=%d avg=%.2f grade=%s",
+            burn_profile["count"],
+            burn_profile["average"],
+            burn_profile["grade"],
+        )
         return burn_profile

@@ -119,11 +119,13 @@ export interface ProjectReportResponse {
         name: string;
         grade: string;
         detected_text?: string;
+        detected_timecode?: string;
         reason: string;
         related_sub_tags?: Array<{
           name: string;
           grade?: string;
           detected_text?: string;
+          detected_timecode?: string;
           reason?: string;
         }>;
       }>;

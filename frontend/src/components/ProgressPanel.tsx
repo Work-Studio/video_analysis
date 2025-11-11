@@ -22,7 +22,7 @@ interface ProgressPanelProps {
  */
 export default function ProgressPanel({ steps }: ProgressPanelProps) {
   return (
-    <ul className="space-y-2 rounded-lg border border-gray-700 bg-gray-800 p-4 shadow-sm">
+    <ul className="hidden space-y-2 rounded-lg border border-gray-700 bg-gray-800 p-4 shadow-sm">
       {steps.map((step) => (
         <li
           key={step.name}

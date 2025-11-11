@@ -251,7 +251,7 @@ class AnalysisPipeline:
         step = PROJECT_STEPS[3]
         await self.store.mark_step_running(project_id, step)
         try:
-            risk_result = await self.risk_assessor.assess(
+            risk_result = await self.risk_assessor.assess_with_enrichment(
                 transcript=transcript,
                 ocr_text=ocr_text,
                 video_summary=video_result,
@@ -259,6 +259,14 @@ class AnalysisPipeline:
             risk_result.setdefault("tags", [])
             burn_risk = self.risk_assessor.calculate_burn_risk(risk_result.get("tags") or [])
             risk_result["burn_risk"] = burn_risk
+            self.logger.info(
+                "Risk assessment finished for %s: social=%s legal=%s tags=%d burn_entries=%d",
+                project_id,
+                risk_result.get("social", {}).get("grade"),
+                risk_result.get("legal", {}).get("grade"),
+                len(risk_result.get("tags") or []),
+                burn_risk.get("count") if isinstance(burn_risk, dict) else 0,
+            )
         except Exception as exc:  # pragma: no cover
             self.logger.exception("Risk assessment failed for %s", project_id)
             risk_result = {
