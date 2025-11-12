@@ -1,3 +1,5 @@
 [
-  "tests/test_risk_assessor.py::test_calculate_burn_risk_enriches_details"
+  "tests/test_risk_assessor.py::test_calculate_burn_risk_enriches_details",
+  "tests/test_risk_assessor.py::test_load_case_reference_rows_reads_excel",
+  "tests/test_risk_assessor.py::test_screen_with_cases_returns_grade_c_or_higher"
 ]

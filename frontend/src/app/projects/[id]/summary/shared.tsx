@@ -7,6 +7,46 @@ import { ProjectReportResponse } from "@/lib/apiClient";
 
 const FALLBACK_DETECTED_TEXT = "検出文言データ未取得";
 
+/**
+ * タイムコード文字列を秒数に変換する
+ * サポート形式: "mm:ss", "hh:mm:ss", "0:10", "1:23:45"
+ * 静止画の場合は null を返す
+ */
+function parseTimecode(timecode: string | undefined | null): number | null {
+  if (!timecode || timecode === "静止画" || timecode === "N/A") {
+    return null;
+  }
+
+  const parts = timecode.trim().split(":");
+  if (parts.length === 0 || parts.length > 3) {
+    return null;
+  }
+
+  try {
+    const numbers = parts.map((p) => parseInt(p, 10));
+    if (numbers.some((n) => isNaN(n) || n < 0)) {
+      return null;
+    }
+
+    if (numbers.length === 2) {
+      // mm:ss
+      const [minutes, seconds] = numbers;
+      return minutes * 60 + seconds;
+    } else if (numbers.length === 3) {
+      // hh:mm:ss
+      const [hours, minutes, seconds] = numbers;
+      return hours * 3600 + minutes * 60 + seconds;
+    } else if (numbers.length === 1) {
+      // 秒のみ
+      return numbers[0];
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 type ActionStatusProfile = {
   badge: string;
   description: string;
@@ -256,22 +296,31 @@ function clampLegalGrade(grade: string | undefined): keyof typeof LEGAL_MAP {
     return grade as keyof typeof LEGAL_MAP;
   }
   if (!grade) {
-    return "抵触する可能性がある";
-  }
-  const lowered = grade.toLowerCase();
-  if (lowered.includes("not") || lowered.includes("safe")) {
     return "抵触していない";
   }
-  if (lowered.includes("violat") || lowered.includes("breach") || grade.includes("抵触")) {
+  const lowered = grade.toLowerCase();
+  if (lowered.includes("not") || lowered.includes("safe") || lowered.includes("問題") === false) {
+    return "抵触していない";
+  }
+  if (lowered.includes("violat") || lowered.includes("breach") || grade.includes("抵触している")) {
     return "抵触している";
   }
-  return "抵触する可能性がある";
+  if (grade.includes("可能性")) {
+    return "抵触する可能性がある";
+  }
+  // Default to 抵触していない when no clear indication of violations
+  return "抵触していない";
 }
 
 function deriveLegalGrade(
   rawGrade: string | undefined,
   violations: Array<{ severity?: string | null }>
 ): keyof typeof LEGAL_MAP {
+  // If no violations exist, default to "抵触していない" unless rawGrade explicitly indicates otherwise
+  if (!violations || violations.length === 0) {
+    return clampLegalGrade(rawGrade);
+  }
+
   let maxSeverity = 0;
   violations.forEach((violation) => {
     const severity = violation?.severity as keyof typeof VIOLATION_SEVERITY_SCORE | undefined;
@@ -467,9 +516,10 @@ type MediaPreviewProps = {
   mediaType: string;
   src: string;
   onDurationChange?: (duration: number) => void;
+  videoRef?: React.RefObject<HTMLVideoElement>;
 };
 
-export function MediaPreview({ mediaType, src, onDurationChange }: MediaPreviewProps) {
+export function MediaPreview({ mediaType, src, onDurationChange, videoRef }: MediaPreviewProps) {
   if (mediaType === "image") {
     return (
       <div className="relative h-[420px] w-full">
@@ -486,6 +536,7 @@ export function MediaPreview({ mediaType, src, onDurationChange }: MediaPreviewP
   }
   return (
     <video
+      ref={videoRef}
       key={src}
       controls
       playsInline
@@ -510,6 +561,7 @@ type PrintableSummaryProps = {
   productName: string;
   orientation: "portrait" | "landscape";
   mediaType: string;
+  onSeekToTimecode?: (seconds: number) => void;
 };
 
 export function PrintableSummary({
@@ -518,7 +570,8 @@ export function PrintableSummary({
   companyName,
   productName,
   orientation,
-  mediaType
+  mediaType,
+  onSeekToTimecode
 }: PrintableSummaryProps) {
   const tagAssessments = useMemo<RiskTagItem[]>(() => {
     const tags = report.final_report.risk.tags;
@@ -628,7 +681,7 @@ export function PrintableSummary({
         });
       });
       legalViolations.forEach((violation, index) => {
-        const timecode = ((violation as unknown as { timecode?: string })?.timecode || "").trim();
+        const timecode = (violation.timecode || "").trim();
         items.push({
           id: `violation-${index}`,
           label: (violation.expression || violation.reference || `論点${index + 1}`).trim(),
@@ -848,7 +901,7 @@ export function PrintableSummary({
       subTag?: string;
       expression: string;
       sources: string[];
-      timecode?: string;
+      timecode?: string | null;
     }> = [];
     tagAssessments.forEach((tag) => {
       const pushExpression = (
@@ -913,14 +966,14 @@ type BurnRiskDetail = {
   label?: string;
   type?: string;
   detectedText?: string;
-  detectedTimecode?: string;
+  detectedTimecode?: string | null;
   reason?: string;
   parentTag?: string;
 };
 
 type DetectedEvidence = {
   expression: string;
-  timecode?: string;
+  timecode?: string | null;
 };
 
 const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
@@ -1008,9 +1061,8 @@ const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
         });
       }
     });
-    return rows
-      .filter((row) => gradeToScore(row.grade) >= RISK_DISPLAY_THRESHOLD)
-      .sort((a, b) => EVAL_SCORE[b.grade] - EVAL_SCORE[a.grade]);
+    // Remove the filter to show all tags, not just high-risk ones
+    return rows.sort((a, b) => EVAL_SCORE[b.grade] - EVAL_SCORE[a.grade]);
   }, [tagAssessments]);
 
   useEffect(() => {
@@ -1511,7 +1563,25 @@ const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
                 </p>
                 <p className="font-mono text-[10px] text-slate-700">{entry.expression}</p>
                 {mediaType === "video" && entry.timecode && (
-                  <p className="text-[10px] text-slate-500">タイムコード: {entry.timecode}</p>
+                  <p className="text-[10px] text-slate-500">
+                    タイムコード:{" "}
+                    {onSeekToTimecode ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const seconds = parseTimecode(entry.timecode);
+                          if (seconds !== null) {
+                            onSeekToTimecode(seconds);
+                          }
+                        }}
+                        className="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                      >
+                        {entry.timecode}
+                      </button>
+                    ) : (
+                      <span>{entry.timecode}</span>
+                    )}
+                  </p>
                 )}
                 <p className="text-[10px] text-slate-500">
                   参照データ:{" "}

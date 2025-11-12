@@ -35,6 +35,26 @@ class GeminiClient:
         self.model = model or os.getenv("GEMINI_OCR_MODEL", DEFAULT_MODEL)
         self.timeout = timeout
 
+    async def run_step(
+        self,
+        name: str,
+        media_path: Path,
+        *,
+        media_type: str = "video",
+    ) -> object:
+        """共通インターフェースで個別ステップを実行する."""
+
+        normalized = name.lower()
+        if normalized in {"transcription", "transcribe", "audio"}:
+            return await self.transcribe_audio(media_path)
+        if normalized in {"ocr", "subtitle", "text"}:
+            return await self.extract_ocr(media_path)
+        if normalized in {"visual", "video", "image"}:
+            if media_type == "image":
+                return await self.analyze_image(media_path)
+            return await self.analyze_video_segments(media_path)
+        raise ValueError(f"Unsupported analysis step: {name}")
+
     async def extract_ocr(self, video_path: Path) -> str:
         """動画を解析して字幕・注釈を抽出する."""
 
@@ -198,6 +218,48 @@ class GeminiClient:
                     continue
 
         raise RuntimeError("Gemini API から静止画解析結果を JSON 形式で取得できませんでした。")
+
+    async def generate_text(self, prompt: str) -> str:
+        """テキストプロンプトに対して通常のテキスト応答を生成する."""
+
+        if not self.api_key:
+            return "[stub] API キー未設定のためダミー応答です。"
+
+        payload = {
+            "contents": [
+                {
+                    "parts": [{"text": prompt}]
+                }
+            ]
+        }
+
+        endpoint = GEMINI_ENDPOINT_TEMPLATE.format(model=self.model)
+        params = {"key": self.api_key}
+
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            try:
+                response = await client.post(endpoint, params=params, json=payload)
+                response.raise_for_status()
+            except httpx.HTTPStatusError as exc:
+                try:
+                    error_detail = exc.response.json()
+                except ValueError:
+                    error_detail = exc.response.text
+                raise GeminiAPIError(
+                    f"{exc.response.status_code} {error_detail}"
+                ) from exc
+
+        payload_json = response.json()
+        candidates = payload_json.get("candidates") or []
+        for candidate in candidates:
+            content = candidate.get("content") or {}
+            parts = content.get("parts") or []
+            for part in parts:
+                text = part.get("text")
+                if text:
+                    return text
+
+        raise RuntimeError("Gemini API からテキスト応答を取得できませんでした。")
 
     async def generate_structured_judgement(self, instruction: str, content: str) -> dict:
         """テキストのみを対象に JSON 形式の回答を生成する."""

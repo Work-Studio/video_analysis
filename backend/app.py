@@ -9,6 +9,7 @@ from typing import List
 import aiofiles
 from fastapi import (
     BackgroundTasks,
+    Depends,
     FastAPI,
     File,
     Form,
@@ -39,6 +40,9 @@ from backend.store import (
     ProjectNotFoundError,
     ProjectStore,
 )
+from backend.routers import auth, admin, bulk_upload
+from backend.routers.auth import get_current_user, TokenData
+from backend.database import get_db
 
 
 app = FastAPI(title="Video Analysis Pipeline")
@@ -50,6 +54,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(auth.router)
+app.include_router(admin.router)
+app.include_router(bulk_upload.router)
 
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = BASE_DIR / "uploads"
@@ -219,6 +228,54 @@ async def get_final_report(project_id: str) -> ProjectReportResponse:
         raise HTTPException(status_code=404, detail="レポートはまだ利用できません。")
 
     return build_report_response(project)
+
+
+@app.delete("/projects/{project_id}")
+async def delete_project(
+    project_id: str,
+    current_user: TokenData = Depends(get_current_user),
+) -> dict:
+    """プロジェクトを削除する（認証が必要）."""
+    import shutil
+    import json
+    from datetime import datetime
+
+    try:
+        project = await store.get_project(project_id)
+    except ProjectNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="プロジェクトが存在しません。") from exc
+
+    # 認証済みユーザーであれば誰でも削除可能（削除時のバックアップなし）
+
+    try:
+        # プロジェクトファイルの削除
+        if project.video_path.exists():
+            project.video_path.unlink()
+
+        # プロジェクトディレクトリの削除
+        project_dir = project.video_path.parent
+        if project_dir.exists() and project_dir.is_dir():
+            shutil.rmtree(project_dir)
+
+        # データベースから削除（user_projectsにレコードがあれば削除）
+        try:
+            with get_db() as conn:
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM user_projects WHERE project_id = ?", (project_id,))
+                conn.commit()
+        except Exception as db_error:
+            print(f"Warning: Failed to delete from user_projects table: {db_error}")
+
+        # ストアから削除
+        await store.delete_project(project_id)
+
+        return {"message": "プロジェクトを削除しました。", "project_id": project_id}
+
+    except Exception as e:
+        import traceback
+        error_detail = f"削除処理中にエラーが発生しました: {str(e)}\n{traceback.format_exc()}"
+        print(error_detail)
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.get("/health")
