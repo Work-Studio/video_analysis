@@ -1,0 +1,81 @@
+```json
+{
+  "texts": [
+    {
+      "timecode_start": "00:00.4",
+      "timecode_end": "00:00.4",
+      "text": "Happy Birthday"
+    },
+    {
+      "timecode_start": "00:00.4",
+      "timecode_end": "00:00.4",
+      "text": "25 ans"
+    },
+    {
+      "timecode_start": "00:11.9",
+      "timecode_end": "00:13.1",
+      "text": "INTEGRATE GIRL'S STORY"
+    },
+    {
+      "timecode_start": "00:13.1",
+      "timecode_end": "00:13.8",
+      "text": "\"UnHappy Birthday?\""
+    },
+    {
+      "timecode_start": "00:13.1",
+      "timecode_end": "00:13.1",
+      "text": "Happy Birthday"
+    },
+    {
+      "timecode_start": "00:13.8",
+      "timecode_end": "00:14.1",
+      "text": "25 ans"
+    },
+    {
+      "timecode_start": "00:23.3",
+      "timecode_end": "00:26.1",
+      "text": "週末ごとにアップされる結婚式の写真 白いタキシードうける(←元カレ)"
+    },
+    {
+      "timecode_start": "00:26.1",
+      "timecode_end": "00:27.6",
+      "text": "このままじゃやばい なんで？いつからこうなった？"
+    },
+    {
+      "timecode_start": "00:27.6",
+      "timecode_end": "00:30.8",
+      "text": "カワイイという武器 はもはやこの手には ない"
+    },
+    {
+      "timecode_start": "00:48.6",
+      "timecode_end": "00:49.4",
+      "text": "生き方が、これからの顔になる。"
+    },
+    {
+      "timecode_start": "00:49.4",
+      "timecode_end": "00:49.9",
+      "text": "#いい女なろう"
+    },
+    {
+      "timecode_start": "00:56.5",
+      "timecode_end": "00:57.8",
+      "text": "ラブリーに生きろ"
+    },
+    {
+      "timecode_start": "00:58.1",
+      "timecode_end": "00:58.9",
+      "text": "INTEGRATE"
+    },
+    {
+      "timecode_start": "00:58.9",
+      "timecode_end": "00:59.2",
+      "text": "all new!"
+    },
+    {
+      "timecode_start": "00:59.3",
+      "timecode_end": "01:00.6",
+      "text": "インテグレート オールニュー"
+    }
+  ]
+}
+```

@@ -1,0 +1,26 @@
+{
+  "existing_annotations": [],
+  "missing_annotations": [
+    {
+      "suggested_text": "個人の感想であり、効果を保証するものではありません",
+      "reason": "動画内で「可愛いをアップデートできる女になるか」など、個人の願望や感想が含まれているため、効果・効能を保証するものではない旨を明記する必要がある。",
+      "severity": "必須",
+      "suggested_timecode": "00:57",
+      "legal_basis": "景品表示法、医薬品医療機器等法（旧薬事法）"
+    },
+    {
+      "suggested_text": "製品の詳しい情報や使用方法については、公式サイトをご確認ください。",
+      "reason": "動画は広告であり、製品の全ての情報を提供しているわけではないため、公式サイトへの誘導が必要。",
+      "severity": "推奨",
+      "suggested_timecode": "00:57",
+      "legal_basis": "特になし（消費者の情報提供を促進する観点から推奨）"
+    },
+    {
+      "suggested_text": "INTEGRATEは資生堂のブランドです。",
+      "reason": "ブランド名を明確にする。",
+      "severity": "任意",
+      "suggested_timecode": "00:58",
+      "legal_basis": "特になし"
+    }
+  ]
+}

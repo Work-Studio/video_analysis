@@ -1,0 +1,46 @@
+{
+  "frames": [
+    {
+      "timecode": "0:26.2",
+      "tag": "女性表現",
+      "sub_tag": null,
+      "filename": "女性表現_0-26.2.jpg"
+    },
+    {
+      "timecode": "0:22.1",
+      "tag": "女性表現",
+      "sub_tag": "結婚出産固定観念",
+      "filename": "女性表現_結婚出産固定観念_0-22.1.jpg"
+    },
+    {
+      "timecode": "0:25.2",
+      "tag": "社会規範",
+      "sub_tag": null,
+      "filename": "社会規範_0-25.2.jpg"
+    },
+    {
+      "timecode": "0:02.0",
+      "tag": "表現手法エラー",
+      "sub_tag": null,
+      "filename": "表現手法エラー_0-02.0.jpg"
+    },
+    {
+      "timecode": "0:05.6",
+      "tag": "表現手法エラー",
+      "sub_tag": "世代間ギャップ誤読",
+      "filename": "表現手法エラー_世代間ギャップ誤読_0-05.6.jpg"
+    },
+    {
+      "timecode": "0:24.6",
+      "tag": "表現手法エラー",
+      "sub_tag": "コメディ誇張失敗",
+      "filename": "表現手法エラー_コメディ誇張失敗_0-24.6.jpg"
+    },
+    {
+      "timecode": "0:25.3",
+      "tag": "表現手法エラー",
+      "sub_tag": "過度な誇張で誤解",
+      "filename": "表現手法エラー_過度な誇張で誤解_0-25.3.jpg"
+    }
+  ]
+}

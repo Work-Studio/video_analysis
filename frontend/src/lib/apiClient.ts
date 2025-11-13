@@ -19,6 +19,10 @@ export const API_PATH = {
   ME: "/auth/me",
   ADMIN_USERS: "/admin/users",
   DELETE_PROJECT: (id: string) => `/projects/${id}`,
+  FEEDBACK_ANALYSIS: "/api/feedback/analysis",
+  FEEDBACK_ANALYSIS_BY_ID: (feedbackId: number) => `/api/feedback/analysis/${feedbackId}`,
+  FEEDBACK_ANALYSIS_BY_PROJECT: (projectId: string) => `/api/feedback/analysis/project/${projectId}`,
+  FEEDBACK_TAG_FEEDBACKS: (feedbackId: number) => `/api/feedback/analysis/${feedbackId}/tags`,
 } as const;
 
 export type AnalysisStepStatus = "pending" | "running" | "completed" | "failed";
@@ -93,6 +97,7 @@ export interface RiskRelatedSubTag {
   grade?: string;
   detected_text?: string;
   detected_timecode?: string;
+  detected_source?: string;  // "transcript", "ocr", or "visual"
   reason?: string;
 }
 
@@ -101,6 +106,7 @@ export interface RiskTag {
   grade: string;
   detected_text?: string;
   detected_timecode?: string;
+  detected_source?: string;  // "transcript", "ocr", or "visual"
   reason: string;
   related_sub_tags?: RiskRelatedSubTag[];
 }
@@ -443,4 +449,154 @@ export async function deleteProject(projectId: string, token: string): Promise<v
   if (!response.ok) {
     throw new Error("プロジェクトの削除に失敗しました");
   }
+}
+
+// ========== Feedback APIs ==========
+
+export type FeedbackType = "approve" | "modify" | "reject";
+export type FeedbackAction = "keep" | "modify" | "delete" | "add";
+export type GradeLevel = "A" | "B" | "C" | "D" | "E";
+
+export interface TagFeedbackRequest {
+  tag_name: string;
+  original_grade: GradeLevel;
+  corrected_grade?: GradeLevel;
+  action: FeedbackAction;
+  correction_reason?: string;
+  detected_text?: string;
+  detected_timecode?: string;
+}
+
+export interface AnalysisFeedbackRequest {
+  project_id: string;
+  feedback_type: FeedbackType;
+  overall_comment?: string;
+  quality_score?: number;
+  tag_feedbacks?: TagFeedbackRequest[];
+}
+
+export interface TagFeedbackResponse extends TagFeedbackRequest {
+  id: number;
+  feedback_id: number;
+  created_at: string;
+}
+
+export interface AnalysisFeedbackResponse {
+  id: number;
+  project_id: string;
+  feedback_type: FeedbackType;
+  overall_comment?: string;
+  quality_score?: number;
+  created_at: string;
+  created_by?: number;
+}
+
+export async function createAnalysisFeedback(
+  data: AnalysisFeedbackRequest,
+  token: string
+): Promise<AnalysisFeedbackResponse> {
+  const response = await fetch(`${API_BASE_URL}${API_PATH.FEEDBACK_ANALYSIS}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error("フィードバックの作成に失敗しました");
+  }
+
+  return response.json();
+}
+
+export async function getProjectFeedbacks(
+  projectId: string,
+  token: string
+): Promise<AnalysisFeedbackResponse[]> {
+  const response = await fetch(`${API_BASE_URL}${API_PATH.FEEDBACK_ANALYSIS_BY_PROJECT(projectId)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error("フィードバックの取得に失敗しました");
+  }
+
+  return response.json();
+}
+
+export async function getTagFeedbacks(
+  feedbackId: number,
+  token: string
+): Promise<TagFeedbackResponse[]> {
+  const response = await fetch(`${API_BASE_URL}${API_PATH.FEEDBACK_TAG_FEEDBACKS(feedbackId)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error("タグフィードバックの取得に失敗しました");
+  }
+
+  return response.json();
+}
+
+// ========== Content Editing APIs ==========
+
+export interface EditableContentResponse {
+  transcript: string;
+  ocr: any;  // Can be string (plain) or JSON object (timed)
+  ocr_format: "plain" | "timed";
+}
+
+export async function fetchEditableContent(
+  projectId: string
+): Promise<EditableContentResponse> {
+  return apiFetch<EditableContentResponse>(`/projects/${projectId}/content`);
+}
+
+export async function updateEditableContent(
+  projectId: string,
+  data: {
+    transcript?: string;
+    ocr_data?: string;
+    ocr_format?: "plain" | "timed";
+  }
+): Promise<{ message: string }> {
+  const formData = new FormData();
+
+  if (data.transcript !== undefined) {
+    formData.append("transcript", data.transcript);
+  }
+
+  if (data.ocr_data !== undefined) {
+    formData.append("ocr_data", data.ocr_data);
+  }
+
+  if (data.ocr_format !== undefined) {
+    formData.append("ocr_format", data.ocr_format);
+  }
+
+  const response = await fetch(`${API_BASE_URL}/projects/${projectId}/content`, {
+    method: "PUT",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error("コンテンツの更新に失敗しました");
+  }
+
+  return response.json();
+}
+
+export async function reanalyzeProject(projectId: string): Promise<{ message: string; project_id: string }> {
+  const response = await fetch(`${API_BASE_URL}/projects/${projectId}/reanalyze`, {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    throw new Error("再分析の開始に失敗しました");
+  }
+
+  return response.json();
 }

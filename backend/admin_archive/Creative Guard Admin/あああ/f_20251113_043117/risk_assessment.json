@@ -1,0 +1,81 @@
+{
+  "social": {
+    "grade": "C",
+    "reason": "この動画は、一人で涙を流しながらカップ麺を食べる女性を描写しており、視聴者に孤独感や悲しみを想起させる可能性があります。過去には、広告における過度な感情表現が、不快感や共感性の欠如として批判された事例があります。また、特定の食品ブランドが、人々の感情や社会的な状況と結びつけられることで、不適切な連想を招くリスクも考慮する必要があります。",
+    "findings": [
+      {
+        "timecode": "0:00~0:01",
+        "detail": "涙を流す女性の横顔の描写は、視聴者に孤独感や悲しみを想起させる可能性がある。"
+      },
+      {
+        "timecode": "0:13~0:14",
+        "detail": "食事中に涙を流す女性の横顔は、視聴者に孤独感や悲しみを想起させる可能性がある。"
+      },
+      {
+        "timecode": "0:18~0:21",
+        "detail": "テーブルで食事をする女性の様子は、視聴者に孤独感や孤立感を想起させる可能性がある。"
+      }
+    ]
+  },
+  "legal": {
+    "grade": "N/A",
+    "reason": "提供された情報からは、消費者契約法や景品表示法に直接抵触する表現は確認できませんでした。",
+    "recommendations": "特になし",
+    "violations": [],
+    "NOTE": "violations array MUST be empty [] when grade is '抵触していない'. Only include violations when specific legal concerns are identified.",
+    "findings": []
+  },
+  "matrix": {
+    "x_axis": "法務評価",
+    "y_axis": "社会的感度",
+    "position": [
+      0,
+      2
+    ]
+  },
+  "tags": [
+    {
+      "name": "社会規範",
+      "grade": "C",
+      "reason": "孤独な状況で食事をする様子は、必ずしも社会規範に反するわけではありませんが、視聴者の感情に影響を与える可能性があります。",
+      "detected_text": "一人で部屋で涙を流しながらカップ麺を食べる様子",
+      "detected_timecode": "映像解析",
+      "related_sub_tags": [
+        {
+          "name": "社会背景との乖離",
+          "grade": "C",
+          "reason": "社会的な孤立や孤独感を想起させる可能性があるため。",
+          "detected_text": "孤独感と温かい食事による安心感が表現されています",
+          "detected_timecode": "映像解析"
+        }
+      ]
+    },
+    {
+      "name": "表現手法エラー",
+      "grade": "D",
+      "reason": "意図した感情と異なる解釈を視聴者がする可能性があります。",
+      "detected_text": "涙を流しながらカップ麺を食べる様子を描いています。",
+      "detected_timecode": "映像解析",
+      "related_sub_tags": [
+        {
+          "name": "文脈不一致",
+          "grade": "D",
+          "reason": "必ずしも文脈と一致しているとは限りません。",
+          "detected_text": "出汁がうまいとほっとする。",
+          "detected_timecode": "Transcript"
+        },
+        {
+          "name": "コメディ誇張失敗",
+          "grade": "E",
+          "reason": "意図した感情表現が過剰になり、視聴者に不快感を与える可能性があります。",
+          "detected_text": "ため息",
+          "detected_timecode": "0:00"
+        }
+      ]
+    }
+  ],
+  "burn_risk": {
+    "count": 0,
+    "details": []
+  }
+}

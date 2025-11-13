@@ -1,0 +1,33 @@
+{
+  "existing_annotations": [],
+  "missing_annotations": [
+    {
+      "suggested_text": "効果には個人差があります",
+      "reason": "動画内で「可愛いをアップデートできる女になる」などの表現があり、化粧品の効果効能を想起させる可能性があるため。実際の商品を使用した結果には個人差があることを明記する必要がある。",
+      "severity": "推奨",
+      "suggested_timecode": "00:58",
+      "legal_basis": "景品表示法"
+    },
+    {
+      "suggested_text": "使用方法を守って正しくお使いください",
+      "reason": "化粧品の使用に関する注意喚起。安全な使用を促すため。",
+      "severity": "推奨",
+      "suggested_timecode": "00:58",
+      "legal_basis": "薬機法"
+    },
+    {
+      "suggested_text": "製品の詳細はインテグレート公式サイトをご確認ください",
+      "reason": "商品に関するより詳しい情報を消費者に提供するため。公式サイトへの誘導。",
+      "severity": "推奨",
+      "suggested_timecode": "00:58",
+      "legal_basis": null
+    },
+    {
+      "suggested_text": "画像はイメージです",
+      "reason": "動画内で使用されている画像が、実際の商品や使用結果と異なる可能性があるため。",
+      "severity": "任意",
+      "suggested_timecode": "00:00",
+      "legal_basis": null
+    }
+  ]
+}

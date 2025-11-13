@@ -15,6 +15,7 @@ import pandas as pd
 
 from backend.models.gemini_client import GeminiClient
 from backend.utils.logging_utils import setup_logger
+from backend.services.langfuse_service import get_langfuse_service
 
 logger = logging.getLogger(__name__)
 screen_logger = setup_logger("risk_screening")
@@ -55,6 +56,7 @@ class RiskAssessor:
         tag_list_path: Path,
     ) -> None:
         self.gemini_client = gemini_client
+        self.langfuse = get_langfuse_service()
         self.social_case_path = social_case_path
         self.tag_list_path = tag_list_path
         self.social_case_digest = self._load_excel_digest(social_case_path, "炎上事例")
@@ -84,9 +86,27 @@ class RiskAssessor:
             len(video_summary.get("segments") or []),
         )
 
-        instruction = dedent(
-            """
-            You are a compliance analyst for Japanese media content.
+        # Langfuseからプロンプトを取得（失敗時はフォールバック）
+        langfuse_prompt = self.langfuse.compile_prompt(
+            name="risk-assessment",
+            variables={
+                "transcript": transcript,
+                "ocr_text": ocr_text,
+                "video_segments": video_segments_text,
+                "social_cases": self.social_case_digest,
+                "tag_structure": self.tag_structure_json,
+                "legal_references": self.legal_digest
+            }
+        )
+
+        if langfuse_prompt:
+            logger.info("[Langfuse] Using prompt from Langfuse")
+            instruction = langfuse_prompt
+        else:
+            logger.warning("[Langfuse] Failed to get prompt, using fallback")
+            instruction = dedent(
+                """
+                You are a compliance analyst for Japanese media content.
             Given the supplied transcript, OCR subtitles, structured video summary,
             and the reference knowledge bases (social cases, tag taxonomy, legal guidelines),
             evaluate the risk from two perspectives: Social Sensitivity and Legal Compliance.
@@ -311,7 +331,13 @@ class RiskAssessor:
 
         keyword_matches = self._scan_tag_matches(transcript, ocr_text)
         keyword_matches.extend(self._screen_with_cases(transcript, ocr_text))
-        aggregated = self._aggregate_risk_results(base_results, keyword_matches)
+        aggregated = self._aggregate_risk_results(
+            base_results,
+            keyword_matches,
+            transcript=transcript,
+            ocr_text=ocr_text,
+            video_summary=video_summary
+        )
         return aggregated
 
     def _scan_tag_matches(self, transcript: str, ocr_text: str) -> List[Dict[str, object]]:
@@ -508,10 +534,40 @@ class RiskAssessor:
     def _aggregate_risk_results(
         self,
         base_results: List[Dict[str, object]],
-        keyword_matches: List[Dict[str, object]]
+        keyword_matches: List[Dict[str, object]],
+        transcript: str = "",
+        ocr_text: str = "",
+        video_summary: Optional[Dict[str, object]] = None
     ) -> Dict[str, object]:
         def worst_grade(values: List[str]) -> str:
             return _score_to_grade(max((_grade_to_score(val) for val in values), default=0))
+
+        def determine_source(detected_text: str) -> Optional[str]:
+            """Determine the source of detected text: transcript, ocr, or visual."""
+            if not detected_text:
+                return None
+
+            detected_lower = detected_text.lower()
+
+            # Check if text appears in transcript
+            if transcript and detected_lower in transcript.lower():
+                return "transcript"
+
+            # Check if text appears in OCR
+            if ocr_text and detected_lower in ocr_text.lower():
+                return "ocr"
+
+            # Check if text appears in video summary
+            if video_summary:
+                segments = video_summary.get("segments", [])
+                for segment in segments:
+                    if isinstance(segment, dict):
+                        description = str(segment.get("description", "")).lower()
+                        if detected_lower in description:
+                            return "visual"
+
+            # Default to None if not found in any source
+            return None
 
         social_grades = [res.get("social", {}).get("grade") for res in base_results if res.get("social") is not None]
         legal_grades = [res.get("legal", {}).get("grade") for res in base_results if res.get("legal") is not None]
@@ -600,19 +656,22 @@ class RiskAssessor:
             reason = bucket["reasons"].most_common(1)[0][0] if bucket["reasons"] else ""
             detected_text = bucket["detected"][0] if bucket["detected"] else ""
             timecode = bucket["timecodes"][0] if bucket["timecodes"] else None
+            detected_source = determine_source(detected_text)
             related_sub_tags: List[Dict[str, object]] = []
             for sub_name, sub_bucket in bucket.get("subs", {}).items():
                 sub_grade = _score_to_grade(max(sub_bucket["scores"] or [0]))
                 sub_reason = sub_bucket["reasons"].most_common(1)[0][0] if sub_bucket["reasons"] else ""
                 sub_detected = sub_bucket["detected"][0] if sub_bucket["detected"] else ""
                 sub_timecode = sub_bucket["timecodes"][0] if sub_bucket["timecodes"] else None
+                sub_source = determine_source(sub_detected)
                 related_sub_tags.append(
                     {
                         "name": sub_name,
                         "grade": sub_grade,
                         "reason": sub_reason,
                         "detected_text": sub_detected,
-                        "detected_timecode": sub_timecode
+                        "detected_timecode": sub_timecode,
+                        "detected_source": sub_source
                     }
                 )
             merged_tags.append(
@@ -622,6 +681,7 @@ class RiskAssessor:
                     "reason": reason,
                     "detected_text": detected_text,
                     "detected_timecode": timecode,
+                    "detected_source": detected_source,
                     "related_sub_tags": related_sub_tags
                 }
             )

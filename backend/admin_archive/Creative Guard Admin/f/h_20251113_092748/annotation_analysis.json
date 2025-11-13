@@ -1,0 +1,26 @@
+{
+  "existing_annotations": [],
+  "missing_annotations": [
+    {
+      "suggested_text": "個人の感想であり、効果を保証するものではありません。",
+      "reason": "動画内で「いい女になろう」という目標を掲げているが、これがあたかもインテグレートの商品を使用することで必ず達成できるかのように誤解を与える可能性があるため、効果を保証するものではない旨を明記する必要がある。",
+      "severity": "推奨",
+      "suggested_timecode": "00:47",
+      "legal_basis": "景品表示法"
+    },
+    {
+      "suggested_text": "インテグレート オールニュー",
+      "reason": "画面表示されている商品名（ブランド名）をテロップ等で明示することで、広告であることを明確にし、消費者の誤解を防ぐ。",
+      "severity": "推奨",
+      "suggested_timecode": "00:00",
+      "legal_basis": "景品表示法"
+    },
+    {
+      "suggested_text": "使用方法を守って正しくお使いください。",
+      "reason": "化粧品の使用に関する一般的な注意喚起。使用方法を誤ると、肌トラブルなどの原因になる可能性があるため。",
+      "severity": "推奨",
+      "suggested_timecode": "00:50",
+      "legal_basis": "薬機法"
+    }
+  ]
+}

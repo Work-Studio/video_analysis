@@ -10,7 +10,8 @@ const FALLBACK_DETECTED_TEXT = "検出文言データ未取得";
 
 /**
  * タイムコード文字列を秒数に変換する
- * サポート形式: "mm:ss", "hh:mm:ss", "0:10", "1:23:45"
+ * サポート形式: "mm:ss.d", "hh:mm:ss.d", "0:10.5", "1:23:45.3"
+ * 小数点以下は0.1秒単位（例: "1:23.5" = 83.5秒）
  * 静止画の場合は null を返す
  */
 function parseTimecode(timecode: string | undefined | null): number | null {
@@ -24,21 +25,22 @@ function parseTimecode(timecode: string | undefined | null): number | null {
   }
 
   try {
-    const numbers = parts.map((p) => parseInt(p, 10));
+    // parseFloat を使用して小数点をサポート
+    const numbers = parts.map((p) => parseFloat(p));
     if (numbers.some((n) => isNaN(n) || n < 0)) {
       return null;
     }
 
     if (numbers.length === 2) {
-      // mm:ss
+      // mm:ss.d
       const [minutes, seconds] = numbers;
       return minutes * 60 + seconds;
     } else if (numbers.length === 3) {
-      // hh:mm:ss
+      // hh:mm:ss.d
       const [hours, minutes, seconds] = numbers;
       return hours * 3600 + minutes * 60 + seconds;
     } else if (numbers.length === 1) {
-      // 秒のみ
+      // 秒のみ (ss.d)
       return numbers[0];
     }
   } catch {
@@ -46,6 +48,97 @@ function parseTimecode(timecode: string | undefined | null): number | null {
   }
 
   return null;
+}
+
+/**
+ * Calculate Levenshtein distance between two strings
+ */
+function levenshteinDistance(s1: string, s2: string): number {
+  const len1 = s1.length;
+  const len2 = s2.length;
+  const matrix: number[][] = [];
+
+  for (let i = 0; i <= len1; i++) {
+    matrix[i] = [i];
+  }
+  for (let j = 0; j <= len2; j++) {
+    matrix[0][j] = j;
+  }
+
+  for (let i = 1; i <= len1; i++) {
+    for (let j = 1; j <= len2; j++) {
+      const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + cost
+      );
+    }
+  }
+
+  return matrix[len1][len2];
+}
+
+/**
+ * Calculate similarity percentage between two strings
+ */
+function calculateSimilarity(s1: string, s2: string): number {
+  if (!s1 || !s2) return 0;
+  if (s1 === s2) return 100;
+
+  const distance = levenshteinDistance(s1.toLowerCase(), s2.toLowerCase());
+  const maxLen = Math.max(s1.length, s2.length);
+  const similarity = ((maxLen - distance) / maxLen) * 100;
+
+  return similarity;
+}
+
+/**
+ * Check if two timecodes are within tolerance (in seconds)
+ */
+function areTimecodesNearby(tc1: string | undefined | null, tc2: string | undefined | null, toleranceSeconds: number): boolean {
+  const time1 = parseTimecode(tc1);
+  const time2 = parseTimecode(tc2);
+
+  if (time1 === null || time2 === null) return false;
+
+  return Math.abs(time1 - time2) <= toleranceSeconds;
+}
+
+/**
+ * Get display information for detected source
+ */
+function getSourceLabel(source: string | undefined): { icon: string; label: string; bgColor: string; textColor: string } {
+  switch (source) {
+    case "transcript":
+      return {
+        icon: "🗣️",
+        label: "音声",
+        bgColor: "bg-blue-100",
+        textColor: "text-blue-800"
+      };
+    case "ocr":
+      return {
+        icon: "📝",
+        label: "テロップ",
+        bgColor: "bg-green-100",
+        textColor: "text-green-800"
+      };
+    case "visual":
+      return {
+        icon: "🎬",
+        label: "表現",
+        bgColor: "bg-purple-100",
+        textColor: "text-purple-800"
+      };
+    default:
+      return {
+        icon: "❓",
+        label: "不明",
+        bgColor: "bg-gray-100",
+        textColor: "text-gray-800"
+      };
+  }
 }
 
 type ActionStatusProfile = {
@@ -580,6 +673,25 @@ export function PrintableSummary({
   tagFramesInfo,
   onSeekToTimecode
 }: PrintableSummaryProps) {
+  // State for manual tag addition
+  const [customTags, setCustomTags] = useState<Array<{
+    tag: string;
+    subTag?: string;
+    grade: string;
+    expression: string;
+    timecode?: string;
+    reason?: string;
+  }>>([]);
+  const [showAddTagForm, setShowAddTagForm] = useState(false);
+  const [newTag, setNewTag] = useState({
+    tag: "",
+    subTag: "",
+    grade: "C",
+    expression: "",
+    timecode: "",
+    reason: ""
+  });
+
   const tagAssessments = useMemo<RiskTagItem[]>(() => {
     const tags = report.final_report.risk.tags;
     return Array.isArray(tags) ? (tags as RiskTagItem[]) : [];
@@ -875,18 +987,25 @@ export function PrintableSummary({
     ): DetectedEvidence => {
       const normalizedDetected = (detectedText ?? "").trim();
       const findings = matchSocialFindings(tagName, subTagName ?? "", detectedText ?? undefined);
+
+      // Priority 1: If we have detected_text, use it with its own timecode
+      // Do NOT fallback to findings timecode to avoid mismatched text/timecode pairs
       if (normalizedDetected) {
         return {
           expression: normalizedDetected,
-          timecode: detectedTimecode || findings[0]?.timecode
+          timecode: detectedTimecode || null  // Only use the provided timecode
         };
       }
+
+      // Priority 2: Use findings from social findings if no detected_text
       if (findings.length) {
         return {
           expression: findings[0].detail || FALLBACK_DETECTED_TEXT,
           timecode: findings[0].timecode
         };
       }
+
+      // Priority 3: Use reason as fallback
       const normalizedReason = (reason ?? "").trim();
       if (normalizedReason) {
         return {
@@ -894,6 +1013,8 @@ export function PrintableSummary({
           timecode: detectedTimecode
         };
       }
+
+      // Priority 4: Ultimate fallback
       return {
         expression: FALLBACK_DETECTED_TEXT,
         timecode: detectedTimecode
@@ -909,6 +1030,9 @@ export function PrintableSummary({
       expression: string;
       sources: string[];
       timecode?: string | null;
+      grade?: string;
+      reason?: string;
+      isCustom?: boolean;
     }> = [];
     tagAssessments.forEach((tag) => {
       const pushExpression = (
@@ -917,6 +1041,7 @@ export function PrintableSummary({
           detected_text?: string | null;
           detected_timecode?: string | null;
           reason?: string | null;
+          grade?: string | null;
         } | null,
         fallbackReason?: string | null
       ) => {
@@ -938,19 +1063,40 @@ export function PrintableSummary({
           subTag: subName,
           expression: evidence.expression,
           sources,
-          timecode: evidence.timecode
+          timecode: evidence.timecode,
+          grade: subTagObj?.grade ?? tag.grade,
+          reason: subTagObj?.reason ?? fallbackReason ?? tag.reason
         });
       };
       pushExpression(
-        { name: undefined, detected_text: tag.detected_text, reason: tag.reason },
+        { name: undefined, detected_text: tag.detected_text, reason: tag.reason, grade: tag.grade },
         tag.reason
       );
       if (Array.isArray(tag.related_sub_tags)) {
         tag.related_sub_tags.forEach((subTag) => pushExpression(subTag ?? null, tag.reason));
       }
     });
+
+    // Add custom tags
+    customTags.forEach((customTag) => {
+      const key = `custom-${customTag.tag}-${customTag.subTag ?? "main"}-${customTag.expression}`;
+      if (!unique.has(key)) {
+        unique.add(key);
+        list.push({
+          tag: customTag.tag,
+          subTag: customTag.subTag,
+          expression: customTag.expression,
+          sources: [],
+          timecode: customTag.timecode,
+          grade: customTag.grade,
+          reason: customTag.reason,
+          isCustom: true
+        });
+      }
+    });
+
     return list;
-  }, [detectSourceLabels, resolveDetectedEvidence, tagAssessments]);
+  }, [detectSourceLabels, resolveDetectedEvidence, tagAssessments, customTags]);
   useEffect(() => {
     console.log("[PrintableSummary] flagged expressions", flaggedExpressions);
   }, [flaggedExpressions]);
@@ -1036,16 +1182,31 @@ const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
     );
   }, [groupedTagData]);
   const socialTagBars = useMemo(() => {
-    const rows: Array<{
+    type TagRow = {
       tag: string;
       subTag: string;
       grade: keyof typeof EVAL_MAP;
       detectedText?: string;
       detectedTimecode?: string;
+      detectedSource?: string;
       reason?: string;
-    }> = [];
+    };
+
+    type GroupedTagEntry = {
+      detected_text: string;
+      detected_timecode: string;
+      detected_source?: string;
+      all_detected_texts: string[];
+      all_detected_timecodes: string[];
+      tags: TagRow[];
+    };
+
+    const rows: TagRow[] = [];
+
     tagAssessments.forEach((tag) => {
       const subTags = Array.isArray(tag.related_sub_tags) ? tag.related_sub_tags : [];
+
+      // Only add sub-tags (no separate main tag row to avoid duplication)
       if (subTags.length) {
         subTags.forEach((sub) => {
           rows.push({
@@ -1053,23 +1214,111 @@ const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
             subTag: sub.name,
             grade: toEvalGrade(sub.grade ?? tag.grade),
             detectedText: sub.detected_text ?? tag.detected_text,
-            detectedTimecode: (sub as any)?.detected_timecode ?? (tag as any)?.detected_timecode,
+            detectedTimecode: (sub as any)?.detected_timecode,
+            detectedSource: (sub as any)?.detected_source || (tag as any)?.detected_source,
             reason: sub.reason ?? tag.reason
           });
         });
+      }
+    });
+
+    // Group tags by similar detected text and nearby timecode
+    const SIMILARITY_THRESHOLD = 70; // 70% similarity
+    const TIMECODE_TOLERANCE = 2; // ±2 seconds
+
+    type TagGroup = {
+      texts: string[];
+      timecodes: string[];
+      rows: TagRow[];
+    };
+
+    const groups: TagGroup[] = [];
+
+    rows.forEach((row) => {
+      const text = row.detectedText || "";
+      const timecode = row.detectedTimecode || "";
+
+      // Try to find matching group
+      let matchedGroup: TagGroup | null = null;
+
+      for (const group of groups) {
+        // Check text similarity
+        const hasSimilarText = group.texts.some((groupText) => {
+          if (!text || !groupText) return text === groupText;
+          if (text === groupText) return true;
+          const similarity = calculateSimilarity(text, groupText);
+          return similarity >= SIMILARITY_THRESHOLD;
+        });
+
+        // Check timecode proximity
+        const hasNearbyTimecode = group.timecodes.some((groupTimecode) => {
+          if (!timecode || !groupTimecode) return timecode === groupTimecode;
+          if (timecode === groupTimecode) return true;
+          return areTimecodesNearby(timecode, groupTimecode, TIMECODE_TOLERANCE);
+        });
+
+        // If both match, use this group
+        if (hasSimilarText && hasNearbyTimecode) {
+          matchedGroup = group;
+          break;
+        }
+      }
+
+      if (matchedGroup) {
+        // Add to existing group
+        matchedGroup.rows.push(row);
+        if (text && !matchedGroup.texts.includes(text)) {
+          matchedGroup.texts.push(text);
+        }
+        if (timecode && !matchedGroup.timecodes.includes(timecode)) {
+          matchedGroup.timecodes.push(timecode);
+        }
       } else {
-        rows.push({
-          tag: tag.name,
-          subTag: "総合評価",
-          grade: toEvalGrade(tag.grade),
-          detectedText: tag.detected_text,
-          detectedTimecode: (tag as any)?.detected_timecode,
-          reason: tag.reason
+        // Create new group
+        groups.push({
+          texts: text ? [text] : [],
+          timecodes: timecode ? [timecode] : [],
+          rows: [row],
         });
       }
     });
-    // Remove the filter to show all tags, not just high-risk ones
-    return rows.sort((a, b) => EVAL_SCORE[b.grade] - EVAL_SCORE[a.grade]);
+
+    // Convert groups to GroupedTagEntry format
+    const groupedEntries: GroupedTagEntry[] = groups.map((group) => {
+      const representativeText = group.texts.find((t) => t) || "";
+      const representativeTimecode = group.timecodes.find((t) => t) || "";
+      // Get detected_source from the first row in the group that has one
+      const representativeSource = group.rows.find((r) => r.detectedSource)?.detectedSource;
+
+      return {
+        detected_text: representativeText,
+        detected_timecode: representativeTimecode,
+        detected_source: representativeSource,
+        all_detected_texts: group.texts.filter((t) => t),
+        all_detected_timecodes: group.timecodes.filter((t) => t),
+        tags: group.rows,
+      };
+    });
+
+    // Sort by timecode (earliest first), then by grade (highest risk first)
+    return groupedEntries.sort((a, b) => {
+      const timeA = parseTimecode(a.detected_timecode);
+      const timeB = parseTimecode(b.detected_timecode);
+
+      if (timeA !== null && timeB !== null) {
+        if (timeA !== timeB) {
+          return timeA - timeB;
+        }
+      }
+
+      if (timeA !== null && timeB === null) return -1;
+      if (timeA === null && timeB !== null) return 1;
+
+      // If timecodes are equal or both null, sort by highest risk
+      const maxGradeA = Math.max(...a.tags.map(tag => EVAL_SCORE[tag.grade]));
+      const maxGradeB = Math.max(...b.tags.map(tag => EVAL_SCORE[tag.grade]));
+      return maxGradeB - maxGradeA;
+    });
   }, [tagAssessments]);
 
   useEffect(() => {
@@ -1105,6 +1354,38 @@ const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
     .avoid-break { break-inside: avoid; page-break-inside: avoid; }
     .bar-segment { width: 100% !important; transition: none !important; }
     img, video { max-width: 100% !important; height: auto !important; }
+
+    /* 表紙部分（リスクマトリクスまで）を1ページに */
+    .cover-page {
+      page-break-after: always;
+      break-after: page;
+    }
+
+    /* タグ別詳細分析セクション */
+    .tag-analysis-section {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    /* 各タグ分析カードが途中で分断されないように */
+    .tag-card {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      margin-bottom: 1em;
+    }
+
+    /* 付録セクションは新しいページから */
+    .appendix-section {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    /* 付録の各セクションも途切れないように */
+    .appendix-item {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      margin-bottom: 2em;
+    }
   }`;
 
   const blockStyle: React.CSSProperties = {
@@ -1148,6 +1429,31 @@ const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
           transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
           will-change: width;
         }
+        @media print {
+          .tag-bar-fill {
+            transition: none !important;
+          }
+          .tag-bar-fill[data-print-width="100%"] { width: 100% !important; }
+          .tag-bar-fill[data-print-width="95%"] { width: 95% !important; }
+          .tag-bar-fill[data-print-width="90%"] { width: 90% !important; }
+          .tag-bar-fill[data-print-width="85%"] { width: 85% !important; }
+          .tag-bar-fill[data-print-width="80%"] { width: 80% !important; }
+          .tag-bar-fill[data-print-width="75%"] { width: 75% !important; }
+          .tag-bar-fill[data-print-width="70%"] { width: 70% !important; }
+          .tag-bar-fill[data-print-width="65%"] { width: 65% !important; }
+          .tag-bar-fill[data-print-width="60%"] { width: 60% !important; }
+          .tag-bar-fill[data-print-width="55%"] { width: 55% !important; }
+          .tag-bar-fill[data-print-width="50%"] { width: 50% !important; }
+          .tag-bar-fill[data-print-width="45%"] { width: 45% !important; }
+          .tag-bar-fill[data-print-width="40%"] { width: 40% !important; }
+          .tag-bar-fill[data-print-width="35%"] { width: 35% !important; }
+          .tag-bar-fill[data-print-width="30%"] { width: 30% !important; }
+          .tag-bar-fill[data-print-width="25%"] { width: 25% !important; }
+          .tag-bar-fill[data-print-width="20%"] { width: 20% !important; }
+          .tag-bar-fill[data-print-width="15%"] { width: 15% !important; }
+          .tag-bar-fill[data-print-width="10%"] { width: 10% !important; }
+          .tag-bar-fill[data-print-width="5%"] { width: 5% !important; }
+        }
         .matrix-cell {
           transition: transform 0.3s ease, background-color 0.3s ease;
           cursor: pointer;
@@ -1177,6 +1483,8 @@ const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
       `}</style>
 
       <div className="printable-summary mx-auto flex w-full flex-col gap-6 rounded-lg bg-white p-6 shadow-lg">
+        {/* Cover page section - includes everything up to and including risk matrix */}
+        <div className="cover-page">
         <header className="flex flex-col gap-4 border-b border-slate-100 pb-4 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="text-xs uppercase tracking-wide text-slate-400">Creative Guard Report</p>
@@ -1333,7 +1641,7 @@ const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
         </section>
 
         {ocrAnnotations.length > 0 && (
-          <section className="mt-6" style={blockStyle}>
+          <section className="tag-card mt-6" style={blockStyle}>
             <h3 className="text-lg font-semibold text-slate-800">OCR 注釈（※を含む字幕）</h3>
             <ul className="mt-3 space-y-1 rounded border border-slate-200 bg-slate-50 p-3 text-[11px] text-slate-600">
               {ocrAnnotations.map((annotation, index) => (
@@ -1360,63 +1668,130 @@ const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
             <p className="mt-2 text-[10px] text-slate-400">注記: {report.final_report.risk.note}</p>
           )}
         </section>
+        </div>
+        {/* End of cover page */}
 
         {highRiskTagEntries.length > 0 && (
-          <section className="mt-6" style={blockStyle}>
+          <section className="mt-6 tag-analysis-section" style={blockStyle}>
             <h3 className="text-lg font-semibold text-slate-800">タグ別 詳細分析</h3>
             {socialTagBars.length > 0 && (
               <div className="mt-4" ref={tagChartRef}>
                 <h4 className="text-sm font-semibold text-slate-600">社会的感度タグサマリー</h4>
                 <div className="mt-3 space-y-3">
-                  {socialTagBars.map((entry) => {
-                    const style = EVAL_MAP[entry.grade] ?? EVAL_MAP["N/A"];
+                  {socialTagBars.map((group, groupIdx) => {
+                    const hasMultipleTags = group.tags.length > 1;
+                    const hasMultipleTexts = group.all_detected_texts.length > 1;
+                    const hasMultipleTimecodes = group.all_detected_timecodes.length > 1;
+
                     return (
                       <div
-                        key={`social-tag-bar-${entry.tag}-${entry.subTag}`}
-                        className="rounded-xl border border-slate-200 bg-white/80 p-3 shadow-sm"
+                        key={`social-tag-group-${groupIdx}`}
+                        className="tag-card rounded-xl border border-slate-200 bg-white/80 p-3 shadow-sm"
                       >
-                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                          <div>
-                            <p className="text-xs font-semibold text-slate-900">{entry.tag}</p>
-                            <p className="text-[11px] text-slate-500">{entry.subTag}</p>
-                          </div>
-                          <span
-                            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${style.borderColor} ${style.textColor}`}
-                          >
-                            {entry.grade} / {style.label}
-                          </span>
-                        </div>
-                        <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-slate-200/80">
-                          <div
-                            className={`tag-bar-fill ${style.color}`}
-                            style={{ width: tagChartInView ? `${style.width}%` : "0%" }}
-                          />
-                        </div>
-                        {(entry.detectedText || entry.reason || entry.detectedTimecode) && (
-                          <div className="mt-2 space-y-1 text-[10px] text-slate-500">
-                            {entry.detectedText && (
-                              <p>
-                                <span className="font-semibold text-slate-700">検出文言:</span>{" "}
-                                <span className="font-mono">{entry.detectedText}</span>
-                              </p>
-                            )}
-                            {entry.reason && (
-                              <p>
-                                <span className="font-semibold text-slate-700">理由:</span>{" "}
-                                {entry.reason}
-                              </p>
-                            )}
-                            {mediaType === "video" && entry.detectedTimecode && (
-                              <>
-                                <p>
-                                  <span className="font-semibold text-slate-700">タイムコード:</span>{" "}
-                                  {entry.detectedTimecode}
+                        {/* Group header with detected text and timecode */}
+                        {group.detected_text && (
+                          <div className="mb-2 pb-2 border-b border-slate-200">
+                            <div className="flex items-start gap-2">
+                              <span className="text-base">📍</span>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-0.5">
+                                  <p className="text-[10px] font-semibold text-slate-800">検出文言</p>
+                                  {group.detected_source && (() => {
+                                    const sourceInfo = getSourceLabel(group.detected_source);
+                                    return (
+                                      <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold ${sourceInfo.bgColor} ${sourceInfo.textColor}`}>
+                                        <span>{sourceInfo.icon}</span>
+                                        <span>{sourceInfo.label}</span>
+                                      </span>
+                                    );
+                                  })()}
+                                </div>
+                                <p className="text-[10px] text-slate-700 bg-slate-50 px-2 py-1 rounded border border-slate-200">
+                                  {group.detected_text}
                                 </p>
-                                {/* フレーム画像を表示 */}
-                                {tagFramesInfo && (() => {
-                                  const frameInfo = tagFramesInfo.frames.find(
-                                    (f) => f.timecode === entry.detectedTimecode && f.tag === entry.tag
-                                  );
+                                {hasMultipleTexts && (
+                                  <div className="mt-1 bg-blue-50 border border-blue-200 rounded px-2 py-1">
+                                    <p className="text-[9px] text-blue-800 font-medium mb-0.5">
+                                      🔗 類似する検出文言がまとめられています (類似度70%以上):
+                                    </p>
+                                    <div className="space-y-0.5">
+                                      {group.all_detected_texts.map((text, idx) => (
+                                        <p key={idx} className="text-[9px] text-blue-700 pl-1">
+                                          • {text}
+                                        </p>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            {mediaType === "video" && group.detected_timecode && (
+                              <div className="mt-1 flex items-center gap-1">
+                                <span className="text-[10px] font-semibold text-slate-700">タイムコード:</span>
+                                <span className="text-[10px] text-slate-600">{group.detected_timecode}</span>
+                                {hasMultipleTimecodes && (
+                                  <span className="text-[9px] text-blue-600 ml-1">
+                                    (±2秒以内: {group.all_detected_timecodes.join(", ")})
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            {hasMultipleTags && (
+                              <div className="mt-1 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                                <p className="text-[10px] text-amber-800 font-medium">
+                                  ⚠️ この文言に対して {group.tags.length} 件のタグが該当しています
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Display all tags in this group */}
+                        <div className="space-y-2">
+                          {group.tags.map((entry, tagIdx) => {
+                            const style = EVAL_MAP[entry.grade] ?? EVAL_MAP["N/A"];
+                            return (
+                              <div key={`tag-${groupIdx}-${tagIdx}`}>
+                                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                                  <div>
+                                    <p className="text-xs font-semibold text-slate-900">{entry.tag}</p>
+                                    <p className="text-[11px] text-slate-500">{entry.subTag}</p>
+                                  </div>
+                                  <span
+                                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${style.borderColor} ${style.textColor}`}
+                                  >
+                                    {entry.grade} / {style.label}
+                                  </span>
+                                </div>
+                                <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-slate-200/80">
+                                  <div
+                                    className={`tag-bar-fill ${style.color}`}
+                                    style={{ width: tagChartInView ? `${style.width}%` : "0%" }}
+                                    data-print-width={`${style.width}%`}
+                                  />
+                                </div>
+                                {entry.reason && (
+                                  <div className="mt-1 text-[10px] text-slate-500">
+                                    <p>
+                                      <span className="font-semibold text-slate-700">理由:</span>{" "}
+                                      {entry.reason}
+                                    </p>
+                                  </div>
+                                )}
+                                {/* フレーム画像を表示 (only if timecode exists) */}
+                                {mediaType === "video" && entry.detectedTimecode && tagFramesInfo && (() => {
+                                  // Match frame by timecode, tag, and sub_tag (if applicable)
+                                  const frameInfo = tagFramesInfo.frames.find((f) => {
+                                    // Timecode must match
+                                    if (f.timecode !== entry.detectedTimecode) return false;
+
+                                    // Tag must match
+                                    if (f.tag !== entry.tag) return false;
+
+                                    // Sub-tag must also match
+                                    return f.sub_tag === entry.subTag;
+                                  });
+
                                   if (frameInfo) {
                                     return (
                                       <div className="mt-2">
@@ -1435,10 +1810,10 @@ const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
                                   }
                                   return null;
                                 })()}
-                              </>
-                            )}
-                          </div>
-                        )}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     );
                   })}
@@ -1466,7 +1841,7 @@ const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
                 );
 
                 return (
-                  <article key={tagName} className="hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                  <article key={tagName} className="tag-card hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                     <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                       <div>
                         <p className="text-[10px] uppercase tracking-wide text-slate-400">タグ</p>
@@ -1556,7 +1931,7 @@ const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
           </section>
         )}
 
-        <section className="mt-6" style={blockStyle}>
+        <section className="reference-section mt-6 print:hidden" style={blockStyle}>
           <h3 className="text-lg font-semibold text-slate-800">参考情報</h3>
           <div className="space-y-2 text-[11px] text-slate-600">
             <p>リスク評価モデル: Creative Guard AI</p>
@@ -1576,12 +1951,12 @@ const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
         </div>
       )}
 
-      <div className="mt-8 rounded-lg bg-white p-6 text-slate-900 shadow-lg print:break-before-page">
+      <div className="appendix-section mt-8 rounded-lg bg-white p-6 text-slate-900 shadow-lg print:break-before-page">
         <h2 className="text-xl font-semibold text-slate-900">付録: 取得データ全文</h2>
         <p className="text-xs text-slate-500">取得した全文データを以下にまとめています。</p>
         <div className="mt-4 space-y-6">
           {detailSections.map((section, index) => (
-            <article key={`${section.title}-${index}`} className="rounded border border-slate-200 bg-slate-50 p-4">
+            <article key={`${section.title}-${index}`} className="appendix-item rounded border border-slate-200 bg-slate-50 p-4">
               <h3 className="text-sm font-semibold text-slate-700">{section.title}</h3>
             <pre className="mt-2 max-h-[70vh] overflow-auto whitespace-pre-wrap rounded bg-white p-3 text-[11px] leading-relaxed text-slate-700">
               {section.content?.trim() || "内容はまだ生成されていません。"}
@@ -1591,50 +1966,236 @@ const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
       </div>
 
       {flaggedExpressions.length > 0 && (
-        <section className="mt-6 rounded border border-slate-200 bg-slate-50 p-4 text-[11px] text-slate-700">
-          <h3 className="text-sm font-semibold text-slate-700">抽出された該当表現リスト</h3>
-          <p className="text-[10px] text-slate-500">
-            タグ別に音声内容・テロップ・映像分析から検出された表現を列挙しています。
-          </p>
+        <section className="flagged-expressions-section mt-6 rounded border border-slate-200 bg-slate-50 p-4 text-[11px] text-slate-700 print:hidden">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-700">抽出された該当表現リスト</h3>
+              <p className="text-[10px] text-slate-500">
+                タグ別に音声内容・テロップ・映像分析から検出された表現を列挙しています。
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAddTagForm(!showAddTagForm)}
+              className="rounded bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 print:hidden"
+            >
+              {showAddTagForm ? "キャンセル" : "+ タグを追加"}
+            </button>
+          </div>
+
+          {/* Manual Tag Addition Form */}
+          {showAddTagForm && (
+            <div className="mb-4 rounded border border-indigo-200 bg-indigo-50 p-4 print:hidden">
+              <h4 className="text-xs font-semibold text-slate-800 mb-3">新規タグを追加</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-semibold text-slate-700 mb-1">
+                    タグ名 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newTag.tag}
+                    onChange={(e) => setNewTag({ ...newTag, tag: e.target.value })}
+                    placeholder="例: 性的表現"
+                    className="w-full rounded border border-slate-300 px-2 py-1.5 text-[11px] text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-semibold text-slate-700 mb-1">
+                    サブタグ名
+                  </label>
+                  <input
+                    type="text"
+                    value={newTag.subTag}
+                    onChange={(e) => setNewTag({ ...newTag, subTag: e.target.value })}
+                    placeholder="例: 露骨な性描写"
+                    className="w-full rounded border border-slate-300 px-2 py-1.5 text-[11px] text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-semibold text-slate-700 mb-1">
+                    グレード <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={newTag.grade}
+                    onChange={(e) => setNewTag({ ...newTag, grade: e.target.value })}
+                    className="w-full rounded border border-slate-300 px-2 py-1.5 text-[11px] text-slate-800 focus:border-indigo-500 focus:outline-none"
+                  >
+                    <option value="A">A - 最小リスク</option>
+                    <option value="B">B - 低リスク</option>
+                    <option value="C">C - 中リスク</option>
+                    <option value="D">D - 高リスク</option>
+                    <option value="E">E - 最高リスク</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-semibold text-slate-700 mb-1">
+                    タイムコード
+                  </label>
+                  <input
+                    type="text"
+                    value={newTag.timecode}
+                    onChange={(e) => setNewTag({ ...newTag, timecode: e.target.value })}
+                    placeholder="例: 1:23 または 静止画"
+                    className="w-full rounded border border-slate-300 px-2 py-1.5 text-[11px] text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-[10px] font-semibold text-slate-700 mb-1">
+                    検出された表現 <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={newTag.expression}
+                    onChange={(e) => setNewTag({ ...newTag, expression: e.target.value })}
+                    placeholder="問題となる具体的な表現を入力"
+                    rows={2}
+                    className="w-full rounded border border-slate-300 px-2 py-1.5 text-[11px] text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-[10px] font-semibold text-slate-700 mb-1">
+                    理由
+                  </label>
+                  <textarea
+                    value={newTag.reason}
+                    onChange={(e) => setNewTag({ ...newTag, reason: e.target.value })}
+                    placeholder="この表現がリスクとなる理由を説明"
+                    rows={2}
+                    className="w-full rounded border border-slate-300 px-2 py-1.5 text-[11px] text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 mt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (newTag.tag && newTag.expression) {
+                      setCustomTags([...customTags, { ...newTag }]);
+                      setNewTag({
+                        tag: "",
+                        subTag: "",
+                        grade: "C",
+                        expression: "",
+                        timecode: "",
+                        reason: ""
+                      });
+                      setShowAddTagForm(false);
+                    } else {
+                      alert("タグ名と検出された表現は必須です");
+                    }
+                  }}
+                  className="rounded bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700"
+                >
+                  追加
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewTag({
+                      tag: "",
+                      subTag: "",
+                      grade: "C",
+                      expression: "",
+                      timecode: "",
+                      reason: ""
+                    });
+                    setShowAddTagForm(false);
+                  }}
+                  className="rounded border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          )}
+
           <ul className="mt-3 space-y-2">
-            {flaggedExpressions.map((entry, index) => (
-              <li key={`flagged-${index}`} className="rounded border border-slate-200 bg-white px-3 py-2 leading-relaxed">
-                <p className="text-xs font-semibold text-slate-800">
-                  {entry.tag}
-                  {entry.subTag ? ` / ${entry.subTag}` : ""}
-                </p>
-                <p className="font-mono text-[10px] text-slate-700">{entry.expression}</p>
-                {mediaType === "video" && entry.timecode && (
-                  <p className="text-[10px] text-slate-500">
-                    タイムコード:{" "}
-                    {onSeekToTimecode ? (
+            {flaggedExpressions.map((entry, index) => {
+              const gradeStyle = entry.grade && entry.grade in EVAL_MAP
+                ? EVAL_MAP[entry.grade as keyof typeof EVAL_MAP]
+                : null;
+
+              return (
+                <li key={`flagged-${index}`} className="rounded border border-slate-200 bg-white px-3 py-2 leading-relaxed">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-xs font-semibold text-slate-800">
+                          {entry.tag}
+                          {entry.subTag ? ` / ${entry.subTag}` : ""}
+                        </p>
+                        {gradeStyle && (
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-semibold ${gradeStyle.borderColor} ${gradeStyle.textColor}`}
+                          >
+                            {entry.grade} / {gradeStyle.label}
+                          </span>
+                        )}
+                        {entry.isCustom && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-purple-300 bg-purple-50 px-2 py-0.5 text-[9px] font-semibold text-purple-700">
+                            手動追加
+                          </span>
+                        )}
+                      </div>
+                      <p className="font-mono text-[10px] text-slate-700 mt-1">{entry.expression}</p>
+                      {entry.reason && (
+                        <p className="text-[10px] text-slate-600 mt-1">
+                          <span className="font-semibold">理由:</span> {entry.reason}
+                        </p>
+                      )}
+                      {mediaType === "video" && entry.timecode && (
+                        <p className="text-[10px] text-slate-500 mt-1">
+                          タイムコード:{" "}
+                          {onSeekToTimecode ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const seconds = parseTimecode(entry.timecode);
+                                if (seconds !== null) {
+                                  onSeekToTimecode(seconds);
+                                }
+                              }}
+                              className="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                            >
+                              {entry.timecode}
+                            </button>
+                          ) : (
+                            <span>{entry.timecode}</span>
+                          )}
+                        </p>
+                      )}
+                      {!entry.isCustom && (
+                        <p className="text-[10px] text-slate-500 mt-1">
+                          参照データ:{" "}
+                          {entry.sources.length > 0
+                            ? entry.sources.join(" / ")
+                            : entry.expression === FALLBACK_DETECTED_TEXT
+                            ? "データなし"
+                            : "音声・テロップ・映像分析の複合推定"}
+                        </p>
+                      )}
+                    </div>
+                    {entry.isCustom && (
                       <button
                         type="button"
                         onClick={() => {
-                          const seconds = parseTimecode(entry.timecode);
-                          if (seconds !== null) {
-                            onSeekToTimecode(seconds);
-                          }
+                          setCustomTags(customTags.filter((_, i) => {
+                            // Find index of this custom tag in customTags array
+                            const customIndex = flaggedExpressions
+                              .filter(e => e.isCustom)
+                              .findIndex(e => e.tag === entry.tag && e.expression === entry.expression);
+                            return i !== customIndex;
+                          }));
                         }}
-                        className="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                        className="ml-2 text-[10px] text-red-600 hover:text-red-800 print:hidden"
                       >
-                        {entry.timecode}
+                        削除
                       </button>
-                    ) : (
-                      <span>{entry.timecode}</span>
                     )}
-                  </p>
-                )}
-                <p className="text-[10px] text-slate-500">
-                  参照データ:{" "}
-                  {entry.sources.length > 0
-                    ? entry.sources.join(" / ")
-                    : entry.expression === FALLBACK_DETECTED_TEXT
-                    ? "データなし"
-                    : "音声・テロップ・映像分析の複合推定"}
-                </p>
-              </li>
-            ))}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}

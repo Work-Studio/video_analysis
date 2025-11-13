@@ -1,0 +1,46 @@
+{
+  "frames": [
+    {
+      "timecode": "0:09.0",
+      "tag": "女性表現",
+      "sub_tag": null,
+      "filename": "女性表現_0-09.0.jpg"
+    },
+    {
+      "timecode": "0:25.0",
+      "tag": "女性表現",
+      "sub_tag": "外見による価値判断",
+      "filename": "女性表現_外見による価値判断_0-25.0.jpg"
+    },
+    {
+      "timecode": "0:21.0",
+      "tag": "女性表現",
+      "sub_tag": "結婚出産固定観念",
+      "filename": "女性表現_結婚出産固定観念_0-21.0.jpg"
+    },
+    {
+      "timecode": "0:49.0",
+      "tag": "女性表現",
+      "sub_tag": "美人基準強要",
+      "filename": "女性表現_美人基準強要_0-49.0.jpg"
+    },
+    {
+      "timecode": "0:02.0",
+      "tag": "表現手法エラー",
+      "sub_tag": null,
+      "filename": "表現手法エラー_0-02.0.jpg"
+    },
+    {
+      "timecode": "0:05.0",
+      "tag": "表現手法エラー",
+      "sub_tag": "コメディ誇張失敗",
+      "filename": "表現手法エラー_コメディ誇張失敗_0-05.0.jpg"
+    },
+    {
+      "timecode": "0:17.0",
+      "tag": "社会規範",
+      "sub_tag": null,
+      "filename": "社会規範_0-17.0.jpg"
+    }
+  ]
+}

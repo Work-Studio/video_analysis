@@ -1,0 +1,124 @@
+{
+  "social": {
+    "grade": "C",
+    "reason": "このコンテンツは、女性が年齢を重ねることへの不安や、外見に対する価値観に焦点を当てています。過去の事例では、特定の年齢層や外見に偏った表現が社会的な批判を招いたことがあります。このコンテンツも同様に、外見至上主義を助長する可能性があるため、注意が必要です。",
+    "findings": [
+      {
+        "timecode": "0:25.0",
+        "detail": "「可愛いという武器はもはやこの手にはない」という発言は、年齢を重ねることで女性の価値が下がると捉えられかねません。"
+      },
+      {
+        "timecode": "0:47.0",
+        "detail": "「いい女になろう」というメッセージは、外見や魅力的な女性像を理想化し、そうでない女性を否定的に捉える可能性があります。"
+      }
+    ]
+  },
+  "legal": {
+    "grade": "N/A",
+    "reason": "現在のところ、法務リストに照らし合わせると、本コンテンツが直接的に抵触する可能性のある条項は見当たらず、景品表示法や消費者契約法に抵触する要素は確認できません。",
+    "recommendations": "今後、特定の商品やサービスを宣伝する際には、景品表示法に基づく表示の適切性を確認することを推奨します。",
+    "violations": [],
+    "NOTE": "violations array MUST be empty [] when grade is '抵触していない'. Only include violations when specific legal concerns are identified.",
+    "findings": []
+  },
+  "matrix": {
+    "x_axis": "法務評価",
+    "y_axis": "社会的感度",
+    "position": [
+      0,
+      2
+    ]
+  },
+  "tags": [
+    {
+      "name": "女性表現",
+      "grade": "C",
+      "reason": "「可愛いという武器はもはやこの手にはない」という発言は、女性の価値を外見に依存させていると解釈される可能性があります。過去の広告事例では、外見至上主義を助長する表現が批判を浴びています。",
+      "detected_text": "可愛いという武器はもはやこの手にはない",
+      "detected_timecode": "0:25.0",
+      "detected_source": "transcript",
+      "related_sub_tags": [
+        {
+          "name": "外見による価値判断",
+          "grade": "C",
+          "reason": "外見の魅力を失うことが女性の価値を損なうかのように示唆しています。",
+          "detected_text": "可愛いという武器はもはやこの手にはない",
+          "detected_timecode": "0:25.0",
+          "detected_source": "transcript"
+        },
+        {
+          "name": "美人基準強要",
+          "grade": "C",
+          "reason": "「可愛いをアップデートできる女になるか」という発言は、常に美しさを追求することを強要するニュアンスを含んでいます。",
+          "detected_text": "可愛いをアップデートできる女になるか",
+          "detected_timecode": "00:37.0",
+          "detected_source": "transcript"
+        },
+        {
+          "name": "結婚出産固定観念",
+          "grade": "D",
+          "reason": "「週末ごとにアップされる結婚式の写真、白いタキシード受ける（元カレ）」という発言は、結婚に対するプレッシャーや固定観念を想起させます。",
+          "detected_text": "週末ごとにアップされる結婚式の写真、白いタキシード受ける（元カレ）",
+          "detected_timecode": "00:18.0",
+          "detected_source": "transcript"
+        }
+      ]
+    },
+    {
+      "name": "社会規範",
+      "grade": "D",
+      "reason": "「白いタキシード受ける（元カレ）」という発言は、結婚に対するプレッシャーや、元恋人との比較といった、社会的な期待や規範に対する意識を示唆しています。しかし、直接的に社会規範を侵害するものではありません。",
+      "detected_text": "白いタキシード受ける（元カレ）",
+      "detected_timecode": "0:15.0",
+      "detected_source": "transcript",
+      "related_sub_tags": [
+        {
+          "name": "ルッキズム助長",
+          "grade": "D",
+          "reason": "間接的に、結婚相手の外見やステータスを意識する表現が含まれています。",
+          "detected_text": "白いタキシード受ける（元カレ）",
+          "detected_timecode": "0:15.0",
+          "detected_source": "transcript"
+        }
+      ]
+    },
+    {
+      "name": "表現手法エラー",
+      "grade": "D",
+      "reason": "年齢を重ねることへの焦燥感を表現していますが、一部の視聴者には共感を呼ばない可能性があります。",
+      "detected_text": "今日からあんたは女の子じゃない。25歳の阿部だよ。",
+      "detected_timecode": "0:07.0",
+      "detected_source": null,
+      "related_sub_tags": [
+        {
+          "name": "世代間ギャップ誤読",
+          "grade": "D",
+          "reason": "若い世代の視聴者には共感を得やすい一方で、年齢層の高い視聴者には不快感を与える可能性があります。",
+          "detected_text": "今日からあんたは女の子じゃない。25歳の阿部だよ。",
+          "detected_timecode": "0:07.0",
+          "detected_source": null
+        },
+        {
+          "name": "文脈不一致",
+          "grade": "C",
+          "reason": "年齢や外見に関する悩みを提起する文脈で、「いい女なろう」というメッセージが唐突に提示されており、文脈に一貫性がない可能性があります。",
+          "detected_text": "いい女なろう",
+          "detected_timecode": "00:49.0",
+          "detected_source": "transcript"
+        },
+        {
+          "name": "コメディ誇張失敗",
+          "grade": "D",
+          "reason": "年齢に対するネガティブな感情をコメディとして表現しようとしていますが、不快に感じる視聴者もいる可能性があります。",
+          "detected_text": "めでたくない",
+          "detected_timecode": "00:03.0",
+          "detected_source": "transcript"
+        }
+      ]
+    }
+  ],
+  "burn_risk": {
+    "count": 0,
+    "details": []
+  }
+}

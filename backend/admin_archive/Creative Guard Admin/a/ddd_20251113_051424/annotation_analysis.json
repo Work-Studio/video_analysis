@@ -1,0 +1,33 @@
+{
+  "existing_annotations": [],
+  "missing_annotations": [
+    {
+      "suggested_text": "効果には個人差があります。",
+      "reason": "CM内で化粧品を使用し、変化を表現しているため、効果効能を謳っていると誤解される可能性がある。個人の感想であり、効果には個人差がある旨を明示する必要がある。",
+      "severity": "必須",
+      "suggested_timecode": "0:52-1:03",
+      "legal_basis": "景品表示法、医薬品医療機器等法(旧薬事法)"
+    },
+    {
+      "suggested_text": "画像はイメージです。",
+      "reason": "CM内で使用されている映像が、必ずしも商品の効果を正確に表しているとは限らないため、誤解を避けるためにイメージであることを明記する。",
+      "severity": "推奨",
+      "suggested_timecode": "0:52-1:03",
+      "legal_basis": "景品表示法"
+    },
+    {
+      "suggested_text": "撮影協力：[協力者名]",
+      "reason": "撮影に協力者がいる場合、クレジットとして明記することで、関係者への敬意を示す。",
+      "severity": "任意",
+      "suggested_timecode": "1:00-1:03",
+      "legal_basis": "該当なし（商慣習）"
+    },
+    {
+      "suggested_text": "提供：株式会社資生堂",
+      "reason": "CMの提供元を明記することで、視聴者が広告主を認識しやすくなる。",
+      "severity": "推奨",
+      "suggested_timecode": "0:00-0:03",
+      "legal_basis": "該当なし（商慣習）"
+    }
+  ]
+}

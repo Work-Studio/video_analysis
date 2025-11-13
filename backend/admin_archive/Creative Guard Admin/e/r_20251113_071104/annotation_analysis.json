@@ -1,0 +1,33 @@
+{
+  "existing_annotations": [],
+  "missing_annotations": [
+    {
+      "suggested_text": "効果には個人差があります",
+      "reason": "動画内で「可愛いをアップデート」などの表現があり、化粧品の効果効能を想起させる可能性があるため、個人の感想であり、効果には個人差がある旨を明記する必要がある。",
+      "severity": "必須",
+      "suggested_timecode": "00:59",
+      "legal_basis": "医薬品、医療機器等の品質、有効性及び安全性の確保等に関する法律（薬機法）および景品表示法"
+    },
+    {
+      "suggested_text": "この動画は資生堂インテグレートの広告です",
+      "reason": "視聴者に広告であることを明確に伝えることで、誤解を防ぎ、透明性を確保するため。",
+      "severity": "推奨",
+      "suggested_timecode": "00:00",
+      "legal_basis": "特になし（倫理的配慮）"
+    },
+    {
+      "suggested_text": "出演者は〇〇、〇〇、〇〇です",
+      "reason": "出演者の情報を開示することで、視聴者の興味を引き、信頼性を高めるため。",
+      "severity": "任意",
+      "suggested_timecode": "00:00",
+      "legal_basis": "特になし（任意）"
+    },
+    {
+      "suggested_text": "年齢は撮影時のものです",
+      "reason": "動画内で年齢に言及しているため、誤解を避けるために明記する。",
+      "severity": "任意",
+      "suggested_timecode": "00:00",
+      "legal_basis": "特になし（任意）"
+    }
+  ]
+}

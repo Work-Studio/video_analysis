@@ -1,0 +1,106 @@
+```json
+{
+  "texts": [
+    {
+      "timecode_start": "00:00.5",
+      "timecode_end": "00:00.8",
+      "text": "Happy Birthday"
+    },
+    {
+      "timecode_start": "00:00.9",
+      "timecode_end": "00:01.1",
+      "text": "25 ans"
+    },
+    {
+      "timecode_start": "00:12.0",
+      "timecode_end": "00:12.5",
+      "text": "INTEGRATE GIRL'S STORY"
+    },
+    {
+      "timecode_start": "00:12.7",
+      "timecode_end": "00:13.2",
+      "text": "\"UnHappy Birthday?\""
+    },
+    {
+      "timecode_start": "00:13.3",
+      "timecode_end": "00:13.7",
+      "text": "Happy Birthday"
+    },
+    {
+      "timecode_start": "00:13.7",
+      "timecode_end": "00:14.0",
+      "text": "25 ans"
+    },
+    {
+      "timecode_start": "00:22.3",
+      "timecode_end": "00:23.9",
+      "text": "週末ごとにアップされる結婚式の写真"
+    },
+    {
+      "timecode_start": "00:24.0",
+      "timecode_end": "00:24.5",
+      "text": "白いタキシード"
+    },
+    {
+      "timecode_start": "00:24.5",
+      "timecode_end": "00:25.7",
+      "text": "うける(←元カレ)"
+    },
+    {
+      "timecode_start": "00:25.7",
+      "timecode_end": "00:26.1",
+      "text": "このままじゃやばい"
+    },
+    {
+      "timecode_start": "00:27.2",
+      "timecode_end": "00:28.1",
+      "text": "なんで？いつからこうなった？"
+    },
+    {
+      "timecode_start": "00:28.1",
+      "timecode_end": "00:29.0",
+      "text": "カワイイという武器はもはや"
+    },
+    {
+      "timecode_start": "00:29.0",
+      "timecode_end": "00:30.1",
+      "text": "この手には"
+    },
+    {
+      "timecode_start": "00:49.0",
+      "timecode_end": "00:49.7",
+      "text": "生き方が、これからの顔になる。"
+    },
+    {
+      "timecode_start": "00:49.7",
+      "timecode_end": "00:50.1",
+      "text": "#いい女なろう"
+    },
+    {
+      "timecode_start": "00:56.3",
+      "timecode_end": "00:57.1",
+      "text": "ラブリーに生きろ\u2665"
+    },
+    {
+      "timecode_start": "00:57.8",
+      "timecode_end": "00:58.5",
+      "text": "INTEGRATE"
+    },
+    {
+      "timecode_start": "00:58.5",
+      "timecode_end": "00:59.0",
+      "text": "all new!"
+    },
+    {
+      "timecode_start": "00:59.0",
+      "timecode_end": "00:59.6",
+      "text": "インテグレート"
+    },
+    {
+      "timecode_start": "00:59.6",
+      "timecode_end": "01:00.4",
+      "text": "オールニュー"
+    }
+  ]
+}
+```

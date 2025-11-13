@@ -1,0 +1,22 @@
+{
+  "frames": [
+    {
+      "timecode": "映像解析",
+      "tag": "社会規範",
+      "sub_tag": null,
+      "filename": "社会規範_映像解析.jpg"
+    },
+    {
+      "timecode": "Transcript",
+      "tag": "表現手法エラー",
+      "sub_tag": "文脈不一致",
+      "filename": "表現手法エラー_文脈不一致_Transcript.jpg"
+    },
+    {
+      "timecode": "0:00",
+      "tag": "表現手法エラー",
+      "sub_tag": "コメディ誇張失敗",
+      "filename": "表現手法エラー_コメディ誇張失敗_0-00.jpg"
+    }
+  ]
+}

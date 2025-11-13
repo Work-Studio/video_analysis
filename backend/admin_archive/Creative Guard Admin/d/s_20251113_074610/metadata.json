@@ -1,0 +1,665 @@
+{
+  "project_id": "638192664c774a7aab571cd5bff39b13",
+  "company_name": "Creative Guard Admin",
+  "product_name": "d",
+  "title": "s",
+  "status": "completed",
+  "media_type": "video",
+  "created_at": "2025-11-13T07:42:56.012688+00:00",
+  "analysis_completed_at": "2025-11-13T07:46:10.581792+00:00",
+  "archived_at": "2025-11-13T07:46:10.646561+00:00",
+  "final_report": {
+    "summary": "*本分析結果は参考用途のみを目的としており、社会的・法的リスクの不存在を保証するものではありません。",
+    "sections": {
+      "transcription": "🗣️ 音声文字起こし\nお誕生日、おめでとう！\nめでたくない。\nめでたくない。\nかほ。\n言っちゃって。\nぺー。\n今日からあんたは女の子じゃない。\n25歳なめん な よ。\n一気 に リアル ワールド。\nもうチホヤ さ れ ない し 褒め て も くれ ない 下 に は キラッキラ し た 後輩。\nキラキラ し た 後輩 週末 ごと に アップ さ れる 結婚 式 の 写真。\n白い タキ シード 受ける 。\n元カレ この まま じゃ やばい なんで いつから こう なっ た かわいい と いう 武器 は もはや こ の 手 に は 。\nない 。 で も 可愛い 大人 の 人 だっ て いる ん です 。\nいる よ ね 。\nどっち よ 。\nだ から あれ じゃん 可愛い を アップデート できる 女 に なる か 。\nこの まま ステイ か 。\nって こと ？\nかも 。\n私 こっち 。\n私 も 、 私 も。\n[inaudible]\nなんか燃え て き た 。\nいい 女 なろう 。\nインテグレートオールニュー。",
+      "ocr": "📝 OCR字幕抜粋\n```json\n{\n  \"texts\": [\n    {\n      \"timecode_start\": \"0:00.6\",\n      \"timecode_end\": \"0:00.6\",\n      \"text\": \"Happy Birthday\"\n    },\n    {\n      \"timecode_start\": \"0:00.6\",\n      \"timecode_end\": \"0:00.8\",\n      \"text\": \"25 ans\"\n    },\n    {\n      \"timecode_start\": \"0:11.8\",\n      \"timecode_end\": \"0:12.6\",\n      \"text\": \"INTEGRATE GIRL'S STORY\"\n    },\n    {\n      \"timecode_start\": \"0:12.6\",\n      \"timecode_end\": \"0:13.1\",\n      \"text\": \"\\\"UnHappy Birthday?\\\"\"\n    },\n    {\n      \"timecode_start\": \"0:13.4\",\n      \"timecode_end\": \"0:13.8\",\n      \"text\": \"Happy Birthday\"\n    },\n    {\n      \"timecode_start\": \"0:13.8\",\n      \"timecode_end\": \"0:14.0\",\n      \"text\": \"25 ans\"\n    },\n    {\n      \"timecode_start\": \"0:15.4\",\n      \"timecode_end\": \"0:16.2\",\n      \"text\": \"25歳のハメンだよ。\"\n    },\n    {\n      \"timecode_start\": \"0:17.2\",\n      \"timecode_end\": \"0:18.2\",\n      \"text\": \"もうチヤホヤされない\"\n    },\n    {\n      \"timecode_start\": \"0:19.1\",\n      \"timecode_end\": \"0:21.3\",\n      \"text\": \"もうチヤホヤされないしほめてもくれない 下にはキラッキラした後輩 週末ごとにアッ\"\n    },\n    {\n      \"timecode_start\": \"0:22.0\",\n      \"timecode_end\": \"0:26.0\",\n      \"text\": \"キラッキラした後輩 週末ごとにアップされる結婚式の写真 白いタキシードうける（←元カレ） このままじゃやばい\"\n    },\n    {\n      \"timecode_start\": \"0:26.6\",\n      \"timecode_end\": \"0:28.9\",\n      \"text\": \"（元カレ） このままじゃやばい なんで？ いつからこうなった？ カワイイという武\"\n    },\n    {\n      \"timecode_start\": \"0:28.9\",\n      \"timecode_end\": \"0:30.2\",\n      \"text\": \"? カワイイという武器はもはや\"\n    },\n    {\n      \"timecode_start\": \"0:30.2\",\n      \"timecode_end\": \"0:30.6\",\n      \"text\": \"この手にはない。\"\n    },\n    {\n      \"timecode_start\": \"0:35.0\",\n      \"timecode_end\": \"0:37.5\",\n      \"text\": \"可愛いをアップデートできる女になるか\"\n    },\n    {\n      \"timecode_start\": \"0:37.5\",\n      \"timecode_end\": \"0:38.8\",\n      \"text\": \"このままステイか\"\n    },\n    {\n      \"timecode_start\": \"0:39.4\",\n      \"timecode_end\": \"0:39.8\",\n      \"text\": \"ってこと？\"\n    },\n    {\n      \"timecode_start\": \"0:48.6\",\n      \"timecode_end\": \"0:49.0\",\n      \"text\": \"生き方が、これからの顔になる。\"\n    },\n    {\n      \"timecode_start\": \"0:49.3\",\n      \"timecode_end\": \"0:49.8\",\n      \"text\": \"#いい女なろう\"\n    },\n    {\n      \"timecode_start\": \"0:56.4\",\n      \"timecode_end\": \"0:57.0\",\n      \"text\": \"ラブリーに生きろ\"\n    },\n    {\n      \"timecode_start\": \"0:58.1\",\n      \"timecode_end\": \"0:58.8\",\n      \"text\": \"INTEGRATE\"\n    },\n    {\n      \"timecode_start\": \"0:58.8\",\n      \"timecode_end\": \"0:59.1\",\n      \"text\": \"all new!\"\n    },\n    {\n      \"timecode_start\": \"1:00.5\",\n      \"timecode_end\": \"1:00.9\",\n      \"text\": \"インテグレート\"\n    },\n    {\n      \"timecode_start\": \"1:01.3\",\n      \"timecode_end\": \"1:01.7\",\n      \"text\": \"オールニュー\"\n    }\n  ]\n}\n```",
+      "video_analysis": "🎬 映像解析レポート\nインテグレートのCM映像を分析しました。女性3人の誕生日をテーマにしたシーンから、女性の生き方に関する会話シーン、そして製品の紹介シーンで構成されています。特に、誕生日を迎えた女性の心境の変化と、それをきっかけに前向きな生き方を提案するメッセージが込められています。\n\n📋 表現パターングループ\n- 誕生日シーン\n  ・25歳の誕生日を祝うシーン。ケーキと友人たちとの会話を通して、主人公の複雑な心境が描かれる。\n    - 00:00-00:01: 25歳の誕生日ケーキのクローズアップ。\n    - 00:01-00:09: 友人たちが誕生日を祝うが、主人公は浮かない表情。\n    - 00:09-00:11: テーブルを囲み誕生日を祝う3人。\n- 会話シーン\n  ・主人公の心境の変化と、友人たちとの会話を通じて、これからの生き方について考えるシーン。\n    - 00:15-00:31: 友人たちが主人公の年齢や現状について語り合う。\n    - 00:31-00:41: これからの生き方について語り合う3人。\n    - 00:41-00:47: 前向きな気持ちになり手を重ねる3人。\n- 製品紹介シーン\n  ・インテグレートの製品を紹介し、前向きな生き方を応援するメッセージ。\n    - 00:47-00:53: 製品を手に取りメイクをする女性。\n    - 00:53-00:59: 夜道を駆け抜ける3人。"
+    },
+    "files": {
+      "transcription": "/Users/lml25ogk/Desktop/video_analysis/backend/uploads/Creative Guard Admin_d_s/transcription.txt",
+      "ocr": "/Users/lml25ogk/Desktop/video_analysis/backend/uploads/Creative Guard Admin_d_s/ocr.txt",
+      "video_analysis": "/Users/lml25ogk/Desktop/video_analysis/backend/uploads/Creative Guard Admin_d_s/video_analysis.json",
+      "risk_assessment": "/Users/lml25ogk/Desktop/video_analysis/backend/uploads/Creative Guard Admin_d_s/risk_assessment.json"
+    },
+    "metadata": {
+      "transcription_source": "gemini",
+      "burn_risk": {
+        "count": 0,
+        "details": []
+      }
+    },
+    "risk": {
+      "social": {
+        "grade": "C",
+        "reason": "本CMは、女性の年齢に対する固定観念や外見至上主義的な価値観を助長する可能性があります。過去の事例では、特定の年齢層の女性を揶揄したり、外見を過度に重視する表現が批判を浴びたことがあります。本CMも、25歳という年齢を境に女性の価値が変わるかのような印象を与えかねず、共感を呼ばない可能性があります。",
+        "findings": [
+          {
+            "timecode": "0:15.4",
+            "detail": "「25歳のハメンだよ。」という発言は、年齢を重ねることに対するネガティブなイメージを強調している。"
+          },
+          {
+            "timecode": "0:28.9",
+            "detail": "「カワイイという武器はもはやこの手にはない。」という発言は、女性の価値を外見に依存させている。"
+          },
+          {
+            "timecode": "0:49.3",
+            "detail": "「#いい女なろう」というハッシュタグは、外見を磨くことを推奨しているように解釈できる。"
+          }
+        ]
+      },
+      "legal": {
+        "grade": "N/A",
+        "reason": "本CMの表現は、直接的に法律に抵触するものではありません。しかし、景品表示法における有利誤認や、消費者契約法における不当な勧誘と解釈される可能性のある断定的な表現は見当たらず、現時点では法的な問題はないと考えられます。",
+        "recommendations": "より多くの視聴者に共感を得られるよう、年齢や外見に捉われない、内面的な魅力を引き出すようなメッセージを追加することを推奨します。",
+        "violations": [],
+        "NOTE": "violations array MUST be empty [] when grade is '抵触していない'. Only include violations when specific legal concerns are identified.",
+        "findings": []
+      },
+      "matrix": {
+        "x_axis": "法務評価",
+        "y_axis": "社会的感度",
+        "position": [
+          0,
+          2
+        ]
+      },
+      "tags": [
+        {
+          "name": "女性表現",
+          "grade": "C",
+          "reason": "CM全体を通して、女性の価値を年齢や外見に依存させているような印象を与える表現が見られるため。",
+          "detected_text": "今日からあんたは女の子じゃない。",
+          "detected_timecode": "0:15.4",
+          "related_sub_tags": [
+            {
+              "name": "外見による価値判断",
+              "grade": "C",
+              "reason": "「かわいい」を武器と表現し、それが失われることに焦点を当てているため。",
+              "detected_text": "カワイイという武器はもはやこの手にはない。",
+              "detected_timecode": "0:30.2"
+            },
+            {
+              "name": "結婚出産固定観念",
+              "grade": "D",
+              "reason": "週末ごとにアップされる結婚式の写真に焦りを感じるという描写から、結婚を女性の幸せのゴールと捉える固定観念を助長する可能性があるため。",
+              "detected_text": "週末 ごと に アップ さ れる 結婚 式 の 写真",
+              "detected_timecode": "0:22.0"
+            }
+          ]
+        },
+        {
+          "name": "表現手法エラー",
+          "grade": "C",
+          "reason": "CM全体のコンセプトが、一部の視聴者にとって不快感を与える可能性があります。特に、年齢を重ねることへのネガティブな表現は、共感を得にくい場合があります。",
+          "detected_text": "めでたくない",
+          "detected_timecode": "0:02.0",
+          "related_sub_tags": [
+            {
+              "name": "世代間ギャップ誤読",
+              "grade": "D",
+              "reason": "若年層向けの表現が、他の世代には不快感を与える可能性がある",
+              "detected_text": "25歳なめん な よ",
+              "detected_timecode": "0:16.2"
+            },
+            {
+              "name": "文脈不一致",
+              "grade": "D",
+              "reason": "誕生日というお祝いの場で「めでたくない」という表現が、不自然に感じられる可能性がある",
+              "detected_text": "めでたくない",
+              "detected_timecode": "0:02.0"
+            },
+            {
+              "name": "コメディ誇張失敗",
+              "grade": "C",
+              "reason": "年齢に対する自虐的な表現が、笑いとして受け入れられない可能性がある。",
+              "detected_text": "25歳のハメンだよ",
+              "detected_timecode": "0:15.4"
+            }
+          ]
+        },
+        {
+          "name": "社会規範",
+          "grade": "C",
+          "reason": "年齢や外見に対する社会的なプレッシャーに触れることで、不要な不安を煽る可能性があります。また、「いい女なろう」というメッセージは、特定の価値観を押し付ける印象を与える可能性があります。",
+          "detected_text": "#いい女なろう",
+          "detected_timecode": "0:49.3",
+          "related_sub_tags": [
+            {
+              "name": "ルッキズム助長",
+              "grade": "C",
+              "reason": "外見を重視する傾向を助長する可能性がある",
+              "detected_text": "可愛いをアップデートできる女になるか",
+              "detected_timecode": "0:35.0"
+            }
+          ]
+        }
+      ],
+      "burn_risk": {
+        "count": 0,
+        "details": []
+      }
+    },
+    "iterations": [
+      {
+        "index": 1,
+        "transcription": "お誕生日、おめでとう！\nめでたくない。\nめでたくない。\nかほ。\n言っちゃって。\nぺー。\n今日からあんたは女の子じゃない。\n25歳なめん な よ。\n一気 に リアル ワールド。\nもうチホヤ さ れ ない し 褒め て も くれ ない 下 に は キラッキラ し た 後輩。\nキラキラ し た 後輩 週末 ごと に アップ さ れる 結婚 式 の 写真。\n白い タキ シード 受ける 。\n元カレ この まま じゃ やばい なんで いつから こう なっ た かわいい と いう 武器 は もはや こ の 手 に は 。\nない 。 で も 可愛い 大人 の 人 だっ て いる ん です 。\nいる よ ね 。\nどっち よ 。\nだ から あれ じゃん 可愛い を アップデート できる 女 に なる か 。\nこの まま ステイ か 。\nって こと ？\nかも 。\n私 こっち 。\n私 も 、 私 も。\n[inaudible]\nなんか燃え て き た 。\nいい 女 なろう 。\nインテグレートオールニュー。",
+        "ocr": "```json\n{\n  \"texts\": [\n    {\n      \"timecode_start\": \"0:00.6\",\n      \"timecode_end\": \"0:00.6\",\n      \"text\": \"Happy Birthday\"\n    },\n    {\n      \"timecode_start\": \"0:00.6\",\n      \"timecode_end\": \"0:00.8\",\n      \"text\": \"25 ans\"\n    },\n    {\n      \"timecode_start\": \"0:11.8\",\n      \"timecode_end\": \"0:12.6\",\n      \"text\": \"INTEGRATE GIRL'S STORY\"\n    },\n    {\n      \"timecode_start\": \"0:12.6\",\n      \"timecode_end\": \"0:13.1\",\n      \"text\": \"\\\"UnHappy Birthday?\\\"\"\n    },\n    {\n      \"timecode_start\": \"0:13.4\",\n      \"timecode_end\": \"0:13.8\",\n      \"text\": \"Happy Birthday\"\n    },\n    {\n      \"timecode_start\": \"0:13.8\",\n      \"timecode_end\": \"0:14.0\",\n      \"text\": \"25 ans\"\n    },\n    {\n      \"timecode_start\": \"0:15.4\",\n      \"timecode_end\": \"0:16.2\",\n      \"text\": \"25歳のハメンだよ。\"\n    },\n    {\n      \"timecode_start\": \"0:17.2\",\n      \"timecode_end\": \"0:18.2\",\n      \"text\": \"もうチヤホヤされない\"\n    },\n    {\n      \"timecode_start\": \"0:19.1\",\n      \"timecode_end\": \"0:21.3\",\n      \"text\": \"もうチヤホヤされないしほめてもくれない 下にはキラッキラした後輩 週末ごとにアッ\"\n    },\n    {\n      \"timecode_start\": \"0:22.0\",\n      \"timecode_end\": \"0:26.0\",\n      \"text\": \"キラッキラした後輩 週末ごとにアップされる結婚式の写真 白いタキシードうける（←元カレ） このままじゃやばい\"\n    },\n    {\n      \"timecode_start\": \"0:26.6\",\n      \"timecode_end\": \"0:28.9\",\n      \"text\": \"（元カレ） このままじゃやばい なんで？ いつからこうなった？ カワイイという武\"\n    },\n    {\n      \"timecode_start\": \"0:28.9\",\n      \"timecode_end\": \"0:30.2\",\n      \"text\": \"? カワイイという武器はもはや\"\n    },\n    {\n      \"timecode_start\": \"0:30.2\",\n      \"timecode_end\": \"0:30.6\",\n      \"text\": \"この手にはない。\"\n    },\n    {\n      \"timecode_start\": \"0:35.0\",\n      \"timecode_end\": \"0:37.5\",\n      \"text\": \"可愛いをアップデートできる女になるか\"\n    },\n    {\n      \"timecode_start\": \"0:37.5\",\n      \"timecode_end\": \"0:38.8\",\n      \"text\": \"このままステイか\"\n    },\n    {\n      \"timecode_start\": \"0:39.4\",\n      \"timecode_end\": \"0:39.8\",\n      \"text\": \"ってこと？\"\n    },\n    {\n      \"timecode_start\": \"0:48.6\",\n      \"timecode_end\": \"0:49.0\",\n      \"text\": \"生き方が、これからの顔になる。\"\n    },\n    {\n      \"timecode_start\": \"0:49.3\",\n      \"timecode_end\": \"0:49.8\",\n      \"text\": \"#いい女なろう\"\n    },\n    {\n      \"timecode_start\": \"0:56.4\",\n      \"timecode_end\": \"0:57.0\",\n      \"text\": \"ラブリーに生きろ\"\n    },\n    {\n      \"timecode_start\": \"0:58.1\",\n      \"timecode_end\": \"0:58.8\",\n      \"text\": \"INTEGRATE\"\n    },\n    {\n      \"timecode_start\": \"0:58.8\",\n      \"timecode_end\": \"0:59.1\",\n      \"text\": \"all new!\"\n    },\n    {\n      \"timecode_start\": \"1:00.5\",\n      \"timecode_end\": \"1:00.9\",\n      \"text\": \"インテグレート\"\n    },\n    {\n      \"timecode_start\": \"1:01.3\",\n      \"timecode_end\": \"1:01.7\",\n      \"text\": \"オールニュー\"\n    }\n  ]\n}\n```",
+        "video_analysis": {
+          "summary": "インテグレートのCM映像を分析しました。女性3人の誕生日をテーマにしたシーンから、女性の生き方に関する会話シーン、そして製品の紹介シーンで構成されています。特に、誕生日を迎えた女性の心境の変化と、それをきっかけに前向きな生き方を提案するメッセージが込められています。",
+          "segments": [
+            {
+              "label": "誕生日シーン",
+              "description": "25歳の誕生日を祝うシーン。ケーキと友人たちとの会話を通して、主人公の複雑な心境が描かれる。",
+              "shots": [
+                {
+                  "timecode": "00:00-00:01",
+                  "description": "25歳の誕生日ケーキのクローズアップ。"
+                },
+                {
+                  "timecode": "00:01-00:09",
+                  "description": "友人たちが誕生日を祝うが、主人公は浮かない表情。"
+                },
+                {
+                  "timecode": "00:09-00:11",
+                  "description": "テーブルを囲み誕生日を祝う3人。"
+                }
+              ]
+            },
+            {
+              "label": "会話シーン",
+              "description": "主人公の心境の変化と、友人たちとの会話を通じて、これからの生き方について考えるシーン。",
+              "shots": [
+                {
+                  "timecode": "00:15-00:31",
+                  "description": "友人たちが主人公の年齢や現状について語り合う。"
+                },
+                {
+                  "timecode": "00:31-00:41",
+                  "description": "これからの生き方について語り合う3人。"
+                },
+                {
+                  "timecode": "00:41-00:47",
+                  "description": "前向きな気持ちになり手を重ねる3人。"
+                }
+              ]
+            },
+            {
+              "label": "製品紹介シーン",
+              "description": "インテグレートの製品を紹介し、前向きな生き方を応援するメッセージ。",
+              "shots": [
+                {
+                  "timecode": "00:47-00:53",
+                  "description": "製品を手に取りメイクをする女性。"
+                },
+                {
+                  "timecode": "00:53-00:59",
+                  "description": "夜道を駆け抜ける3人。"
+                }
+              ]
+            }
+          ]
+        },
+        "risk": {
+          "social": {
+            "grade": "C",
+            "reason": "本CMは、女性の年齢に対する固定観念や外見至上主義的な価値観を助長する可能性があります。過去の事例では、特定の年齢層の女性を揶揄したり、外見を過度に重視する表現が批判を浴びたことがあります。本CMも、25歳という年齢を境に女性の価値が変わるかのような印象を与えかねず、共感を呼ばない可能性があります。",
+            "findings": [
+              {
+                "timecode": "0:15.4",
+                "detail": "「25歳のハメンだよ。」という発言は、年齢を重ねることに対するネガティブなイメージを強調している。"
+              },
+              {
+                "timecode": "0:28.9",
+                "detail": "「カワイイという武器はもはやこの手にはない。」という発言は、女性の価値を外見に依存させている。"
+              },
+              {
+                "timecode": "0:49.3",
+                "detail": "「#いい女なろう」というハッシュタグは、外見を磨くことを推奨しているように解釈できる。"
+              }
+            ]
+          },
+          "legal": {
+            "grade": "N/A",
+            "reason": "本CMの表現は、直接的に法律に抵触するものではありません。しかし、景品表示法における有利誤認や、消費者契約法における不当な勧誘と解釈される可能性のある断定的な表現は見当たらず、現時点では法的な問題はないと考えられます。",
+            "recommendations": "より多くの視聴者に共感を得られるよう、年齢や外見に捉われない、内面的な魅力を引き出すようなメッセージを追加することを推奨します。",
+            "violations": [],
+            "NOTE": "violations array MUST be empty [] when grade is '抵触していない'. Only include violations when specific legal concerns are identified.",
+            "findings": []
+          },
+          "matrix": {
+            "x_axis": "法務評価",
+            "y_axis": "社会的感度",
+            "position": [
+              0,
+              2
+            ]
+          },
+          "tags": [
+            {
+              "name": "女性表現",
+              "grade": "C",
+              "reason": "CM全体を通して、女性の価値を年齢や外見に依存させているような印象を与える表現が見られるため。",
+              "detected_text": "今日からあんたは女の子じゃない。",
+              "detected_timecode": "0:15.4",
+              "related_sub_tags": [
+                {
+                  "name": "外見による価値判断",
+                  "grade": "C",
+                  "reason": "「かわいい」を武器と表現し、それが失われることに焦点を当てているため。",
+                  "detected_text": "カワイイという武器はもはやこの手にはない。",
+                  "detected_timecode": "0:30.2"
+                },
+                {
+                  "name": "結婚出産固定観念",
+                  "grade": "D",
+                  "reason": "週末ごとにアップされる結婚式の写真に焦りを感じるという描写から、結婚を女性の幸せのゴールと捉える固定観念を助長する可能性があるため。",
+                  "detected_text": "週末 ごと に アップ さ れる 結婚 式 の 写真",
+                  "detected_timecode": "0:22.0"
+                }
+              ]
+            },
+            {
+              "name": "表現手法エラー",
+              "grade": "D",
+              "reason": "年齢を重ねることへのネガティブな感情を強調しすぎているため、視聴者に不快感を与える可能性がある。",
+              "detected_text": "めでたくない",
+              "detected_timecode": "0:02.0",
+              "related_sub_tags": [
+                {
+                  "name": "コメディ誇張失敗",
+                  "grade": "D",
+                  "reason": "年齢に対する焦りをユーモラスに表現しようとしているが、誇張が過ぎて逆効果になっている可能性があるため。",
+                  "detected_text": "25歳なめん な よ",
+                  "detected_timecode": "0:16.2"
+                },
+                {
+                  "name": "世代間ギャップ誤読",
+                  "grade": "D",
+                  "reason": "若い世代には共感を呼ぶかもしれませんが、年配の視聴者には不快感を与える可能性があります。",
+                  "detected_text": "今日からあんたは女の子じゃない。",
+                  "detected_timecode": "0:16.2"
+                }
+              ]
+            },
+            {
+              "name": "社会規範",
+              "grade": "D",
+              "reason": "年齢や外見を過度に意識させることで、社会的なプレッシャーを煽る可能性があります。",
+              "detected_text": "今日からあんたは女の子じゃない",
+              "detected_timecode": "0:10.0",
+              "related_sub_tags": [
+                {
+                  "name": "ルッキズム助長",
+                  "grade": "C",
+                  "reason": "「可愛いをアップデートできる女になるか」という表現が、外見至上主義を助長する可能性があります。",
+                  "detected_text": "可愛い を アップデート できる 女 に なる か",
+                  "detected_timecode": "0:35.0"
+                }
+              ]
+            }
+          ],
+          "burn_risk": {
+            "count": 0,
+            "details": []
+          }
+        }
+      },
+      {
+        "index": 2,
+        "transcription": "お誕生日、おめでとう！\nめでたくない。\nめでたくない。\nかほ。\n言っちゃって。\nぺー。\n今日からあんたは女の子じゃない。\n25歳なめん な よ。\n一気 に リアル ワールド。\nもうチホヤ さ れ ない し 褒め て も くれ ない 下 に は キラッキラ し た 後輩。\nキラキラ し た 後輩 週末 ごと に アップ さ れる 結婚 式 の 写真。\n白い タキ シード 受ける 。\n元カレ この まま じゃ やばい なんで いつから こう なっ た かわいい と いう 武器 は もはや こ の 手 に は 。\nない 。 で も 可愛い 大人 の 人 だっ て いる ん です 。\nいる よ ね 。\nどっち よ 。\nだ から あれ じゃん 可愛い を アップデート できる 女 に なる か 。\nこの まま ステイ か 。\nって こと ？\nかも 。\n私 こっち 。\n私 も 、 私 も。\n[inaudible]\nなんか燃え て き た 。\nいい 女 なろう 。\nインテグレートオールニュー。",
+        "ocr": "```json\n{\n  \"texts\": [\n    {\n      \"timecode_start\": \"0:00.6\",\n      \"timecode_end\": \"0:00.6\",\n      \"text\": \"Happy Birthday\"\n    },\n    {\n      \"timecode_start\": \"0:00.6\",\n      \"timecode_end\": \"0:00.8\",\n      \"text\": \"25 ans\"\n    },\n    {\n      \"timecode_start\": \"0:11.8\",\n      \"timecode_end\": \"0:12.6\",\n      \"text\": \"INTEGRATE GIRL'S STORY\"\n    },\n    {\n      \"timecode_start\": \"0:12.6\",\n      \"timecode_end\": \"0:13.1\",\n      \"text\": \"\\\"UnHappy Birthday?\\\"\"\n    },\n    {\n      \"timecode_start\": \"0:13.4\",\n      \"timecode_end\": \"0:13.8\",\n      \"text\": \"Happy Birthday\"\n    },\n    {\n      \"timecode_start\": \"0:13.8\",\n      \"timecode_end\": \"0:14.0\",\n      \"text\": \"25 ans\"\n    },\n    {\n      \"timecode_start\": \"0:15.4\",\n      \"timecode_end\": \"0:16.2\",\n      \"text\": \"25歳のハメンだよ。\"\n    },\n    {\n      \"timecode_start\": \"0:17.2\",\n      \"timecode_end\": \"0:18.2\",\n      \"text\": \"もうチヤホヤされない\"\n    },\n    {\n      \"timecode_start\": \"0:19.1\",\n      \"timecode_end\": \"0:21.3\",\n      \"text\": \"もうチヤホヤされないしほめてもくれない 下にはキラッキラした後輩 週末ごとにアッ\"\n    },\n    {\n      \"timecode_start\": \"0:22.0\",\n      \"timecode_end\": \"0:26.0\",\n      \"text\": \"キラッキラした後輩 週末ごとにアップされる結婚式の写真 白いタキシードうける（←元カレ） このままじゃやばい\"\n    },\n    {\n      \"timecode_start\": \"0:26.6\",\n      \"timecode_end\": \"0:28.9\",\n      \"text\": \"（元カレ） このままじゃやばい なんで？ いつからこうなった？ カワイイという武\"\n    },\n    {\n      \"timecode_start\": \"0:28.9\",\n      \"timecode_end\": \"0:30.2\",\n      \"text\": \"? カワイイという武器はもはや\"\n    },\n    {\n      \"timecode_start\": \"0:30.2\",\n      \"timecode_end\": \"0:30.6\",\n      \"text\": \"この手にはない。\"\n    },\n    {\n      \"timecode_start\": \"0:35.0\",\n      \"timecode_end\": \"0:37.5\",\n      \"text\": \"可愛いをアップデートできる女になるか\"\n    },\n    {\n      \"timecode_start\": \"0:37.5\",\n      \"timecode_end\": \"0:38.8\",\n      \"text\": \"このままステイか\"\n    },\n    {\n      \"timecode_start\": \"0:39.4\",\n      \"timecode_end\": \"0:39.8\",\n      \"text\": \"ってこと？\"\n    },\n    {\n      \"timecode_start\": \"0:48.6\",\n      \"timecode_end\": \"0:49.0\",\n      \"text\": \"生き方が、これからの顔になる。\"\n    },\n    {\n      \"timecode_start\": \"0:49.3\",\n      \"timecode_end\": \"0:49.8\",\n      \"text\": \"#いい女なろう\"\n    },\n    {\n      \"timecode_start\": \"0:56.4\",\n      \"timecode_end\": \"0:57.0\",\n      \"text\": \"ラブリーに生きろ\"\n    },\n    {\n      \"timecode_start\": \"0:58.1\",\n      \"timecode_end\": \"0:58.8\",\n      \"text\": \"INTEGRATE\"\n    },\n    {\n      \"timecode_start\": \"0:58.8\",\n      \"timecode_end\": \"0:59.1\",\n      \"text\": \"all new!\"\n    },\n    {\n      \"timecode_start\": \"1:00.5\",\n      \"timecode_end\": \"1:00.9\",\n      \"text\": \"インテグレート\"\n    },\n    {\n      \"timecode_start\": \"1:01.3\",\n      \"timecode_end\": \"1:01.7\",\n      \"text\": \"オールニュー\"\n    }\n  ]\n}\n```",
+        "video_analysis": {
+          "summary": "インテグレートのCM映像を分析しました。女性3人の誕生日をテーマにしたシーンから、女性の生き方に関する会話シーン、そして製品の紹介シーンで構成されています。特に、誕生日を迎えた女性の心境の変化と、それをきっかけに前向きな生き方を提案するメッセージが込められています。",
+          "segments": [
+            {
+              "label": "誕生日シーン",
+              "description": "25歳の誕生日を祝うシーン。ケーキと友人たちとの会話を通して、主人公の複雑な心境が描かれる。",
+              "shots": [
+                {
+                  "timecode": "00:00-00:01",
+                  "description": "25歳の誕生日ケーキのクローズアップ。"
+                },
+                {
+                  "timecode": "00:01-00:09",
+                  "description": "友人たちが誕生日を祝うが、主人公は浮かない表情。"
+                },
+                {
+                  "timecode": "00:09-00:11",
+                  "description": "テーブルを囲み誕生日を祝う3人。"
+                }
+              ]
+            },
+            {
+              "label": "会話シーン",
+              "description": "主人公の心境の変化と、友人たちとの会話を通じて、これからの生き方について考えるシーン。",
+              "shots": [
+                {
+                  "timecode": "00:15-00:31",
+                  "description": "友人たちが主人公の年齢や現状について語り合う。"
+                },
+                {
+                  "timecode": "00:31-00:41",
+                  "description": "これからの生き方について語り合う3人。"
+                },
+                {
+                  "timecode": "00:41-00:47",
+                  "description": "前向きな気持ちになり手を重ねる3人。"
+                }
+              ]
+            },
+            {
+              "label": "製品紹介シーン",
+              "description": "インテグレートの製品を紹介し、前向きな生き方を応援するメッセージ。",
+              "shots": [
+                {
+                  "timecode": "00:47-00:53",
+                  "description": "製品を手に取りメイクをする女性。"
+                },
+                {
+                  "timecode": "00:53-00:59",
+                  "description": "夜道を駆け抜ける3人。"
+                }
+              ]
+            }
+          ]
+        },
+        "risk": {
+          "social": {
+            "grade": "C",
+            "reason": "このCMは、女性の年齢に対する社会的なプレッシャーや外見至上主義的な価値観に触れており、不快感を与える可能性があります。特に、年齢を重ねることへのネガティブな表現や、「可愛い」という言葉の価値を強調する点は、過去の事例で問題視された表現と同様のリスクを孕んでいます。年齢や外見に関する固定観念を助長する可能性があるため、注意が必要です。",
+            "findings": [
+              {
+                "timecode": "0:16.2",
+                "detail": "「25歳なめん な よ」という発言は、年齢に対する固定観念を助長する可能性があります。"
+              },
+              {
+                "timecode": "0:28.9",
+                "detail": "「カワイイという武器はもはや こ の 手 に は ない」という発言は、外見至上主義的な価値観を反映している可能性があります。"
+              },
+              {
+                "timecode": "0:49.8",
+                "detail": "「#いい女なろう」というハッシュタグは、特定の理想の女性像を押し付ける可能性があります。"
+              }
+            ]
+          },
+          "legal": {
+            "grade": "N/A",
+            "reason": "提供された情報からは、消費者契約法や景品表示法に直接的に抵触する可能性のある箇所は確認できませんでした。ただし、広告の内容によっては、これらの法律に抵触する可能性があるため、引き続き注意が必要です。",
+            "recommendations": "広告表現が消費者に誤解を与えないよう、客観的な根拠に基づいた情報提供を心がけてください。また、年齢や外見に関する固定観念を助長するような表現は避けるべきです。",
+            "violations": [],
+            "NOTE": "violations array MUST be empty [] when grade is '抵触していない'. Only include violations when specific legal concerns are identified.",
+            "findings": []
+          },
+          "matrix": {
+            "x_axis": "法務評価",
+            "y_axis": "社会的感度",
+            "position": [
+              0,
+              2
+            ]
+          },
+          "tags": [
+            {
+              "name": "女性表現",
+              "grade": "C",
+              "reason": "CM全体を通して、年齢や外見に関する固定観念に基づいた表現が見られます。特に「25歳なめん な よ」という発言や「可愛いという武器はもはや こ の 手 に は ない」というセリフは、女性の価値を年齢や外見に依存させるような印象を与えかねません。過去の炎上事例でも、同様の表現が批判の対象となっています。",
+              "detected_text": "25歳なめん な よ",
+              "detected_timecode": "0:16.2",
+              "related_sub_tags": [
+                {
+                  "name": "外見による価値判断",
+                  "grade": "C",
+                  "reason": "女性の価値を外見に依存させる表現",
+                  "detected_text": "カワイイという武器はもはや こ の 手 に は ない",
+                  "detected_timecode": "0:28.9"
+                },
+                {
+                  "name": "結婚出産固定観念",
+                  "grade": "D",
+                  "reason": "結婚を意識する年齢という表現が含まれている",
+                  "detected_text": "週末 ごと に アップ さ れる 結婚 式 の 写真",
+                  "detected_timecode": "0:22.0"
+                },
+                {
+                  "name": "美人基準強要",
+                  "grade": "C",
+                  "reason": "美しさをアップデートすることを推奨する。",
+                  "detected_text": "可愛いをアップデートできる女になるか",
+                  "detected_timecode": "0:35.0"
+                }
+              ]
+            },
+            {
+              "name": "社会規範",
+              "grade": "C",
+              "reason": "年齢や外見に対する社会的なプレッシャーに触れることで、不要な不安を煽る可能性があります。また、「いい女なろう」というメッセージは、特定の価値観を押し付ける印象を与える可能性があります。",
+              "detected_text": "#いい女なろう",
+              "detected_timecode": "0:49.3",
+              "related_sub_tags": [
+                {
+                  "name": "ルッキズム助長",
+                  "grade": "C",
+                  "reason": "外見を重視する傾向を助長する可能性がある",
+                  "detected_text": "可愛いをアップデートできる女になるか",
+                  "detected_timecode": "0:35.0"
+                }
+              ]
+            },
+            {
+              "name": "表現手法エラー",
+              "grade": "C",
+              "reason": "CM全体のコンセプトが、一部の視聴者にとって不快感を与える可能性があります。特に、年齢を重ねることへのネガティブな表現は、共感を得にくい場合があります。",
+              "detected_text": "めでたくない",
+              "detected_timecode": "0:02.0",
+              "related_sub_tags": [
+                {
+                  "name": "世代間ギャップ誤読",
+                  "grade": "D",
+                  "reason": "若年層向けの表現が、他の世代には不快感を与える可能性がある",
+                  "detected_text": "25歳なめん な よ",
+                  "detected_timecode": "0:16.2"
+                },
+                {
+                  "name": "文脈不一致",
+                  "grade": "D",
+                  "reason": "誕生日というお祝いの場で「めでたくない」という表現が、不自然に感じられる可能性がある",
+                  "detected_text": "めでたくない",
+                  "detected_timecode": "0:02.0"
+                },
+                {
+                  "name": "コメディ誇張失敗",
+                  "grade": "C",
+                  "reason": "年齢に対する自虐的な表現が、笑いとして受け入れられない可能性がある。",
+                  "detected_text": "25歳のハメンだよ",
+                  "detected_timecode": "0:15.4"
+                }
+              ]
+            }
+          ],
+          "burn_risk": {
+            "count": 0,
+            "details": []
+          }
+        }
+      },
+      {
+        "index": 3,
+        "transcription": "お誕生日、おめでとう！\nめでたくない。\nめでたくない。\nかほ。\n言っちゃって。\nぺー。\n今日からあんたは女の子じゃない。\n25歳なめん な よ。\n一気 に リアル ワールド。\nもうチホヤ さ れ ない し 褒め て も くれ ない 下 に は キラッキラ し た 後輩。\nキラキラ し た 後輩 週末 ごと に アップ さ れる 結婚 式 の 写真。\n白い タキ シード 受ける 。\n元カレ この まま じゃ やばい なんで いつから こう なっ た かわいい と いう 武器 は もはや こ の 手 に は 。\nない 。 で も 可愛い 大人 の 人 だっ て いる ん です 。\nいる よ ね 。\nどっち よ 。\nだ から あれ じゃん 可愛い を アップデート できる 女 に なる か 。\nこの まま ステイ か 。\nって こと ？\nかも 。\n私 こっち 。\n私 も 、 私 も。\n[inaudible]\nなんか燃え て き た 。\nいい 女 なろう 。\nインテグレートオールニュー。",
+        "ocr": "```json\n{\n  \"texts\": [\n    {\n      \"timecode_start\": \"0:00.6\",\n      \"timecode_end\": \"0:00.6\",\n      \"text\": \"Happy Birthday\"\n    },\n    {\n      \"timecode_start\": \"0:00.6\",\n      \"timecode_end\": \"0:00.8\",\n      \"text\": \"25 ans\"\n    },\n    {\n      \"timecode_start\": \"0:11.8\",\n      \"timecode_end\": \"0:12.6\",\n      \"text\": \"INTEGRATE GIRL'S STORY\"\n    },\n    {\n      \"timecode_start\": \"0:12.6\",\n      \"timecode_end\": \"0:13.1\",\n      \"text\": \"\\\"UnHappy Birthday?\\\"\"\n    },\n    {\n      \"timecode_start\": \"0:13.4\",\n      \"timecode_end\": \"0:13.8\",\n      \"text\": \"Happy Birthday\"\n    },\n    {\n      \"timecode_start\": \"0:13.8\",\n      \"timecode_end\": \"0:14.0\",\n      \"text\": \"25 ans\"\n    },\n    {\n      \"timecode_start\": \"0:15.4\",\n      \"timecode_end\": \"0:16.2\",\n      \"text\": \"25歳のハメンだよ。\"\n    },\n    {\n      \"timecode_start\": \"0:17.2\",\n      \"timecode_end\": \"0:18.2\",\n      \"text\": \"もうチヤホヤされない\"\n    },\n    {\n      \"timecode_start\": \"0:19.1\",\n      \"timecode_end\": \"0:21.3\",\n      \"text\": \"もうチヤホヤされないしほめてもくれない 下にはキラッキラした後輩 週末ごとにアッ\"\n    },\n    {\n      \"timecode_start\": \"0:22.0\",\n      \"timecode_end\": \"0:26.0\",\n      \"text\": \"キラッキラした後輩 週末ごとにアップされる結婚式の写真 白いタキシードうける（←元カレ） このままじゃやばい\"\n    },\n    {\n      \"timecode_start\": \"0:26.6\",\n      \"timecode_end\": \"0:28.9\",\n      \"text\": \"（元カレ） このままじゃやばい なんで？ いつからこうなった？ カワイイという武\"\n    },\n    {\n      \"timecode_start\": \"0:28.9\",\n      \"timecode_end\": \"0:30.2\",\n      \"text\": \"? カワイイという武器はもはや\"\n    },\n    {\n      \"timecode_start\": \"0:30.2\",\n      \"timecode_end\": \"0:30.6\",\n      \"text\": \"この手にはない。\"\n    },\n    {\n      \"timecode_start\": \"0:35.0\",\n      \"timecode_end\": \"0:37.5\",\n      \"text\": \"可愛いをアップデートできる女になるか\"\n    },\n    {\n      \"timecode_start\": \"0:37.5\",\n      \"timecode_end\": \"0:38.8\",\n      \"text\": \"このままステイか\"\n    },\n    {\n      \"timecode_start\": \"0:39.4\",\n      \"timecode_end\": \"0:39.8\",\n      \"text\": \"ってこと？\"\n    },\n    {\n      \"timecode_start\": \"0:48.6\",\n      \"timecode_end\": \"0:49.0\",\n      \"text\": \"生き方が、これからの顔になる。\"\n    },\n    {\n      \"timecode_start\": \"0:49.3\",\n      \"timecode_end\": \"0:49.8\",\n      \"text\": \"#いい女なろう\"\n    },\n    {\n      \"timecode_start\": \"0:56.4\",\n      \"timecode_end\": \"0:57.0\",\n      \"text\": \"ラブリーに生きろ\"\n    },\n    {\n      \"timecode_start\": \"0:58.1\",\n      \"timecode_end\": \"0:58.8\",\n      \"text\": \"INTEGRATE\"\n    },\n    {\n      \"timecode_start\": \"0:58.8\",\n      \"timecode_end\": \"0:59.1\",\n      \"text\": \"all new!\"\n    },\n    {\n      \"timecode_start\": \"1:00.5\",\n      \"timecode_end\": \"1:00.9\",\n      \"text\": \"インテグレート\"\n    },\n    {\n      \"timecode_start\": \"1:01.3\",\n      \"timecode_end\": \"1:01.7\",\n      \"text\": \"オールニュー\"\n    }\n  ]\n}\n```",
+        "video_analysis": {
+          "summary": "インテグレートのCM映像を分析しました。女性3人の誕生日をテーマにしたシーンから、女性の生き方に関する会話シーン、そして製品の紹介シーンで構成されています。特に、誕生日を迎えた女性の心境の変化と、それをきっかけに前向きな生き方を提案するメッセージが込められています。",
+          "segments": [
+            {
+              "label": "誕生日シーン",
+              "description": "25歳の誕生日を祝うシーン。ケーキと友人たちとの会話を通して、主人公の複雑な心境が描かれる。",
+              "shots": [
+                {
+                  "timecode": "00:00-00:01",
+                  "description": "25歳の誕生日ケーキのクローズアップ。"
+                },
+                {
+                  "timecode": "00:01-00:09",
+                  "description": "友人たちが誕生日を祝うが、主人公は浮かない表情。"
+                },
+                {
+                  "timecode": "00:09-00:11",
+                  "description": "テーブルを囲み誕生日を祝う3人。"
+                }
+              ]
+            },
+            {
+              "label": "会話シーン",
+              "description": "主人公の心境の変化と、友人たちとの会話を通じて、これからの生き方について考えるシーン。",
+              "shots": [
+                {
+                  "timecode": "00:15-00:31",
+                  "description": "友人たちが主人公の年齢や現状について語り合う。"
+                },
+                {
+                  "timecode": "00:31-00:41",
+                  "description": "これからの生き方について語り合う3人。"
+                },
+                {
+                  "timecode": "00:41-00:47",
+                  "description": "前向きな気持ちになり手を重ねる3人。"
+                }
+              ]
+            },
+            {
+              "label": "製品紹介シーン",
+              "description": "インテグレートの製品を紹介し、前向きな生き方を応援するメッセージ。",
+              "shots": [
+                {
+                  "timecode": "00:47-00:53",
+                  "description": "製品を手に取りメイクをする女性。"
+                },
+                {
+                  "timecode": "00:53-00:59",
+                  "description": "夜道を駆け抜ける3人。"
+                }
+              ]
+            }
+          ]
+        },
+        "risk": {
+          "social": {
+            "grade": "C",
+            "reason": "この広告は、女性の年齢に対する固定観念や外見至上主義を助長する可能性があります。過去の事例では、年齢や外見を揶揄する表現が批判を浴び、不快感を与えることがありました。特に、若い女性を理想とする価値観を強調することで、年齢を重ねることへの不安を煽る可能性があります。",
+            "findings": [
+              {
+                "timecode": "0:15.4",
+                "detail": "「25歳なめん な よ」という発言は、年齢に対するステレオタイプを助長する可能性があります。"
+              },
+              {
+                "timecode": "0:28.9",
+                "detail": "「カワイイという武器はもはや こ の 手 に は 。ない 」という発言は、女性の価値を外見に依存させる考え方を強化する可能性があります。"
+              },
+              {
+                "timecode": "0:35.0",
+                "detail": "「可愛いをアップデートできる女に なる か 」という発言は、外見至上主義的な価値観を助長する可能性があります。"
+              }
+            ]
+          },
+          "legal": {
+            "grade": "N/A",
+            "reason": "この広告には、直接的に法規制に抵触する可能性のある表現は見当たりません。ただし、景品表示法における有利誤認表示や、消費者契約法における不実告知に繋がるような誇張表現がないか注意が必要です。",
+            "recommendations": "広告表現が特定の年齢層や外見を重視するメッセージと受け取られないよう、多様な価値観を尊重する表現を心がけるべきです。",
+            "violations": [],
+            "NOTE": "violations array MUST be empty [] when grade is '抵触していない'. Only include violations when specific legal concerns are identified.",
+            "findings": []
+          },
+          "matrix": {
+            "x_axis": "法務評価",
+            "y_axis": "社会的感度",
+            "position": [
+              0,
+              2
+            ]
+          },
+          "tags": [
+            {
+              "name": "女性表現",
+              "grade": "C",
+              "reason": "CM全体を通して、年齢や外見に価値を置くような表現が見受けられ、過去の事例で問題となった女性に対する固定観念を助長する可能性があります。",
+              "detected_text": "今日からあんたは女の子じゃない。",
+              "detected_timecode": "0:15.4",
+              "related_sub_tags": [
+                {
+                  "name": "外見による価値判断",
+                  "grade": "C",
+                  "reason": "「可愛いという武器はもはや こ の 手 に は 。ない 」という発言は、女性の価値を外見に依存させる考え方を強化する可能性があります。",
+                  "detected_text": "カワイイという武器はもはや",
+                  "detected_timecode": "0:28.9"
+                },
+                {
+                  "name": "結婚出産固定観念",
+                  "grade": "E",
+                  "reason": "結婚式の写真に焦りを感じる描写は、女性の幸せ＝結婚という固定観念を想起させる可能性があります。",
+                  "detected_text": "週末 ごと に アップ さ れる 結婚 式 の 写真",
+                  "detected_timecode": "0:22.0"
+                },
+                {
+                  "name": "美人基準強要",
+                  "grade": "D",
+                  "reason": "「可愛いをアップデートできる女に なる か 」という発言は、外見至上主義的な価値観を助長する可能性があります。",
+                  "detected_text": "可愛いをアップデートできる女に なる か",
+                  "detected_timecode": "0:35.0"
+                }
+              ]
+            },
+            {
+              "name": "表現手法エラー",
+              "grade": "D",
+              "reason": "25歳という年齢に対する焦りを強調する演出が、視聴者にネガティブな印象を与える可能性があります。",
+              "detected_text": "25歳なめん な よ。",
+              "detected_timecode": "0:15.4",
+              "related_sub_tags": [
+                {
+                  "name": "世代間ギャップ誤読",
+                  "grade": "D",
+                  "reason": "若い世代の会話として意図された表現が、他の世代には異なる意味で解釈される可能性があります。",
+                  "detected_text": "ぺー。",
+                  "detected_timecode": "0:06.9"
+                },
+                {
+                  "name": "文脈不一致",
+                  "grade": "D",
+                  "reason": "誕生日を祝うシーンでネガティブな感情を表現することが、ブランドイメージと一致しない可能性があります。",
+                  "detected_text": "めでたくない。",
+                  "detected_timecode": "0:02.4"
+                },
+                {
+                  "name": "コメディ誇張失敗",
+                  "grade": "D",
+                  "reason": "年齢を重ねることへの焦燥感をユーモラスに表現しようとしていますが、一部の視聴者には不快感を与える可能性があります。",
+                  "detected_text": "25歳なめん な よ",
+                  "detected_timecode": "0:15.4"
+                }
+              ]
+            },
+            {
+              "name": "社会規範",
+              "grade": "D",
+              "reason": "外見至上主義的な価値観を助長する可能性があるため、倫理的な観点から注意が必要です。",
+              "detected_text": "かわいい と いう 武器 は もはや こ の 手 に は 。",
+              "detected_timecode": "0:26.6",
+              "related_sub_tags": [
+                {
+                  "name": "ルッキズム助長",
+                  "grade": "D",
+                  "reason": "外見の価値を強調する表現が、外見至上主義を助長する可能性があります。",
+                  "detected_text": "可愛いをアップデートできる女に なる か",
+                  "detected_timecode": "0:35.0"
+                }
+              ]
+            }
+          ],
+          "burn_risk": {
+            "count": 0,
+            "details": []
+          }
+        }
+      }
+    ]
+  }
+}

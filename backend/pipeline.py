@@ -1,6 +1,7 @@
 """分析パイプラインの調停ロジック."""
 
 import json
+import re
 from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -450,6 +451,7 @@ class AnalysisPipeline:
         await self.store.mark_step_running(project_id, step)
         transcript_source = "gemini"
         transcript_note: Optional[str] = None
+
         if media_type == "image":
             self.logger.info("Skipping transcription for %s (image asset).", project_id)
             transcript = ""
@@ -462,12 +464,15 @@ class AnalysisPipeline:
                 "静止画コンテンツのため音声文字起こしは実施しません。",
             )
         else:
+            # Use Gemini for transcription
             try:
+                self.logger.info("Attempting Gemini transcription for %s", project_id)
                 transcript = await self.gemini_client.run_step(
                     "transcription",
                     media_path,
                     media_type=media_type,
                 )
+                transcript_source = "gemini"
             except Exception as gemini_error:
                 self.logger.warning(
                     "Gemini transcription failed for %s: %s",
@@ -479,13 +484,33 @@ class AnalysisPipeline:
                     "再度アップロードや別モデルでの解析を検討してください。"
                 )
                 transcript_source = "fallback"
-                transcript_note = (
-                    "Gemini での文字起こしに失敗したため、プレースホルダー文章を返却しました。"
-                )
+                transcript_note = "Gemini での文字起こしに失敗したため、プレースホルダー文章を返却しました。"
+
+            # Try to parse JSON format (new format with timecodes)
+            transcript_timed_data = None
+            try:
+                # Extract JSON from response (Gemini sometimes adds explanation text)
+                json_match = re.search(r'\{[\s\S]*"segments"[\s\S]*\}', transcript)
+                if json_match:
+                    json_str = json_match.group(0)
+                    transcript_timed_data = json.loads(json_str)
+                    # Save timed transcript as JSON
+                    transcript_timed_path = workspace_dir / "transcript_timed.json"
+                    async with aiofiles.open(transcript_timed_path, "w", encoding="utf-8") as f:
+                        await f.write(json.dumps(transcript_timed_data, ensure_ascii=False, indent=2))
+                    self.logger.info(f"Saved timed transcript data to {transcript_timed_path}")
+                    # Extract plain text from segments for backward compatibility
+                    if transcript_timed_data and "segments" in transcript_timed_data:
+                        plain_segments = [seg["text"] for seg in transcript_timed_data["segments"]]
+                        transcript = "\n".join(plain_segments)
+            except (json.JSONDecodeError, AttributeError) as e:
+                self.logger.warning(f"Could not parse transcript JSON format: {e}. Using plain text format.")
+
             formatted = self._format_transcript(transcript)
             transcript_path = await self._save_text_file(
                 workspace_dir, "transcription.txt", transcript or formatted
             )
+
         await self.store.update_status(
             project_id,
             step,
@@ -494,6 +519,7 @@ class AnalysisPipeline:
                 "transcript": transcript,
                 "formatted": formatted,
                 "file_path": str(transcript_path),
+                "transcript_timed_file": str(workspace_dir / "transcript_timed.json") if transcript_timed_data else None,
                 "source": transcript_source,
                 "note": transcript_note,
             },
@@ -522,6 +548,29 @@ class AnalysisPipeline:
                 "OCR 抽出を実行できませんでした。該当フレームの文字が取得できなかった可能性があります。"
             )
             ocr_note = "Gemini OCR に失敗したため、プレースホルダー文章を返却しました。"
+
+        # Try to parse JSON format (new format with timecodes)
+        import json
+        import re
+        ocr_timed_data = None
+        try:
+            # Extract JSON from response (Gemini sometimes adds explanation text)
+            json_match = re.search(r'\{[\s\S]*"texts"[\s\S]*\}', ocr_text)
+            if json_match:
+                json_str = json_match.group(0)
+                ocr_timed_data = json.loads(json_str)
+                # Save timed OCR as JSON
+                ocr_timed_path = workspace_dir / "ocr_timed.json"
+                async with aiofiles.open(ocr_timed_path, "w", encoding="utf-8") as f:
+                    await f.write(json.dumps(ocr_timed_data, ensure_ascii=False, indent=2))
+                self.logger.info(f"Saved timed OCR data to {ocr_timed_path}")
+                # Extract plain text from texts array for backward compatibility
+                if ocr_timed_data and "texts" in ocr_timed_data:
+                    plain_texts = [text_obj["text"] for text_obj in ocr_timed_data["texts"]]
+                    ocr_text = "\n".join(plain_texts)
+        except (json.JSONDecodeError, AttributeError) as e:
+            self.logger.warning(f"Could not parse OCR JSON format: {e}. Using plain text format.")
+
         annotations = [
             line.strip()
             for line in ocr_text.splitlines()
@@ -537,6 +586,7 @@ class AnalysisPipeline:
                 "ocr_text": ocr_text,
                 "formatted": formatted,
                 "file_path": str(ocr_path),
+                "ocr_timed_file": str(workspace_dir / "ocr_timed.json") if ocr_timed_data else None,
                 "note": ocr_note,
                 "annotations": annotations,
             },

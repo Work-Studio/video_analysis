@@ -124,6 +124,7 @@ class RelatedSubTag(BaseModel):
     reason: Optional[str] = None
     detected_text: Optional[str] = None
     detected_timecode: Optional[str] = None
+    detected_source: Optional[str] = None  # "transcript", "ocr", or "visual"
 
 
 class RiskTag(BaseModel):
@@ -132,6 +133,7 @@ class RiskTag(BaseModel):
     reason: str
     detected_text: Optional[str] = None
     detected_timecode: Optional[str] = None
+    detected_source: Optional[str] = None  # "transcript", "ocr", or "visual"
     related_sub_tags: List[RelatedSubTag] = Field(default_factory=list)
 
 

@@ -41,7 +41,7 @@ from backend.store import (
     ProjectNotFoundError,
     ProjectStore,
 )
-from backend.routers import auth, admin, bulk_upload
+from backend.routers import auth, admin, bulk_upload, feedback
 from backend.routers.auth import get_current_user, TokenData
 from backend.database import get_db
 
@@ -60,6 +60,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(bulk_upload.router)
+app.include_router(feedback.router)
 
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = BASE_DIR / "uploads"
@@ -617,6 +618,117 @@ async def delete_project(
         error_detail = f"削除処理中にエラーが発生しました: {str(e)}\n{traceback.format_exc()}"
         print(error_detail)
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@app.get("/projects/{project_id}/content")
+async def get_editable_content(project_id: str) -> dict:
+    """編集可能なコンテンツ（文字起こしとOCR）を取得する."""
+    try:
+        project = await store.get_project(project_id)
+        workspace_dir = project.workspace_dir
+
+        # 文字起こしデータを読み込み
+        transcript_path = workspace_dir / "transcription.txt"
+        transcript_text = ""
+        if transcript_path.exists():
+            async with aiofiles.open(transcript_path, "r", encoding="utf-8") as f:
+                transcript_text = await f.read()
+
+        # OCRデータを読み込み（タイムコード付きJSON優先）
+        ocr_timed_path = workspace_dir / "ocr_timed.json"
+        ocr_plain_path = workspace_dir / "ocr.txt"
+        ocr_data = None
+        ocr_format = "plain"
+
+        if ocr_timed_path.exists():
+            async with aiofiles.open(ocr_timed_path, "r", encoding="utf-8") as f:
+                content = await f.read()
+                ocr_data = json.loads(content)
+                ocr_format = "timed"
+        elif ocr_plain_path.exists():
+            async with aiofiles.open(ocr_plain_path, "r", encoding="utf-8") as f:
+                ocr_data = await f.read()
+                ocr_format = "plain"
+
+        return {
+            "transcript": transcript_text,
+            "ocr": ocr_data,
+            "ocr_format": ocr_format
+        }
+
+    except ProjectNotFoundError:
+        raise HTTPException(status_code=404, detail="プロジェクトが存在しません。")
+    except Exception as e:
+        print(f"Error loading editable content: {e}")
+        raise HTTPException(status_code=500, detail=f"コンテンツの取得中にエラーが発生しました: {str(e)}")
+
+
+@app.put("/projects/{project_id}/content")
+async def update_editable_content(
+    project_id: str,
+    transcript: str = Form(None),
+    ocr_data: str = Form(None),
+    ocr_format: str = Form("plain"),
+) -> dict:
+    """編集したコンテンツを保存する."""
+    try:
+        project = await store.get_project(project_id)
+        workspace_dir = project.workspace_dir
+
+        # 文字起こしを保存
+        if transcript is not None:
+            transcript_path = workspace_dir / "transcription.txt"
+            async with aiofiles.open(transcript_path, "w", encoding="utf-8") as f:
+                await f.write(transcript)
+
+        # OCRデータを保存
+        if ocr_data is not None:
+            if ocr_format == "timed":
+                # JSON形式で保存
+                ocr_timed_path = workspace_dir / "ocr_timed.json"
+                async with aiofiles.open(ocr_timed_path, "w", encoding="utf-8") as f:
+                    await f.write(ocr_data)
+            else:
+                # プレーンテキストで保存
+                ocr_plain_path = workspace_dir / "ocr.txt"
+                async with aiofiles.open(ocr_plain_path, "w", encoding="utf-8") as f:
+                    await f.write(ocr_data)
+
+        return {"message": "コンテンツを保存しました。"}
+
+    except ProjectNotFoundError:
+        raise HTTPException(status_code=404, detail="プロジェクトが存在しません。")
+    except Exception as e:
+        print(f"Error saving editable content: {e}")
+        raise HTTPException(status_code=500, detail=f"コンテンツの保存中にエラーが発生しました: {str(e)}")
+
+
+@app.post("/projects/{project_id}/reanalyze")
+async def reanalyze_with_edited_content(
+    project_id: str,
+    background_tasks: BackgroundTasks,
+) -> dict:
+    """編集済みコンテンツで再分析を実行する."""
+    try:
+        project = await store.get_project(project_id)
+
+        # パイプラインの状態をチェック
+        if project.pipeline_status == "running":
+            raise HTTPException(status_code=409, detail="分析は既に進行中です。")
+
+        # 再分析を開始
+        await store.mark_pipeline_started(project_id)
+        background_tasks.add_task(analysis_pipeline.run, project_id)
+
+        return {"message": "編集済みコンテンツで再分析を開始しました。", "project_id": project_id}
+
+    except ProjectNotFoundError:
+        raise HTTPException(status_code=404, detail="プロジェクトが存在しません。")
+    except PipelineAlreadyRunningError:
+        raise HTTPException(status_code=409, detail="分析は既に進行中です。")
+    except Exception as e:
+        print(f"Error starting reanalysis: {e}")
+        raise HTTPException(status_code=500, detail=f"再分析の開始中にエラーが発生しました: {str(e)}")
 
 
 @app.get("/health")

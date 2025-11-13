@@ -1,0 +1,75 @@
+{
+  "summary": "女性が涙を流しながらカップ麺を食べるシーンを中心に、感情と食事の描写が印象的な映像です。",
+  "segments": [
+    {
+      "label": "涙とカップ麺",
+      "description": "涙を流しながらカップ麺を食べる女性のシーン。感情と食事の描写が組み合わされている。",
+      "shots": [
+        {
+          "timecode": "0:00~0:01",
+          "description": "眼鏡、赤いきつね、女性の手が映る"
+        },
+        {
+          "timecode": "0:01~0:02",
+          "description": "女性が涙を流している。"
+        },
+        {
+          "timecode": "0:03~0:04",
+          "description": "カップ麺の蓋を開ける女性の手元。"
+        },
+        {
+          "timecode": "0:04~0:06",
+          "description": "涙を流す女性のアップ。"
+        },
+        {
+          "timecode": "0:07~0:08",
+          "description": "カップ麺から立ち上る湯気。"
+        },
+        {
+          "timecode": "0:08~0:10",
+          "description": "熱い麺をすする女性"
+        },
+        {
+          "timecode": "0:10~0:11",
+          "description": "湯呑に入った水"
+        },
+        {
+          "timecode": "0:11~0:13",
+          "description": "麺を箸で持ち上げる。"
+        },
+        {
+          "timecode": "0:13~0:14",
+          "description": "すすった麺を口に入れる"
+        },
+        {
+          "timecode": "0:14~0:17",
+          "description": "麺を食べる女性のクローズアップ。"
+        },
+        {
+          "timecode": "0:18~0:21",
+          "description": "食後のスマホ"
+        },
+        {
+          "timecode": "0:21~0:22",
+          "description": "カップ麺の具材を食べる。"
+        },
+        {
+          "timecode": "0:23~0:25",
+          "description": "麺を食べる女性のクローズアップ。"
+        },
+        {
+          "timecode": "0:25~0:27",
+          "description": "俯瞰視点"
+        },
+        {
+          "timecode": "0:27~0:30",
+          "description": "全体"
+        },
+        {
+          "timecode": "0:30~0:33",
+          "description": "締め"
+        }
+      ]
+    }
+  ]
+}

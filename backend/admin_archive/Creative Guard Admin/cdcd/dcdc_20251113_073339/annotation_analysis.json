@@ -1,0 +1,26 @@
+{
+  "existing_annotations": [],
+  "missing_annotations": [
+    {
+      "suggested_text": "これは個人の感想であり、効果を保証するものではありません。",
+      "reason": "動画の内容が女性の生き方や容姿の変化について言及しており、視聴者に誤解を与える可能性があるため、効果・効能を保証するものではないことを明示する必要がある。",
+      "severity": "推奨",
+      "suggested_timecode": "00:50",
+      "legal_basis": "景品表示法、不当景品類及び不当表示防止法"
+    },
+    {
+      "suggested_text": "「INTEGRATE」は株式会社資生堂の登録商標です。",
+      "reason": "動画内で「INTEGRATE」というブランド名を使用しており、商標権を侵害する恐れがあるため、商標表示を行う必要がある。",
+      "severity": "必須",
+      "suggested_timecode": "00:58",
+      "legal_basis": "商標法"
+    },
+    {
+      "suggested_text": "出演者の年齢は撮影時のものです。",
+      "reason": "動画の内容が25歳という年齢に焦点を当てているため、視聴者に誤解を与える可能性があるため。",
+      "severity": "任意",
+      "suggested_timecode": "00:00",
+      "legal_basis": "なし"
+    }
+  ]
+}

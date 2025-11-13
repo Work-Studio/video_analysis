@@ -1,0 +1,46 @@
+{
+  "frames": [
+    {
+      "timecode": "00:13",
+      "tag": "女性表現",
+      "sub_tag": null,
+      "filename": "女性表現_00-13.jpg"
+    },
+    {
+      "timecode": "00:32",
+      "tag": "女性表現",
+      "sub_tag": "外見による価値判断",
+      "filename": "女性表現_外見による価値判断_00-32.jpg"
+    },
+    {
+      "timecode": "00:26",
+      "tag": "女性表現",
+      "sub_tag": "結婚出産固定観念",
+      "filename": "女性表現_結婚出産固定観念_00-26.jpg"
+    },
+    {
+      "timecode": "00:07",
+      "tag": "表現手法エラー",
+      "sub_tag": null,
+      "filename": "表現手法エラー_00-07.jpg"
+    },
+    {
+      "timecode": "00:18",
+      "tag": "表現手法エラー",
+      "sub_tag": "コメディ誇張失敗",
+      "filename": "表現手法エラー_コメディ誇張失敗_00-18.jpg"
+    },
+    {
+      "timecode": "00:53",
+      "tag": "社会規範",
+      "sub_tag": null,
+      "filename": "社会規範_00-53.jpg"
+    },
+    {
+      "timecode": "00:58",
+      "tag": "社会規範",
+      "sub_tag": "ルッキズム助長",
+      "filename": "社会規範_ルッキズム助長_00-58.jpg"
+    }
+  ]
+}

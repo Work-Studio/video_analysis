@@ -12,3 +12,266 @@
 body {
   min-height: 100vh;
 }
+
+/* Print-specific styles for PDF export */
+@media print {
+  /* Set A4 portrait page size */
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  /* Hide non-printable elements */
+  body {
+    background-color: white !important;
+  }
+
+  /* Hide navigation, sidebar, and other UI elements */
+  nav,
+  header,
+  aside,
+  .print\\:hidden {
+    display: none !important;
+  }
+
+  /* Hide everything by default */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Show only the report content and its children */
+  #printable-report,
+  #printable-report * {
+    visibility: visible !important;
+  }
+
+  /* Position report at top of page */
+  #printable-report {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Make the inner printable-summary fill the width */
+  .printable-summary {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 10mm !important;
+  }
+
+  /* Prevent page breaks inside important containers */
+  .avoid-page-break,
+  section,
+  article,
+  .border-2,
+  .rounded-lg,
+  .bg-white,
+  [class*="border-"] {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Avoid breaking headings from their content */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    break-after: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Optimize tables for printing */
+  table {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Ensure images fit within page */
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Remove shadows and adjust colors for printing */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Ensure text is readable */
+  body,
+  p,
+  div,
+  span {
+    color: #000 !important;
+  }
+
+  /* Keep background colors for important elements */
+  .bg-green-600,
+  .bg-yellow-500,
+  .bg-orange-500,
+  .bg-orange-600,
+  .bg-red-700,
+  .bg-blue-50,
+  .bg-amber-50,
+  .bg-gray-50 {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Avoid page breaks in grouped tag containers */
+  .space-y-4 > div,
+  .space-y-3 > div {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 8pt;
+  }
+
+  /* Force cover page (up to risk matrix) to start on new page */
+  .cover-page {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  /* Improve text visibility on dark/colored backgrounds */
+  .bg-indigo-900\/50 {
+    background-color: rgba(49, 46, 129, 0.5) !important;
+  }
+
+  .bg-indigo-900\/50,
+  .bg-indigo-900\/50 * {
+    color: white !important;
+  }
+
+  /* Ensure text colors are visible on dark backgrounds */
+  .bg-indigo-900\/50 .text-indigo-200,
+  .bg-indigo-900\/50 .text-indigo-300 {
+    color: #e0e7ff !important;
+  }
+
+  /* Ensure rose/red background elements have white text */
+  [class*="bg-rose-"],
+  [class*="bg-red-"] {
+    color: white !important;
+  }
+
+  [class*="bg-rose-"] *,
+  [class*="bg-red-"] * {
+    color: white !important;
+  }
+
+  /* Override slate text colors on dark backgrounds */
+  .bg-indigo-900\/50 .text-slate-500,
+  .bg-indigo-900\/50 .text-slate-600,
+  .bg-indigo-900\/50 .text-slate-700 {
+    color: #f1f5f9 !important;
+  }
+
+  /* Scale down tag analysis section for better page fitting (fit 3+ tags per page) */
+  .tag-analysis-section {
+    font-size: 0.75em !important;
+    margin-top: 8pt !important;
+  }
+
+  .tag-analysis-section .tag-card {
+    padding: 4pt 6pt !important;
+    margin-bottom: 3pt !important;
+  }
+
+  .tag-analysis-section h3 {
+    font-size: 1em !important;
+    margin-bottom: 4pt !important;
+    margin-top: 0 !important;
+  }
+
+  .tag-analysis-section h4 {
+    font-size: 0.85em !important;
+    margin-bottom: 3pt !important;
+    margin-top: 3pt !important;
+  }
+
+  /* Compact spacing for tag details */
+  .tag-analysis-section .space-y-3 {
+    gap: 3pt !important;
+  }
+
+  .tag-analysis-section .space-y-1 {
+    gap: 1pt !important;
+  }
+
+  .tag-analysis-section .mt-1 {
+    margin-top: 2pt !important;
+  }
+
+  .tag-analysis-section .mt-2 {
+    margin-top: 3pt !important;
+  }
+
+  .tag-analysis-section .mt-3 {
+    margin-top: 4pt !important;
+  }
+
+  .tag-analysis-section .mt-4 {
+    margin-top: 6pt !important;
+  }
+
+  /* Reduce padding in nested elements */
+  .tag-analysis-section .rounded-xl {
+    padding: 4pt !important;
+  }
+
+  .tag-analysis-section .p-3 {
+    padding: 4pt !important;
+  }
+
+  .tag-analysis-section .p-2 {
+    padding: 3pt !important;
+  }
+
+  /* Compact text sizes */
+  .tag-analysis-section .text-xs {
+    font-size: 0.65em !important;
+    line-height: 1.3 !important;
+  }
+
+  .tag-analysis-section .text-sm {
+    font-size: 0.75em !important;
+    line-height: 1.3 !important;
+  }
+
+  .tag-analysis-section .text-lg {
+    font-size: 0.95em !important;
+  }
+
+  /* Reduce line heights for compact display */
+  .tag-analysis-section p,
+  .tag-analysis-section div {
+    line-height: 1.3 !important;
+  }
+
+  /* Reduce height of progress bars */
+  .tag-analysis-section .h-3 {
+    height: 8pt !important;
+  }
+
+  /* Hide reference section in print */
+  section:has(h3:contains("参考情報")) {
+    display: none !important;
+  }
+
+  /* Alternative: use a specific class for reference section */
+  .reference-section {
+    display: none !important;
+  }
+
+  /* Hide flagged expressions section in print */
+  .flagged-expressions-section {
+    display: none !important;
+  }
+}

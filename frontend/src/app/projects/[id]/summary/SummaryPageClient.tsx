@@ -19,6 +19,7 @@ import {
   TagFramesInfoResponse,
 } from "@/lib/apiClient";
 import { formatSecondsHuman, MediaPreview, PrintableSummary } from "./shared";
+import { AdminFeedbackPanel } from "@/components/AdminFeedbackPanel";
 
 interface SummaryPageClientProps {
   params: {
@@ -26,7 +27,7 @@ interface SummaryPageClientProps {
   };
 }
 
-const POLL_INTERVAL_MS = 3000;
+const POLL_INTERVAL_MS = 1000; // 1秒ごとにポーリング（レポート完成検知を高速化）
 
 const NODE_ICON_SOURCES = {
   upload: "/icons/アップロード.svg",
@@ -57,7 +58,21 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
   const [tagFramesInfo, setTagFramesInfo] = useState<TagFramesInfoResponse | null>(null);
   const [orientation, setOrientation] = useState<"portrait" | "landscape">("portrait");
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Check if user is admin
+  useEffect(() => {
+    const userInfo = localStorage.getItem("user_info");
+    if (userInfo) {
+      try {
+        const parsed = JSON.parse(userInfo);
+        setIsAdmin(parsed.is_admin || false);
+      } catch (e) {
+        console.error("Failed to parse user info:", e);
+      }
+    }
+  }, []);
 
   const { data, error, isLoading } = useSWR(
     ["analysis-status", id],
@@ -330,7 +345,7 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
   return (
     <main className="min-h-screen bg-[#0b1120] text-gray-100">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 pb-20 pt-10">
-        <div className="flex flex-col gap-2 text-xs text-indigo-200 sm:flex-row sm:items-center sm:justify-between">
+        <div className="print:hidden flex flex-col gap-2 text-xs text-indigo-200 sm:flex-row sm:items-center sm:justify-between">
           <Link
             href="/projects"
             className="inline-flex items-center gap-2 rounded-full border border-indigo-500 px-3 py-1 font-semibold text-indigo-200 transition hover:bg-indigo-500/20"
@@ -339,7 +354,7 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
           </Link>
           <span className="text-slate-400">Project ID: {data.id}</span>
         </div>
-        <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <header className="print:hidden flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-indigo-300">Creative Guard</p>
             <h1 className="mt-2 text-4xl font-bold text-white">Project Evaluation Summary</h1>
@@ -388,13 +403,13 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
         </header>
 
         <section className="flex flex-col gap-6">
-          <div className="rounded-2xl border border-indigo-900/40 bg-slate-900/40 p-6 shadow-xl">
+          <div className="print:hidden rounded-2xl border border-indigo-900/40 bg-slate-900/40 p-6 shadow-xl">
             <h2 className="text-lg font-semibold text-white">解析プロセス</h2>
             <p className="mt-2 text-xs text-indigo-200">バックエンドパイプラインのステップごとの状況</p>
             <AnalysisNodeGraph steps={data.steps ?? []} processFlow={data.process_flow} />
           </div>
 
-          <div className="rounded-2xl border border-indigo-900/40 bg-slate-900/40 p-6 shadow-xl">
+          <div className="print:hidden rounded-2xl border border-indigo-900/40 bg-slate-900/40 p-6 shadow-xl">
             <h2 className="text-lg font-semibold text-white">アップロードメディア</h2>
             <p className="mt-2 text-xs text-indigo-200">
               {isImageProject ? "解析対象の画像プレビュー" : "解析対象の動画プレビュー"}
@@ -499,7 +514,41 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
 
             {report && (
               <div className="space-y-6">
-                <div className="rounded-lg bg-white p-4 text-slate-900 shadow">
+                {/* Admin Feedback Panel - Only visible to admins */}
+                {isAdmin && report.final_report?.risk?.tags && (
+                  <AdminFeedbackPanel
+                    projectId={params.id}
+                    tags={report.final_report.risk.tags}
+                    onFeedbackSubmitted={() => {
+                      console.log("Feedback submitted successfully");
+                    }}
+                  />
+                )}
+
+                {/* PDF Export Button */}
+                <div className="flex justify-end print:hidden">
+                  <button
+                    onClick={() => window.print()}
+                    className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700 transition-colors shadow-sm"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                      />
+                    </svg>
+                    PDFとして出力
+                  </button>
+                </div>
+
+                <div id="printable-report" className="rounded-lg bg-white p-4 text-slate-900 shadow">
                   <PrintableSummary
                     report={report}
                     projectTitle={report.title}
