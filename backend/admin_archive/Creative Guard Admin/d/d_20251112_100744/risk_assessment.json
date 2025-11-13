@@ -1,0 +1,27 @@
+{
+  "social": {
+    "grade": "C",
+    "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+    "findings": []
+  },
+  "legal": {
+    "grade": "抵触する可能性がある",
+    "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+    "recommendations": "Gemini の設定を確認し、再度実行してください。",
+    "violations": [],
+    "findings": []
+  },
+  "matrix": {
+    "x_axis": "法務評価",
+    "y_axis": "社会的感度",
+    "position": [
+      1,
+      2
+    ]
+  },
+  "tags": [],
+  "burn_risk": {
+    "count": 0,
+    "details": []
+  }
+}

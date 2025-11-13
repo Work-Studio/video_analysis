@@ -1,0 +1,28 @@
+{
+  "frames": [
+    {
+      "timecode": "00:00:28",
+      "tag": "社会規範",
+      "sub_tag": null,
+      "filename": "社会規範_00-00-28.jpg"
+    },
+    {
+      "timecode": "0:00〜0:33",
+      "tag": "社会規範",
+      "sub_tag": "社会背景との乖離",
+      "filename": "社会規範_社会背景との乖離_0-00〜0-33.jpg"
+    },
+    {
+      "timecode": "00:00:30",
+      "tag": "表現手法エラー",
+      "sub_tag": null,
+      "filename": "表現手法エラー_00-00-30.jpg"
+    },
+    {
+      "timecode": "00:11",
+      "tag": "表現手法エラー",
+      "sub_tag": "文脈不一致",
+      "filename": "表現手法エラー_文脈不一致_00-11.jpg"
+    }
+  ]
+}

@@ -1,3 +1,6 @@
 [
-  "backend/tests/test_pipeline_e2e.py::test_project_pipeline_flow"
+  "backend/tests/test_pipeline_e2e.py::test_project_pipeline_flow",
+  "backend/tests/test_risk_assessor.py::test_calculate_burn_risk_enriches_details",
+  "backend/tests/test_risk_assessor.py::test_load_case_reference_rows_reads_excel",
+  "backend/tests/test_risk_assessor.py::test_screen_with_cases_returns_grade_c_or_higher"
 ]

@@ -1,0 +1,726 @@
+{
+  "project_id": "48ec8e8c85334062a191c043118024ef",
+  "company_name": "Creative Guard Admin",
+  "product_name": "日清",
+  "title": "赤いきつね",
+  "status": "completed",
+  "media_type": "video",
+  "created_at": "2025-11-13T02:54:54.348511+00:00",
+  "analysis_completed_at": "2025-11-13T02:56:43.426403+00:00",
+  "archived_at": "2025-11-13T02:56:43.441738+00:00",
+  "final_report": {
+    "summary": "*本分析結果は参考用途のみを目的としており、社会的・法的リスクの不存在を保証するものではありません。",
+    "sections": {
+      "transcription": "🗣️ 音声文字起こし\nはい、以下に文字起こしを示します。\n\n[すすり泣き]\n\n[00:00:11]\n美味しい。\n[00:00:28]\nだしがうまいとホッとする。\n[00:00:30]\n赤い狐と緑のタぬき。",
+      "ocr": "📝 OCR字幕抜粋\nはい、承知いたしました。動画に表示されるテキストを抽出しました。\n\n* JAS\n* おいしい。\n* TOYO SUISAN\n* TOYO SUISAN\n* ダシがうまいとほっとする。\n* 赤いきつねと緑のたぬき\n* うどん\n* PAIMON",
+      "video_analysis": "🎬 映像解析レポート\n映像は、涙を流す女性が部屋でカップ麺を食べるシーンを中心に構成されています。孤独や悲しみを抱えながらも、カップ麺の味に安らぎを見出す様子が描かれています。\n\n📋 表現パターングループ\n- 涙と食事\n  ・女性が涙を流しながら食事をするシーン。感情と食事が結びつけられています。\n    - 0:00〜0:01: 涙を流す女性のアップ\n    - 0:01〜0:02: 部屋でテレビを見ながら涙を拭く女性\n    - 0:03〜0:06: カップ麺を開けて涙を流す女性のアップ\n    - 0:06〜0:11: カップ麺を食べる女性のアップ\n    - 0:13〜0:14: 涙を拭う\n    - 0:27〜0:29: カップ麺を食べる女性\n- カップ麺のクローズアップ\n  ・カップ麺の調理や食事シーンを強調するカット。\n    - 0:02〜0:03: カップ麺を開ける様子\n    - 0:06〜0:07: 麺を箸で持ち上げる様子\n    - 0:07〜0:09: カップ麺から湯気を立てて麺をすする様子\n    - 0:12〜0:13: 麺を箸で持ち上げる様子\n    - 0:14〜0:17: 麺をすする様子\n    - 0:21〜0:22: お揚げを食べる様子\n    - 0:22〜0:25: カップ麺を飲む様子\n    - 0:25〜0:26: カップ麺の中身のアップ\n    - 0:29〜0:33: カップ麺の静止画\n- 部屋の情景\n  ・孤独な状況を強調するような、部屋の様子を映すカット。\n    - 0:01〜0:02: 部屋でテレビを見ながら涙を拭く女性\n    - 0:11〜0:12: 氷水の入ったグラスとリモコン\n    - 0:18〜0:19: 部屋で食事をする女性\n    - 0:19〜0:21: 部屋で食事をする女性\n    - 0:27〜0:29: 部屋で食事をする女性"
+    },
+    "files": {
+      "transcription": "/Users/lml25ogk/Desktop/video_analysis/backend/uploads/Creative Guard Admin_日清_赤いきつね/transcription.txt",
+      "ocr": "/Users/lml25ogk/Desktop/video_analysis/backend/uploads/Creative Guard Admin_日清_赤いきつね/ocr.txt",
+      "video_analysis": "/Users/lml25ogk/Desktop/video_analysis/backend/uploads/Creative Guard Admin_日清_赤いきつね/video_analysis.json",
+      "risk_assessment": "/Users/lml25ogk/Desktop/video_analysis/backend/uploads/Creative Guard Admin_日清_赤いきつね/risk_assessment.json"
+    },
+    "metadata": {
+      "transcription_source": "gemini",
+      "burn_risk": {
+        "count": 0,
+        "details": []
+      }
+    },
+    "risk": {
+      "social": {
+        "grade": "B",
+        "reason": "動画全体を通して、孤独な女性がカップ麺を食べるという描写が、視聴者に共感や安らぎを与える一方で、社会的な孤立や貧困問題を想起させる可能性があります。特に「だしがうまいとホッとする」という台詞は、ささやかな幸せに依存せざるを得ない状況を示唆しており、見る人によっては不快感を覚える可能性があります。過去の事例では、同様の状況を描写したコンテンツが、社会問題への配慮不足として批判されたことがあります。",
+        "findings": [
+          {
+            "timecode": "00:00〜00:33",
+            "detail": "涙を流す女性がカップ麺を食べるシーン全体が、孤独や悲しみを想起させる可能性があります。"
+          },
+          {
+            "timecode": "00:00:28",
+            "detail": "「だしがうまいとホッとする」という台詞が、社会的な孤立や貧困問題を連想させる可能性があります。"
+          },
+          {
+            "timecode": "00:00:30",
+            "detail": "「赤い狐と緑のタぬき」という商品名が、特定の世代や地域に限定された共感を呼ぶ可能性があります。"
+          }
+        ]
+      },
+      "legal": {
+        "grade": "N/A",
+        "reason": "今回の提供された資料には、法律やガイドラインに直接的に抵触する表現は見当たりませんでした。広告表現に関する景品表示法や消費者契約法に抵触する可能性も低いと判断しました。",
+        "recommendations": "現時点では、法的な改善提案はありません。",
+        "violations": [],
+        "NOTE": "violations array MUST be empty [] when grade is '抵触していない'. Only include violations when specific legal concerns are identified.",
+        "findings": []
+      },
+      "matrix": {
+        "x_axis": "法務評価",
+        "y_axis": "社会的感度",
+        "position": [
+          0,
+          1
+        ]
+      },
+      "tags": [
+        {
+          "name": "社会規範",
+          "grade": "C",
+          "reason": "孤独な状況で安価なカップ麺を食べる描写が、現代社会における孤食や貧困問題を想起させ、見る人に不快感を与える可能性があります。",
+          "detected_text": "だしがうまいとホッとする",
+          "detected_timecode": "00:00:28",
+          "related_sub_tags": [
+            {
+              "name": "社会背景との乖離",
+              "grade": "C",
+              "reason": "社会的な孤立や貧困問題を想起させる可能性があります。",
+              "detected_text": "涙を流す女性が部屋でカップ麺を食べる",
+              "detected_timecode": "0:00〜0:33"
+            }
+          ]
+        },
+        {
+          "name": "表現手法エラー",
+          "grade": "D",
+          "reason": "孤独な女性がカップ麺を食べるシーンが、意図せずとも悲壮感を強調し、商品に対するポジティブなイメージを損なう可能性があります。また、特定の世代にしか通じない商品名が、広告効果を弱める可能性があります。",
+          "detected_text": "赤い狐と緑のタぬき",
+          "detected_timecode": "00:00:30",
+          "related_sub_tags": [
+            {
+              "name": "世代間ギャップ誤読",
+              "grade": "D",
+              "reason": "特定の世代にしか通じない商品名が、若い世代には理解されない可能性があります。",
+              "detected_text": "赤い狐と緑のタぬき",
+              "detected_timecode": "00:00:30"
+            },
+            {
+              "name": "コメディ誇張失敗",
+              "grade": "D",
+              "reason": "シリアスな場面でのユーモラスな表現が、かえって感情を損なう可能性があります。",
+              "detected_text": "赤い狐と緑のタぬき",
+              "detected_timecode": "00:00:30"
+            },
+            {
+              "name": "文脈不一致",
+              "grade": "C",
+              "reason": "涙を流す場面で「美味しい」という言葉が、状況とのミスマッチを生じさせる可能性があります。",
+              "detected_text": "美味しい",
+              "detected_timecode": "00:11"
+            }
+          ]
+        }
+      ],
+      "burn_risk": {
+        "count": 0,
+        "details": []
+      }
+    },
+    "iterations": [
+      {
+        "index": 1,
+        "transcription": "はい、以下に文字起こしを示します。\n\n[すすり泣き]\n\n[00:00:11]\n美味しい。\n[00:00:28]\nだしがうまいとホッとする。\n[00:00:30]\n赤い狐と緑のタぬき。",
+        "ocr": "はい、承知いたしました。動画に表示されるテキストを抽出しました。\n\n* JAS\n* おいしい。\n* TOYO SUISAN\n* TOYO SUISAN\n* ダシがうまいとほっとする。\n* 赤いきつねと緑のたぬき\n* うどん\n* PAIMON",
+        "video_analysis": {
+          "summary": "映像は、涙を流す女性が部屋でカップ麺を食べるシーンを中心に構成されています。孤独や悲しみを抱えながらも、カップ麺の味に安らぎを見出す様子が描かれています。",
+          "segments": [
+            {
+              "label": "涙と食事",
+              "description": "女性が涙を流しながら食事をするシーン。感情と食事が結びつけられています。",
+              "shots": [
+                {
+                  "timecode": "0:00〜0:01",
+                  "description": "涙を流す女性のアップ"
+                },
+                {
+                  "timecode": "0:01〜0:02",
+                  "description": "部屋でテレビを見ながら涙を拭く女性"
+                },
+                {
+                  "timecode": "0:03〜0:06",
+                  "description": "カップ麺を開けて涙を流す女性のアップ"
+                },
+                {
+                  "timecode": "0:06〜0:11",
+                  "description": "カップ麺を食べる女性のアップ"
+                },
+                {
+                  "timecode": "0:13〜0:14",
+                  "description": "涙を拭う"
+                },
+                {
+                  "timecode": "0:27〜0:29",
+                  "description": "カップ麺を食べる女性"
+                }
+              ]
+            },
+            {
+              "label": "カップ麺のクローズアップ",
+              "description": "カップ麺の調理や食事シーンを強調するカット。",
+              "shots": [
+                {
+                  "timecode": "0:02〜0:03",
+                  "description": "カップ麺を開ける様子"
+                },
+                {
+                  "timecode": "0:06〜0:07",
+                  "description": "麺を箸で持ち上げる様子"
+                },
+                {
+                  "timecode": "0:07〜0:09",
+                  "description": "カップ麺から湯気を立てて麺をすする様子"
+                },
+                {
+                  "timecode": "0:12〜0:13",
+                  "description": "麺を箸で持ち上げる様子"
+                },
+                {
+                  "timecode": "0:14〜0:17",
+                  "description": "麺をすする様子"
+                },
+                {
+                  "timecode": "0:21〜0:22",
+                  "description": "お揚げを食べる様子"
+                },
+                {
+                  "timecode": "0:22〜0:25",
+                  "description": "カップ麺を飲む様子"
+                },
+                {
+                  "timecode": "0:25〜0:26",
+                  "description": "カップ麺の中身のアップ"
+                },
+                {
+                  "timecode": "0:29〜0:33",
+                  "description": "カップ麺の静止画"
+                }
+              ]
+            },
+            {
+              "label": "部屋の情景",
+              "description": "孤独な状況を強調するような、部屋の様子を映すカット。",
+              "shots": [
+                {
+                  "timecode": "0:01〜0:02",
+                  "description": "部屋でテレビを見ながら涙を拭く女性"
+                },
+                {
+                  "timecode": "0:11〜0:12",
+                  "description": "氷水の入ったグラスとリモコン"
+                },
+                {
+                  "timecode": "0:18〜0:19",
+                  "description": "部屋で食事をする女性"
+                },
+                {
+                  "timecode": "0:19〜0:21",
+                  "description": "部屋で食事をする女性"
+                },
+                {
+                  "timecode": "0:27〜0:29",
+                  "description": "部屋で食事をする女性"
+                }
+              ]
+            }
+          ]
+        },
+        "risk": {
+          "social": {
+            "grade": "B",
+            "reason": "動画全体を通して、孤独な女性がカップ麺を食べるという描写が、視聴者に共感や安らぎを与える一方で、社会的な孤立や貧困問題を想起させる可能性があります。特に「だしがうまいとホッとする」という台詞は、ささやかな幸せに依存せざるを得ない状況を示唆しており、見る人によっては不快感を覚える可能性があります。過去の事例では、同様の状況を描写したコンテンツが、社会問題への配慮不足として批判されたことがあります。",
+            "findings": [
+              {
+                "timecode": "00:00〜00:33",
+                "detail": "涙を流す女性がカップ麺を食べるシーン全体が、孤独や悲しみを想起させる可能性があります。"
+              },
+              {
+                "timecode": "00:00:28",
+                "detail": "「だしがうまいとホッとする」という台詞が、社会的な孤立や貧困問題を連想させる可能性があります。"
+              },
+              {
+                "timecode": "00:00:30",
+                "detail": "「赤い狐と緑のタぬき」という商品名が、特定の世代や地域に限定された共感を呼ぶ可能性があります。"
+              }
+            ]
+          },
+          "legal": {
+            "grade": "N/A",
+            "reason": "今回の提供された資料には、法律やガイドラインに直接的に抵触する表現は見当たりませんでした。広告表現に関する景品表示法や消費者契約法に抵触する可能性も低いと判断しました。",
+            "recommendations": "現時点では、法的な改善提案はありません。",
+            "violations": [],
+            "NOTE": "violations array MUST be empty [] when grade is '抵触していない'. Only include violations when specific legal concerns are identified.",
+            "findings": []
+          },
+          "matrix": {
+            "x_axis": "法務評価",
+            "y_axis": "社会的感度",
+            "position": [
+              0,
+              1
+            ]
+          },
+          "tags": [
+            {
+              "name": "社会規範",
+              "grade": "C",
+              "reason": "孤独な状況で安価なカップ麺を食べる描写が、現代社会における孤食や貧困問題を想起させ、見る人に不快感を与える可能性があります。",
+              "detected_text": "だしがうまいとホッとする",
+              "detected_timecode": "00:00:28",
+              "related_sub_tags": [
+                {
+                  "name": "社会背景との乖離",
+                  "grade": "C",
+                  "reason": "社会的な孤立や貧困問題を想起させる可能性があります。",
+                  "detected_text": "涙を流す女性が部屋でカップ麺を食べる",
+                  "detected_timecode": "0:00〜0:33"
+                }
+              ]
+            },
+            {
+              "name": "表現手法エラー",
+              "grade": "D",
+              "reason": "孤独な女性がカップ麺を食べるシーンが、意図せずとも悲壮感を強調し、商品に対するポジティブなイメージを損なう可能性があります。また、特定の世代にしか通じない商品名が、広告効果を弱める可能性があります。",
+              "detected_text": "赤い狐と緑のタぬき",
+              "detected_timecode": "00:00:30",
+              "related_sub_tags": [
+                {
+                  "name": "世代間ギャップ誤読",
+                  "grade": "D",
+                  "reason": "特定の世代にしか通じない商品名が、若い世代には理解されない可能性があります。",
+                  "detected_text": "赤い狐と緑のタぬき",
+                  "detected_timecode": "00:00:30"
+                },
+                {
+                  "name": "コメディ誇張失敗",
+                  "grade": "D",
+                  "reason": "シリアスな場面でのユーモラスな表現が、かえって感情を損なう可能性があります。",
+                  "detected_text": "赤い狐と緑のタぬき",
+                  "detected_timecode": "00:00:30"
+                },
+                {
+                  "name": "文脈不一致",
+                  "grade": "C",
+                  "reason": "涙を流す場面で「美味しい」という言葉が、状況とのミスマッチを生じさせる可能性があります。",
+                  "detected_text": "美味しい",
+                  "detected_timecode": "00:11"
+                }
+              ]
+            }
+          ],
+          "burn_risk": {
+            "count": 0,
+            "details": []
+          }
+        }
+      },
+      {
+        "index": 2,
+        "transcription": "はい、以下に文字起こしを示します。\n\n[すすり泣き]\n\n[00:00:11]\n美味しい。\n[00:00:28]\nだしがうまいとホッとする。\n[00:00:30]\n赤い狐と緑のタぬき。",
+        "ocr": "はい、承知いたしました。動画に表示されるテキストを抽出しました。\n\n* JAS\n* おいしい。\n* TOYO SUISAN\n* TOYO SUISAN\n* ダシがうまいとほっとする。\n* 赤いきつねと緑のたぬき\n* うどん\n* PAIMON",
+        "video_analysis": {
+          "summary": "映像は、涙を流す女性が部屋でカップ麺を食べるシーンを中心に構成されています。孤独や悲しみを抱えながらも、カップ麺の味に安らぎを見出す様子が描かれています。",
+          "segments": [
+            {
+              "label": "涙と食事",
+              "description": "女性が涙を流しながら食事をするシーン。感情と食事が結びつけられています。",
+              "shots": [
+                {
+                  "timecode": "0:00〜0:01",
+                  "description": "涙を流す女性のアップ"
+                },
+                {
+                  "timecode": "0:01〜0:02",
+                  "description": "部屋でテレビを見ながら涙を拭く女性"
+                },
+                {
+                  "timecode": "0:03〜0:06",
+                  "description": "カップ麺を開けて涙を流す女性のアップ"
+                },
+                {
+                  "timecode": "0:06〜0:11",
+                  "description": "カップ麺を食べる女性のアップ"
+                },
+                {
+                  "timecode": "0:13〜0:14",
+                  "description": "涙を拭う"
+                },
+                {
+                  "timecode": "0:27〜0:29",
+                  "description": "カップ麺を食べる女性"
+                }
+              ]
+            },
+            {
+              "label": "カップ麺のクローズアップ",
+              "description": "カップ麺の調理や食事シーンを強調するカット。",
+              "shots": [
+                {
+                  "timecode": "0:02〜0:03",
+                  "description": "カップ麺を開ける様子"
+                },
+                {
+                  "timecode": "0:06〜0:07",
+                  "description": "麺を箸で持ち上げる様子"
+                },
+                {
+                  "timecode": "0:07〜0:09",
+                  "description": "カップ麺から湯気を立てて麺をすする様子"
+                },
+                {
+                  "timecode": "0:12〜0:13",
+                  "description": "麺を箸で持ち上げる様子"
+                },
+                {
+                  "timecode": "0:14〜0:17",
+                  "description": "麺をすする様子"
+                },
+                {
+                  "timecode": "0:21〜0:22",
+                  "description": "お揚げを食べる様子"
+                },
+                {
+                  "timecode": "0:22〜0:25",
+                  "description": "カップ麺を飲む様子"
+                },
+                {
+                  "timecode": "0:25〜0:26",
+                  "description": "カップ麺の中身のアップ"
+                },
+                {
+                  "timecode": "0:29〜0:33",
+                  "description": "カップ麺の静止画"
+                }
+              ]
+            },
+            {
+              "label": "部屋の情景",
+              "description": "孤独な状況を強調するような、部屋の様子を映すカット。",
+              "shots": [
+                {
+                  "timecode": "0:01〜0:02",
+                  "description": "部屋でテレビを見ながら涙を拭く女性"
+                },
+                {
+                  "timecode": "0:11〜0:12",
+                  "description": "氷水の入ったグラスとリモコン"
+                },
+                {
+                  "timecode": "0:18〜0:19",
+                  "description": "部屋で食事をする女性"
+                },
+                {
+                  "timecode": "0:19〜0:21",
+                  "description": "部屋で食事をする女性"
+                },
+                {
+                  "timecode": "0:27〜0:29",
+                  "description": "部屋で食事をする女性"
+                }
+              ]
+            }
+          ]
+        },
+        "risk": {
+          "social": {
+            "grade": "C",
+            "reason": "映像全体を通して、涙を流しながらカップ麺を食べる女性の描写は、孤独や悲しみを想起させ、視聴者に精神的な影響を与える可能性があります。特に、現代社会における孤独感や食事が心の隙間を埋める手段となっている現状を考えると、共感を呼ぶ一方で、過度な感情移入を招く恐れがあります。過去の事例では、広告表現において、安易な共感を煽ることで、かえって不快感や反発を招いたケースが見られます。",
+            "findings": [
+              {
+                "timecode": "0:00〜0:01",
+                "detail": "涙を流す女性のアップは、視聴者に強い感情的な印象を与えます。"
+              },
+              {
+                "timecode": "0:06〜0:11",
+                "detail": "カップ麺を食べる女性のアップは、食事が孤独感を紛らわす手段として描かれているように見えます。"
+              }
+            ]
+          },
+          "legal": {
+            "grade": "N/A",
+            "reason": "今回の映像に関して、消費者契約法、景品表示法等の法務リストに照らし合わせましたが、現時点では具体的な法的な抵触の可能性は低いと判断されます。",
+            "recommendations": "現時点ではありません。",
+            "violations": [],
+            "NOTE": "violations array MUST be empty [] when grade is '抵触していない'. Only include violations when specific legal concerns are identified.",
+            "findings": []
+          },
+          "matrix": {
+            "x_axis": "法務評価",
+            "y_axis": "社会的感度",
+            "position": [
+              0,
+              1
+            ]
+          },
+          "tags": [
+            {
+              "name": "社会規範",
+              "grade": "C",
+              "reason": "孤独な状況で食事をする描写は、現代社会における孤食の問題を想起させる可能性があります。過去の事例では、社会問題を扱った広告が、共感を呼ぶ一方で、不謹慎であるとの批判を受けた例も見られます。",
+              "detected_text": "部屋で食事をする女性",
+              "detected_timecode": "0:18〜0:19",
+              "related_sub_tags": [
+                {
+                  "name": "社会背景との乖離",
+                  "grade": "C",
+                  "reason": "孤独や孤食といった社会問題を想起させる可能性があります。",
+                  "detected_text": "涙を流す女性が部屋でカップ麺を食べるシーン",
+                  "detected_timecode": "summary"
+                }
+              ]
+            },
+            {
+              "name": "表現手法エラー",
+              "grade": "D",
+              "reason": "映像表現が意図せず視聴者にネガティブな印象を与える可能性があります。過去の事例では、コメディとして意図した表現が、かえって不快感を与えた例も見られます。",
+              "detected_text": "涙を流す女性",
+              "detected_timecode": "0:00〜0:01",
+              "related_sub_tags": [
+                {
+                  "name": "アニメで深刻さを消失",
+                  "grade": "D",
+                  "reason": "今回は実写ですが、同様に深刻な状況を安易に表現することで、矮小化された印象を与える可能性があります。",
+                  "detected_text": "映像は、涙を流す女性が部屋でカップ麺を食べるシーンを中心に構成されています",
+                  "detected_timecode": "summary"
+                },
+                {
+                  "name": "コメディ誇張失敗",
+                  "grade": "D",
+                  "reason": "もしこの表現がコメディとして意図されている場合、その誇張が適切でない場合、視聴者に誤解を与える可能性があります。",
+                  "detected_text": "だしがうまいとホッとする。",
+                  "detected_timecode": "00:28"
+                },
+                {
+                  "name": "メディア選択ミス",
+                  "grade": "C",
+                  "reason": "このコンテンツが特定のメディアで公開される場合、そのメディアの視聴者層や文脈によっては、不適切な印象を与える可能性があります。",
+                  "detected_text": "涙を流す女性が部屋でカップ麺を食べる",
+                  "detected_timecode": "0:00〜0:01"
+                },
+                {
+                  "name": "文脈不一致",
+                  "grade": "C",
+                  "reason": "感情的な状況と商品の宣伝が組み合わさることで、視聴者に不快感を与える可能性があります。",
+                  "detected_text": "赤い狐と緑のタぬき",
+                  "detected_timecode": "00:30"
+                }
+              ]
+            },
+            {
+              "name": "女性表現",
+              "grade": "D",
+              "reason": "涙を流す女性の描写が、ステレオタイプな女性像を助長する可能性があります。",
+              "detected_text": "涙を流す女性",
+              "detected_timecode": "0:00〜0:01",
+              "related_sub_tags": [
+                {
+                  "name": "女性を弱者として描写",
+                  "grade": "D",
+                  "reason": "孤独な状況で涙を流す女性を弱者として描写していると解釈される可能性があります。",
+                  "detected_text": "涙を流す女性が部屋でカップ麺を食べるシーン",
+                  "detected_timecode": "summary"
+                }
+              ]
+            }
+          ],
+          "burn_risk": {
+            "count": 0,
+            "details": []
+          }
+        }
+      },
+      {
+        "index": 3,
+        "transcription": "はい、以下に文字起こしを示します。\n\n[すすり泣き]\n\n[00:00:11]\n美味しい。\n[00:00:28]\nだしがうまいとホッとする。\n[00:00:30]\n赤い狐と緑のタぬき。",
+        "ocr": "はい、承知いたしました。動画に表示されるテキストを抽出しました。\n\n* JAS\n* おいしい。\n* TOYO SUISAN\n* TOYO SUISAN\n* ダシがうまいとほっとする。\n* 赤いきつねと緑のたぬき\n* うどん\n* PAIMON",
+        "video_analysis": {
+          "summary": "映像は、涙を流す女性が部屋でカップ麺を食べるシーンを中心に構成されています。孤独や悲しみを抱えながらも、カップ麺の味に安らぎを見出す様子が描かれています。",
+          "segments": [
+            {
+              "label": "涙と食事",
+              "description": "女性が涙を流しながら食事をするシーン。感情と食事が結びつけられています。",
+              "shots": [
+                {
+                  "timecode": "0:00〜0:01",
+                  "description": "涙を流す女性のアップ"
+                },
+                {
+                  "timecode": "0:01〜0:02",
+                  "description": "部屋でテレビを見ながら涙を拭く女性"
+                },
+                {
+                  "timecode": "0:03〜0:06",
+                  "description": "カップ麺を開けて涙を流す女性のアップ"
+                },
+                {
+                  "timecode": "0:06〜0:11",
+                  "description": "カップ麺を食べる女性のアップ"
+                },
+                {
+                  "timecode": "0:13〜0:14",
+                  "description": "涙を拭う"
+                },
+                {
+                  "timecode": "0:27〜0:29",
+                  "description": "カップ麺を食べる女性"
+                }
+              ]
+            },
+            {
+              "label": "カップ麺のクローズアップ",
+              "description": "カップ麺の調理や食事シーンを強調するカット。",
+              "shots": [
+                {
+                  "timecode": "0:02〜0:03",
+                  "description": "カップ麺を開ける様子"
+                },
+                {
+                  "timecode": "0:06〜0:07",
+                  "description": "麺を箸で持ち上げる様子"
+                },
+                {
+                  "timecode": "0:07〜0:09",
+                  "description": "カップ麺から湯気を立てて麺をすする様子"
+                },
+                {
+                  "timecode": "0:12〜0:13",
+                  "description": "麺を箸で持ち上げる様子"
+                },
+                {
+                  "timecode": "0:14〜0:17",
+                  "description": "麺をすする様子"
+                },
+                {
+                  "timecode": "0:21〜0:22",
+                  "description": "お揚げを食べる様子"
+                },
+                {
+                  "timecode": "0:22〜0:25",
+                  "description": "カップ麺を飲む様子"
+                },
+                {
+                  "timecode": "0:25〜0:26",
+                  "description": "カップ麺の中身のアップ"
+                },
+                {
+                  "timecode": "0:29〜0:33",
+                  "description": "カップ麺の静止画"
+                }
+              ]
+            },
+            {
+              "label": "部屋の情景",
+              "description": "孤独な状況を強調するような、部屋の様子を映すカット。",
+              "shots": [
+                {
+                  "timecode": "0:01〜0:02",
+                  "description": "部屋でテレビを見ながら涙を拭く女性"
+                },
+                {
+                  "timecode": "0:11〜0:12",
+                  "description": "氷水の入ったグラスとリモコン"
+                },
+                {
+                  "timecode": "0:18〜0:19",
+                  "description": "部屋で食事をする女性"
+                },
+                {
+                  "timecode": "0:19〜0:21",
+                  "description": "部屋で食事をする女性"
+                },
+                {
+                  "timecode": "0:27〜0:29",
+                  "description": "部屋で食事をする女性"
+                }
+              ]
+            }
+          ]
+        },
+        "risk": {
+          "social": {
+            "grade": "C",
+            "reason": "映像全体に漂う孤独感や悲哀の表現は、視聴者に共感や感情移入を促す可能性がありますが、過度に強調された場合、視聴者の精神的な健康に悪影響を及ぼす可能性があります。特に、社会的に孤立していると感じている視聴者にとっては、よりネガティブな感情を増幅させる可能性があります。",
+            "findings": [
+              {
+                "timecode": "0:00〜0:01",
+                "detail": "涙を流す女性のアップは、孤独や悲しみを強く表現しており、視聴者の感情に強く訴えかける。"
+              },
+              {
+                "timecode": "0:01〜0:02",
+                "detail": "部屋でテレビを見ながら涙を拭く女性の描写は、社会からの孤立感を強調している。"
+              },
+              {
+                "timecode": "0:03〜0:06",
+                "detail": "カップ麺を開けて涙を流す女性のアップは、食事を通して感情的な安らぎを求める様子を描写しているが、同時に孤独感を際立たせている。"
+              },
+              {
+                "timecode": "0:27〜0:29",
+                "detail": "部屋で食事をする女性の描写は、孤独な状況が継続していることを示唆している。"
+              }
+            ]
+          },
+          "legal": {
+            "grade": "N/A",
+            "reason": "提供された情報には、法律やガイドラインに直接抵触する可能性のある表現は含まれていません。",
+            "recommendations": "特になし",
+            "violations": [],
+            "NOTE": "violations array MUST be empty [] when grade is '抵触していない'. Only include violations when specific legal concerns are identified.",
+            "findings": []
+          },
+          "matrix": {
+            "x_axis": "法務評価",
+            "y_axis": "社会的感度",
+            "position": [
+              0,
+              1
+            ]
+          },
+          "tags": [
+            {
+              "name": "社会規範",
+              "grade": "C",
+              "reason": "孤独な状況でカップ麺を食べるという描写は、現代社会における孤食や孤独といった社会問題を想起させる可能性があります。特に、困難な状況にある人々への配慮が不足している場合、不快感を与える可能性があります。",
+              "detected_text": "美味しい。",
+              "detected_timecode": "00:11",
+              "related_sub_tags": [
+                {
+                  "name": "社会背景との乖離",
+                  "grade": "C",
+                  "reason": "孤独や貧困といった社会問題を背景にした描写が、安易な共感や感情的な消費を招く可能性があります。",
+                  "detected_text": "だしがうまいとホッとする。",
+                  "detected_timecode": "00:28"
+                },
+                {
+                  "name": "不謹慎",
+                  "grade": "C",
+                  "reason": "社会的な問題に対する認識の欠如が感じられます。",
+                  "detected_text": "だしがうまいとホッとする",
+                  "detected_timecode": "00:28"
+                }
+              ]
+            },
+            {
+              "name": "表現手法エラー",
+              "grade": "D",
+              "reason": "孤独な女性がカップ麺を食べるという状況を美化、または肯定的に描写することで、意図せずとも社会的な孤立を助長する可能性があります。",
+              "detected_text": "美味しい",
+              "detected_timecode": "00:11",
+              "related_sub_tags": [
+                {
+                  "name": "文脈不一致",
+                  "grade": "D",
+                  "reason": "孤独や悲しみを抱える状況で「美味しい」という感情を強調することで、視聴者に誤ったメッセージを与える可能性があります。",
+                  "detected_text": "美味しい",
+                  "detected_timecode": "00:11"
+                }
+              ]
+            }
+          ],
+          "burn_risk": {
+            "count": 0,
+            "details": []
+          }
+        }
+      }
+    ]
+  }
+}

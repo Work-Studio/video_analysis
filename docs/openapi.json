@@ -1,0 +1,1021 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Video Analysis Pipeline",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/projects": {
+      "get": {
+        "summary": "List Projects",
+        "description": "分析済みプロジェクトの一覧を取得.",
+        "operationId": "list_projects_projects_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectSummary"
+                  },
+                  "type": "array",
+                  "title": "Response List Projects Projects Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Project",
+        "description": "動画ファイルを受け取りプロジェクトを新規作成する.",
+        "operationId": "create_project_projects_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_project_projects_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectCreatedResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{project_id}/media": {
+      "get": {
+        "summary": "Get Project Media",
+        "description": "プロジェクトの元メディアを返却.",
+        "operationId": "get_project_media_projects__project_id__media_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{project_id}/analyze": {
+      "post": {
+        "summary": "Start Analysis",
+        "description": "分析パイプラインをバックグラウンドで起動する.",
+        "operationId": "start_analysis_projects__project_id__analyze_post",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Start Analysis Projects  Project Id  Analyze Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{project_id}/analysis-status": {
+      "get": {
+        "summary": "Get Analysis Status",
+        "description": "進行状況と中間結果を返却する.",
+        "operationId": "get_analysis_status_projects__project_id__analysis_status_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectStatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{project_id}/report": {
+      "get": {
+        "summary": "Get Final Report",
+        "description": "最終レポートを取得する.",
+        "operationId": "get_final_report_projects__project_id__report_get",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectReportResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Healthcheck",
+        "description": "簡易ヘルスチェック.",
+        "operationId": "healthcheck_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Healthcheck Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnalysisStep": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "payload": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnalysisStepPayload"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "status"
+        ],
+        "title": "AnalysisStep"
+      },
+      "AnalysisStepPayload": {
+        "properties": {
+          "preview": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preview"
+          }
+        },
+        "type": "object",
+        "title": "AnalysisStepPayload"
+      },
+      "Body_create_project_projects_post": {
+        "properties": {
+          "company_name": {
+            "type": "string",
+            "title": "Company Name"
+          },
+          "product_name": {
+            "type": "string",
+            "title": "Product Name"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model",
+            "default": "default"
+          },
+          "video_file": {
+            "type": "string",
+            "format": "binary",
+            "title": "Video File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "company_name",
+          "product_name",
+          "title",
+          "video_file"
+        ],
+        "title": "Body_create_project_projects_post"
+      },
+      "FinalReport": {
+        "properties": {
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "sections": {
+            "$ref": "#/components/schemas/FinalReportSections"
+          },
+          "files": {
+            "$ref": "#/components/schemas/FinalReportFiles"
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          },
+          "risk": {
+            "$ref": "#/components/schemas/RiskReport"
+          }
+        },
+        "type": "object",
+        "required": [
+          "summary",
+          "sections",
+          "files",
+          "risk"
+        ],
+        "title": "FinalReport"
+      },
+      "FinalReportFiles": {
+        "properties": {
+          "transcription": {
+            "type": "string",
+            "title": "Transcription"
+          },
+          "ocr": {
+            "type": "string",
+            "title": "Ocr"
+          },
+          "video_analysis": {
+            "type": "string",
+            "title": "Video Analysis"
+          },
+          "risk_assessment": {
+            "type": "string",
+            "title": "Risk Assessment"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transcription",
+          "ocr",
+          "video_analysis",
+          "risk_assessment"
+        ],
+        "title": "FinalReportFiles"
+      },
+      "FinalReportSections": {
+        "properties": {
+          "transcription": {
+            "type": "string",
+            "title": "Transcription"
+          },
+          "ocr": {
+            "type": "string",
+            "title": "Ocr"
+          },
+          "video_analysis": {
+            "type": "string",
+            "title": "Video Analysis"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transcription",
+          "ocr",
+          "video_analysis"
+        ],
+        "title": "FinalReportSections"
+      },
+      "Finding": {
+        "properties": {
+          "timecode": {
+            "type": "string",
+            "title": "Timecode"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timecode",
+          "detail"
+        ],
+        "title": "Finding"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LegalEvaluation": {
+        "properties": {
+          "grade": {
+            "type": "string",
+            "title": "Grade"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "recommendations": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommendations"
+          },
+          "violations": {
+            "items": {
+              "$ref": "#/components/schemas/LegalViolation"
+            },
+            "type": "array",
+            "title": "Violations"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/Finding"
+            },
+            "type": "array",
+            "title": "Findings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "grade",
+          "reason"
+        ],
+        "title": "LegalEvaluation"
+      },
+      "LegalViolation": {
+        "properties": {
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "expression": {
+            "type": "string",
+            "title": "Expression"
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Severity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expression"
+        ],
+        "title": "LegalViolation"
+      },
+      "ProjectCreatedResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name"
+          },
+          "product_name": {
+            "type": "string",
+            "title": "Product Name"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "file_name": {
+            "type": "string",
+            "title": "File Name"
+          },
+          "media_type": {
+            "type": "string",
+            "title": "Media Type"
+          },
+          "media_url": {
+            "type": "string",
+            "title": "Media Url"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "analysis_progress": {
+            "type": "number",
+            "title": "Analysis Progress"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "プロジェクト作成日時"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "company_name",
+          "product_name",
+          "title",
+          "model",
+          "file_name",
+          "media_type",
+          "media_url",
+          "status",
+          "analysis_progress",
+          "created_at"
+        ],
+        "title": "ProjectCreatedResponse",
+        "description": "POST /projects のレスポンス."
+      },
+      "ProjectReportResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name"
+          },
+          "product_name": {
+            "type": "string",
+            "title": "Product Name"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "media_type": {
+            "type": "string",
+            "title": "Media Type"
+          },
+          "media_url": {
+            "type": "string",
+            "title": "Media Url"
+          },
+          "final_report": {
+            "$ref": "#/components/schemas/FinalReport"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "company_name",
+          "product_name",
+          "title",
+          "model",
+          "media_type",
+          "media_url",
+          "final_report"
+        ],
+        "title": "ProjectReportResponse"
+      },
+      "ProjectStatusResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name"
+          },
+          "product_name": {
+            "type": "string",
+            "title": "Product Name"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "media_type": {
+            "type": "string",
+            "title": "Media Type"
+          },
+          "media_url": {
+            "type": "string",
+            "title": "Media Url"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "analysis_progress": {
+            "type": "number",
+            "title": "Analysis Progress"
+          },
+          "analysis_started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Analysis Started At"
+          },
+          "analysis_completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Analysis Completed At"
+          },
+          "analysis_duration_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Analysis Duration Seconds"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisStep"
+            },
+            "type": "array",
+            "title": "Steps"
+          },
+          "logs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Logs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "company_name",
+          "product_name",
+          "title",
+          "model",
+          "media_type",
+          "media_url",
+          "status",
+          "analysis_progress",
+          "steps",
+          "logs"
+        ],
+        "title": "ProjectStatusResponse"
+      },
+      "ProjectSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name"
+          },
+          "product_name": {
+            "type": "string",
+            "title": "Product Name"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "media_type": {
+            "type": "string",
+            "title": "Media Type"
+          },
+          "media_url": {
+            "type": "string",
+            "title": "Media Url"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "analysis_progress": {
+            "type": "number",
+            "title": "Analysis Progress"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "company_name",
+          "product_name",
+          "title",
+          "model",
+          "media_type",
+          "media_url",
+          "status",
+          "analysis_progress",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ProjectSummary"
+      },
+      "RelatedSubTag": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "grade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "detected_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detected Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "RelatedSubTag"
+      },
+      "RiskMatrix": {
+        "properties": {
+          "x_axis": {
+            "type": "string",
+            "title": "X Axis"
+          },
+          "y_axis": {
+            "type": "string",
+            "title": "Y Axis"
+          },
+          "position": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Position"
+          }
+        },
+        "type": "object",
+        "required": [
+          "x_axis",
+          "y_axis",
+          "position"
+        ],
+        "title": "RiskMatrix"
+      },
+      "RiskReport": {
+        "properties": {
+          "social": {
+            "$ref": "#/components/schemas/SocialEvaluation"
+          },
+          "legal": {
+            "$ref": "#/components/schemas/LegalEvaluation"
+          },
+          "matrix": {
+            "$ref": "#/components/schemas/RiskMatrix"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "tags": {
+            "items": {
+              "$ref": "#/components/schemas/RiskTag"
+            },
+            "type": "array",
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "social",
+          "legal",
+          "matrix"
+        ],
+        "title": "RiskReport"
+      },
+      "RiskTag": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "grade": {
+            "type": "string",
+            "title": "Grade"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "detected_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detected Text"
+          },
+          "related_sub_tags": {
+            "items": {
+              "$ref": "#/components/schemas/RelatedSubTag"
+            },
+            "type": "array",
+            "title": "Related Sub Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "grade",
+          "reason"
+        ],
+        "title": "RiskTag"
+      },
+      "SocialEvaluation": {
+        "properties": {
+          "grade": {
+            "type": "string",
+            "title": "Grade"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/Finding"
+            },
+            "type": "array",
+            "title": "Findings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "grade",
+          "reason"
+        ],
+        "title": "SocialEvaluation"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

@@ -1,8 +1,52 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 
-import { ProjectReportResponse } from "@/lib/apiClient";
+import { ProjectReportResponse, AnnotationAnalysisResponse, TagFramesInfoResponse, getTagFrameUrl } from "@/lib/apiClient";
+import { AnnotationDisplay } from "@/components/AnnotationDisplay";
+
+const FALLBACK_DETECTED_TEXT = "検出文言データ未取得";
+
+/**
+ * タイムコード文字列を秒数に変換する
+ * サポート形式: "mm:ss", "hh:mm:ss", "0:10", "1:23:45"
+ * 静止画の場合は null を返す
+ */
+function parseTimecode(timecode: string | undefined | null): number | null {
+  if (!timecode || timecode === "静止画" || timecode === "N/A") {
+    return null;
+  }
+
+  const parts = timecode.trim().split(":");
+  if (parts.length === 0 || parts.length > 3) {
+    return null;
+  }
+
+  try {
+    const numbers = parts.map((p) => parseInt(p, 10));
+    if (numbers.some((n) => isNaN(n) || n < 0)) {
+      return null;
+    }
+
+    if (numbers.length === 2) {
+      // mm:ss
+      const [minutes, seconds] = numbers;
+      return minutes * 60 + seconds;
+    } else if (numbers.length === 3) {
+      // hh:mm:ss
+      const [hours, minutes, seconds] = numbers;
+      return hours * 3600 + minutes * 60 + seconds;
+    } else if (numbers.length === 1) {
+      // 秒のみ
+      return numbers[0];
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
 
 type ActionStatusProfile = {
   badge: string;
@@ -22,6 +66,8 @@ type StatusProfile = {
 
 type NormalizedLegal = "適切" | "修正検討" | "要修正";
 type SocialGrade = "A" | "B" | "C" | "D" | "E";
+type RiskTagItem = NonNullable<ProjectReportResponse["final_report"]["risk"]["tags"]>[number];
+type RelatedSubTag = NonNullable<RiskTagItem["related_sub_tags"]>[number];
 
 const LEGAL_STATUS_BRIDGE = {
   抵触していない: "適切",
@@ -151,8 +197,8 @@ const DEFAULT_STATUS_PROFILE: StatusProfile = {
   matrixText: "text-white"
 };
 
-export const MATRIX_X_LABELS = ["抵触していない", "抵触する可能性がある", "抵触している"] as const;
-export const MATRIX_Y_LABELS = ["E", "D", "C", "B", "A"] as const;
+const MATRIX_X_LABELS = ["抵触していない", "抵触する可能性がある", "抵触している"] as const;
+const MATRIX_Y_LABELS = ["E", "D", "C", "B", "A"] as const;
 
 const EVAL_MAP = {
   A: {
@@ -220,11 +266,81 @@ const EVAL_SCORE = {
   A: 1
 } as const;
 
+const RISK_DISPLAY_THRESHOLD = 3;
+
+const gradeToScore = (grade?: keyof typeof EVAL_MAP | "N/A") =>
+  EVAL_SCORE[(grade as keyof typeof EVAL_SCORE) ?? "N/A"] ?? 0;
+
+const scoreToGrade = (score: number): keyof typeof EVAL_MAP | "N/A" => {
+  if (score >= 5) return "E";
+  if (score >= 4) return "D";
+  if (score >= 3) return "C";
+  if (score >= 2) return "B";
+  if (score >= 1) return "A";
+  return "N/A";
+};
+
 const LEGAL_MAP = {
   抵触していない: { borderColor: "border-green-500", textColor: "text-green-500" },
   抵触する可能性がある: { borderColor: "border-yellow-500", textColor: "text-yellow-400" },
   抵触している: { borderColor: "border-red-500", textColor: "text-red-500" }
 } as const;
+
+const VIOLATION_SEVERITY_SCORE = {
+  低: 1,
+  中: 2,
+  高: 3
+} as const;
+
+function clampLegalGrade(grade: string | undefined): keyof typeof LEGAL_MAP {
+  if (grade && grade in LEGAL_MAP) {
+    return grade as keyof typeof LEGAL_MAP;
+  }
+  if (!grade) {
+    return "抵触していない";
+  }
+  const lowered = grade.toLowerCase();
+  if (lowered.includes("not") || lowered.includes("safe") || lowered.includes("問題") === false) {
+    return "抵触していない";
+  }
+  if (lowered.includes("violat") || lowered.includes("breach") || grade.includes("抵触している")) {
+    return "抵触している";
+  }
+  if (grade.includes("可能性")) {
+    return "抵触する可能性がある";
+  }
+  // Default to 抵触していない when no clear indication of violations
+  return "抵触していない";
+}
+
+function deriveLegalGrade(
+  rawGrade: string | undefined,
+  violations: Array<{ severity?: string | null }>
+): keyof typeof LEGAL_MAP {
+  // If no violations exist, default to "抵触していない" unless rawGrade explicitly indicates otherwise
+  if (!violations || violations.length === 0) {
+    return clampLegalGrade(rawGrade);
+  }
+
+  let maxSeverity = 0;
+  violations.forEach((violation) => {
+    const severity = violation?.severity as keyof typeof VIOLATION_SEVERITY_SCORE | undefined;
+    const score = severity ? VIOLATION_SEVERITY_SCORE[severity] ?? 0 : 0;
+    if (score > maxSeverity) {
+      maxSeverity = score;
+    }
+  });
+  if (maxSeverity >= 3) {
+    return "抵触している";
+  }
+  if (maxSeverity >= 2) {
+    return "抵触する可能性がある";
+  }
+  if (maxSeverity >= 1) {
+    return "抵触していない";
+  }
+  return clampLegalGrade(rawGrade);
+}
 
 function mapLegalGradeToLegacy(grade: string): string {
   return LEGAL_STATUS_BRIDGE[grade as keyof typeof LEGAL_STATUS_BRIDGE] ?? grade;
@@ -269,27 +385,31 @@ function getStatusProfile(legalGrade: string, socialGrade: string): StatusProfil
   return DEFAULT_STATUS_PROFILE;
 }
 
-export function normalizeMatrixPosition(
-  rawPosition: number[] | undefined,
-  legalGrade: string,
-  socialGrade: string
-): number[] {
-  const xIndex = MATRIX_X_LABELS.indexOf(legalGrade as (typeof MATRIX_X_LABELS)[number]);
-  const yIndex = MATRIX_Y_LABELS.indexOf(socialGrade as (typeof MATRIX_Y_LABELS)[number]);
+const LEGAL_SUMMARY_SUPPLEMENT =
+  " 本サービスは広告関連法令・業界自主基準と突き合わせ、潜在的な抵触文言や改善アクションを抽出しています。";
 
-  const position = Array.isArray(rawPosition) && rawPosition.length === 2
-    ? [...rawPosition]
-    : [Math.max(xIndex, 0), Math.max(yIndex, 0)];
-
-  if (xIndex >= 0) {
-    position[0] = xIndex;
+function buildLegalSummaryText(grade: string, summary?: string | null, reason?: string | null): string {
+  const parts = [summary, reason]
+    .map((part) => (part ?? "").trim())
+    .filter((part) => part.length > 0);
+  if (!parts.length) {
+    parts.push(`法務評価は「${grade}」で判定されており、動画内の文言・映像表現が関係法令や業界ガイドラインに照らして適切かを精査しました。`);
+  } else {
+    parts.push(`総合法務評価は「${grade}」です。`);
   }
-  if (yIndex >= 0) {
-    position[1] = yIndex;
+  let text = parts.join(" ").replace(/\s+/g, " ").trim();
+  const minLen = 200;
+  const maxLen = 400;
+  while (text.length < minLen) {
+    text = `${text}${LEGAL_SUMMARY_SUPPLEMENT}`.replace(/\s+/g, " ").trim();
+    if (text.length > maxLen) {
+      break;
+    }
   }
-  position[0] = Math.min(Math.max(position[0], 0), MATRIX_X_LABELS.length - 1);
-  position[1] = Math.min(Math.max(position[1], 0), MATRIX_Y_LABELS.length - 1);
-  return position;
+  if (text.length > maxLen) {
+    return `${text.slice(0, maxLen)}…`;
+  }
+  return text;
 }
 
 function resolveActionStatus(legalGrade: string, socialGrade: string): ActionStatusProfile {
@@ -302,6 +422,22 @@ function resolveActionStatus(legalGrade: string, socialGrade: string): ActionSta
   };
 }
 
+function normalizeMatrixPosition(
+  rawPosition: number[] | undefined,
+  legalGrade: string,
+  socialGrade: string
+): number[] {
+  const position =
+    Array.isArray(rawPosition) && rawPosition.length === 2 ? [...rawPosition] : [0, 0];
+  const xIndex = MATRIX_X_LABELS.indexOf(legalGrade as (typeof MATRIX_X_LABELS)[number]);
+  const yIndex = MATRIX_Y_LABELS.indexOf(socialGrade as (typeof MATRIX_Y_LABELS)[number]);
+  if (xIndex >= 0) position[0] = xIndex;
+  if (yIndex >= 0) position[1] = yIndex;
+  position[0] = Math.min(Math.max(position[0], 0), MATRIX_X_LABELS.length - 1);
+  position[1] = Math.min(Math.max(position[1], 0), MATRIX_Y_LABELS.length - 1);
+  return position;
+}
+
 type MatrixCellProfile = {
   headline: string;
   description: string;
@@ -309,7 +445,7 @@ type MatrixCellProfile = {
   textClass: string;
 };
 
-export function resolveMatrixCell(legalGrade: string, socialGrade: string): MatrixCellProfile {
+function resolveMatrixCell(legalGrade: string, socialGrade: string): MatrixCellProfile {
   const profile = getStatusProfile(legalGrade, socialGrade);
   return {
     headline: profile.badge,
@@ -319,24 +455,89 @@ export function resolveMatrixCell(legalGrade: string, socialGrade: string): Matr
   };
 }
 
+type MatrixViewProps = {
+  xLabel: string;
+  yLabel: string;
+  position: number[];
+};
+
+function MatrixView({ xLabel, yLabel, position }: MatrixViewProps) {
+  const xLabels = MATRIX_X_LABELS;
+  const yLabels = MATRIX_Y_LABELS;
+  const [activeX, activeY] = position;
+  const gridTemplateColumns = `auto repeat(${xLabels.length}, minmax(0, 1fr))`;
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="overflow-hidden rounded-lg border border-slate-200">
+        <div className="grid text-xs font-semibold text-slate-600" style={{ gridTemplateColumns }}>
+          <div className="bg-white" />
+          {xLabels.map((label) => (
+            <div key={label} className="bg-slate-100 px-2 py-2 text-center text-[11px]">
+              {label}
+            </div>
+          ))}
+          {yLabels.map((label, yIdx) => (
+            <React.Fragment key={`row-${label}`}>
+              <div className="bg-slate-100 px-2 py-6 text-center text-[11px]">{label}</div>
+              {xLabels.map((xLabelValue, xIdx) => {
+                const isActive = activeX === xIdx && activeY === yIdx;
+                const profile = resolveMatrixCell(xLabelValue, label);
+                const inactiveClasses = "bg-slate-900 text-slate-400";
+                const activeClasses = `${profile.bgClass} ${profile.textClass} border-2 border-amber-300`;
+                return (
+                  <div
+                    key={`${xLabelValue}-${label}`}
+                    className={`matrix-cell flex min-h-[90px] items-center justify-center border border-slate-800 p-3 text-[11px] font-semibold transition duration-300 ${
+                      isActive ? activeClasses : inactiveClasses
+                    }`}
+                  >
+                    <div className="text-center leading-tight">
+                      <span className="block text-xs font-semibold">{profile.headline}</span>
+                      {profile.description && (
+                        <span className="mt-1 block text-[10px] font-normal">{profile.description}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+      <div className="mt-3 flex flex-col gap-1 text-[11px] text-slate-500 md:flex-row md:items-center md:justify-between">
+        <span>社会的感度基準: {yLabel}</span>
+        <span>法務評価基準: {xLabel}</span>
+      </div>
+    </div>
+  );
+}
+
 type MediaPreviewProps = {
   mediaType: string;
   src: string;
   onDurationChange?: (duration: number) => void;
+  videoRef?: React.RefObject<HTMLVideoElement>;
 };
 
-export function MediaPreview({ mediaType, src, onDurationChange }: MediaPreviewProps) {
+export function MediaPreview({ mediaType, src, onDurationChange, videoRef }: MediaPreviewProps) {
   if (mediaType === "image") {
     return (
-      <img
-        src={src}
-        alt="アップロードされた画像"
-        className="max-h-[420px] w-full object-contain"
-      />
+      <div className="relative h-[420px] w-full">
+        <Image
+          src={src}
+          alt="アップロードされた画像"
+          fill
+          unoptimized
+          className="object-contain"
+          sizes="(max-width: 768px) 100vw, 640px"
+        />
+      </div>
     );
   }
   return (
     <video
+      ref={videoRef}
       key={src}
       controls
       playsInline
@@ -361,6 +562,10 @@ type PrintableSummaryProps = {
   productName: string;
   orientation: "portrait" | "landscape";
   mediaType: string;
+  projectId: string;
+  annotations?: AnnotationAnalysisResponse | null;
+  tagFramesInfo?: TagFramesInfoResponse | null;
+  onSeekToTimecode?: (seconds: number) => void;
 };
 
 export function PrintableSummary({
@@ -369,41 +574,231 @@ export function PrintableSummary({
   companyName,
   productName,
   orientation,
-  mediaType
+  mediaType,
+  projectId,
+  annotations,
+  tagFramesInfo,
+  onSeekToTimecode
 }: PrintableSummaryProps) {
-  const legalGrade = report.final_report.risk.legal.grade;
-  const socialGrade = report.final_report.risk.social.grade;
+  const tagAssessments = useMemo<RiskTagItem[]>(() => {
+    const tags = report.final_report.risk.tags;
+    return Array.isArray(tags) ? (tags as RiskTagItem[]) : [];
+  }, [report.final_report.risk.tags]);
+  useEffect(() => {
+    console.log("=== Tag Assessments Debug ===");
+    tagAssessments.forEach((tag, index) => {
+      console.log(`Tag ${index} [${tag.name}]`, {
+        grade: tag.grade,
+        reason: tag.reason,
+        detected_text: tag.detected_text,
+        sub_tag_count: tag.related_sub_tags?.length ?? 0
+      });
+      if (Array.isArray(tag.related_sub_tags)) {
+        tag.related_sub_tags.forEach((subTag, subIndex) => {
+          console.log(`  SubTag ${subIndex} [${subTag.name}]`, {
+            grade: subTag.grade,
+            detected_text: subTag.detected_text
+          });
+        });
+      }
+    });
+  }, [tagAssessments]);
+  const originalSocialGrade = report.final_report.risk.social.grade;
+  const worstTagScore = useMemo(() => {
+    const scores: number[] = [];
+    tagAssessments.forEach((tag) => {
+      scores.push(gradeToScore(tag.grade as keyof typeof EVAL_MAP));
+      if (Array.isArray(tag.related_sub_tags)) {
+        tag.related_sub_tags.forEach((subTag) => {
+          scores.push(gradeToScore(subTag.grade as keyof typeof EVAL_MAP));
+        });
+      }
+    });
+    if (!scores.length) {
+      return gradeToScore(originalSocialGrade as keyof typeof EVAL_MAP);
+    }
+    return Math.max(...scores);
+  }, [originalSocialGrade, tagAssessments]);
+  const socialGrade = scoreToGrade(
+    Math.max(gradeToScore(originalSocialGrade as keyof typeof EVAL_MAP), worstTagScore)
+  );
 
+  const tagMainMap = useMemo(() => {
+    const map = new Map<string, RiskTagItem>();
+    tagAssessments.forEach((tag) => map.set(tag.name, tag));
+    return map;
+  }, [tagAssessments]);
+  const subTagLookup = useMemo(() => {
+    const map = new Map<string, { parent: RiskTagItem; subTag: RelatedSubTag }>();
+    tagAssessments.forEach((tag) => {
+      if (Array.isArray(tag.related_sub_tags)) {
+        tag.related_sub_tags.forEach((subTag) => {
+          if (subTag?.name) {
+            map.set(subTag.name, {
+              parent: tag,
+              subTag: subTag as RelatedSubTag
+            });
+          }
+        });
+      }
+    });
+    return map;
+  }, [tagAssessments]);
+  const socialFindings = useMemo(() => {
+    const findings = report.final_report.risk.social.findings;
+    return Array.isArray(findings) ? findings : [];
+  }, [report.final_report.risk.social.findings]);
+  const legalFindings = useMemo(() => {
+    const findings = report.final_report.risk.legal.findings;
+    return Array.isArray(findings) ? findings : [];
+  }, [report.final_report.risk.legal.findings]);
+  const legalViolations = useMemo(() => {
+    const violations = report.final_report.risk.legal.violations;
+    return Array.isArray(violations) ? violations : [];
+  }, [report.final_report.risk.legal.violations]);
+  const rawLegalGrade = report.final_report.risk.legal.grade;
+  const legalGrade = useMemo(
+    () => deriveLegalGrade(rawLegalGrade, legalViolations),
+    [rawLegalGrade, legalViolations]
+  );
   const socialStyle =
     EVAL_MAP[(socialGrade in EVAL_MAP ? socialGrade : "N/A") as keyof typeof EVAL_MAP];
   const legalStyle =
     LEGAL_MAP[legalGrade as keyof typeof LEGAL_MAP] ?? LEGAL_MAP["抵触する可能性がある"];
-
   const actionStatus = useMemo(
     () => resolveActionStatus(legalGrade, socialGrade),
     [legalGrade, socialGrade]
   );
-
-  const tagAssessments = Array.isArray(report.final_report.risk.tags)
-    ? report.final_report.risk.tags
-    : [];
-  const socialFindings = Array.isArray(report.final_report.risk.social.findings)
-    ? report.final_report.risk.social.findings
-    : [];
-  const legalFindings = Array.isArray(report.final_report.risk.legal.findings)
-    ? report.final_report.risk.legal.findings
-    : [];
-  const legalViolations = Array.isArray(report.final_report.risk.legal.violations)
-    ? report.final_report.risk.legal.violations
-    : [];
+  const legalEvidenceItems = useMemo(
+    () => {
+      const items: Array<{
+        id: string;
+        label: string;
+        timecode: string;
+        reference?: string;
+        severity?: string;
+        type: "finding" | "violation";
+      }> = [];
+      legalFindings.forEach((finding, index) => {
+        items.push({
+          id: `finding-${index}`,
+          label: (finding.detail || "該当文言").trim(),
+          timecode: (finding.timecode && finding.timecode.trim()) || "N/A",
+          type: "finding"
+        });
+      });
+      legalViolations.forEach((violation, index) => {
+        const timecode = (violation.timecode || "").trim();
+        items.push({
+          id: `violation-${index}`,
+          label: (violation.expression || violation.reference || `論点${index + 1}`).trim(),
+          timecode: timecode || "N/A",
+          reference: violation.reference,
+          severity: violation.severity,
+          type: "violation"
+        });
+      });
+      return items;
+    },
+    [legalFindings, legalViolations]
+  );
   const burnRisk = report.final_report.risk.burn_risk;
-  const burnRiskDetails = useMemo(() => {
+  const detectSourceLabels = useMemo(() => {
+    const normalize = (text?: string | null) =>
+      (text ?? "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+    const sections = [
+      { label: "音声文字起こし", normalized: normalize(report.final_report.sections.transcription) },
+      { label: "テロップ (OCR)", normalized: normalize(report.final_report.sections.ocr) },
+      { label: "映像分析ノート", normalized: normalize(report.final_report.sections.video_analysis) }
+    ];
+    return (fragment?: string) => {
+      const normalizedFragment = normalize(fragment);
+      if (!normalizedFragment) {
+        return [] as string[];
+      }
+      return sections
+        .filter(
+          (section) =>
+            section.normalized.length > 0 && section.normalized.includes(normalizedFragment)
+        )
+        .map((section) => section.label);
+    };
+  }, [
+    report.final_report.sections.transcription,
+    report.final_report.sections.ocr,
+    report.final_report.sections.video_analysis
+  ]);
+  const burnRiskDetails = useMemo<BurnRiskDetail[]>(() => {
     if (!burnRisk || !Array.isArray(burnRisk.details)) {
-      return [] as Array<{ name: string; risk: number; label?: string; type?: string }>;
+      return [];
     }
-    return (burnRisk.details as Array<{ name: string; risk: number; label?: string; type?: string }>).
-      slice(0, 4);
-  }, [burnRisk]);
+    type BaseDetail = {
+      name?: string;
+      risk: number;
+      label?: string;
+      type?: string;
+      detected_text?: string | null;
+      detected_timecode?: string | null;
+      reason?: string | null;
+      parent_tag?: string | null;
+    };
+    const normalize = (value?: string | null) => {
+      if (typeof value !== "string") {
+        return undefined;
+      }
+      const trimmed = value.trim();
+      return trimmed.length > 0 ? trimmed : undefined;
+    };
+
+    return (burnRisk.details as BaseDetail[]).slice(0, 4).map((detail, index) => {
+      let detailName = normalize(detail.name) ?? detail.name ?? undefined;
+      let detectedText = normalize(detail.detected_text);
+      let reason = normalize(detail.reason);
+      let parentTag = normalize(detail.parent_tag);
+      const detectedTimecode = detail.detected_timecode;
+
+      if (detail.type === "subtag") {
+        if (!parentTag && detailName) {
+          parentTag = subTagLookup.get(detailName)?.parent.name;
+        }
+        if ((!detectedText || !reason) && detailName) {
+          const lookup = subTagLookup.get(detailName);
+          if (lookup) {
+            detectedText = detectedText ?? normalize(lookup.subTag.detected_text ?? lookup.parent.detected_text);
+            reason = reason ?? normalize(lookup.subTag.reason ?? lookup.parent.reason);
+          }
+        }
+      } else if (detailName) {
+        const tag = tagMainMap.get(detailName);
+        if (tag) {
+          detectedText = detectedText ?? normalize(tag.detected_text);
+          reason = reason ?? normalize(tag.reason);
+          parentTag = parentTag ?? tag.name;
+        }
+      }
+
+      if (!detailName) {
+        detailName = parentTag ?? `要素 ${index + 1}`;
+      }
+
+      return {
+        name: detailName,
+        risk: detail.risk,
+        label: detail.label,
+        type: detail.type,
+        detectedText,
+        detectedTimecode,
+        reason,
+        parentTag
+      };
+    });
+  }, [burnRisk, subTagLookup, tagMainMap]);
+  useEffect(() => {
+    console.log("[PrintableSummary] burn risk details", burnRiskDetails);
+  }, [burnRiskDetails]);
   const burnRiskCount = burnRisk?.count ?? 0;
   const riskSummaryGridClass = `grid grid-cols-1 gap-4 ${burnRiskCount > 0 ? "md:grid-cols-3" : "md:grid-cols-2"}`;
   const ocrAnnotations = useMemo(() => {
@@ -421,16 +816,174 @@ export function PrintableSummary({
     return [];
   }, [report.final_report.metadata]);
   const mediaLabel = mediaType === "image" ? "画像" : "動画";
-
-  type TagChartItem = {
-    tag: string;
-    subTag: string;
-    grade: keyof typeof EVAL_MAP;
-    reason?: string;
-    detectedText?: string;
+  const summarizeText = (text?: string, fallback?: string, max = 350) => {
+    const base = (text && text.trim()) || fallback || "";
+    if (!base) {
+      return "詳細な総評はありません。";
+    }
+    return base.length > max ? `${base.slice(0, max)}…` : base;
   };
+  const socialSummaryText = summarizeText(
+    report.final_report.risk.social.summary,
+    report.final_report.risk.social.reason
+  );
+  const legalSummaryText = useMemo(
+    () =>
+      buildLegalSummaryText(
+        legalGrade,
+        report.final_report.risk.legal.summary,
+        report.final_report.risk.legal.reason
+      ),
+    [legalGrade, report.final_report.risk.legal.summary, report.final_report.risk.legal.reason]
+  );
+  const matchSocialFindings = useMemo(() => {
+    const prepared = socialFindings.map((finding) => ({
+      ...finding,
+      detailLower: (finding.detail || "").toLowerCase()
+    }));
+    return (tagName: string, subTag: string, detectedText?: string) => {
+      const fallbackDetection = (detectedText ?? "").trim();
+      const fallbackFinding = fallbackDetection
+        ? [
+            {
+              timecode: "N/A",
+              detail: fallbackDetection
+            }
+          ]
+        : [];
+      if (!prepared.length) {
+        return fallbackFinding;
+      }
+      const keywords = [tagName, subTag, detectedText]
+        .filter(Boolean)
+        .map((keyword) => (keyword || "").toLowerCase());
+      const matches = keywords.length
+        ? prepared.filter((finding) =>
+            keywords.some((keyword) => keyword && finding.detailLower.includes(keyword))
+          )
+        : [];
+      return matches.length ? matches : fallbackFinding;
+    };
+  }, [socialFindings]);
+  const resolveDetectedEvidence = useCallback(
+    (
+      tagName: string,
+      subTagName: string | undefined,
+      detectedText?: string | null,
+      reason?: string | null,
+      detectedTimecode?: string | null
+    ): DetectedEvidence => {
+      const normalizedDetected = (detectedText ?? "").trim();
+      const findings = matchSocialFindings(tagName, subTagName ?? "", detectedText ?? undefined);
+      if (normalizedDetected) {
+        return {
+          expression: normalizedDetected,
+          timecode: detectedTimecode || findings[0]?.timecode
+        };
+      }
+      if (findings.length) {
+        return {
+          expression: findings[0].detail || FALLBACK_DETECTED_TEXT,
+          timecode: findings[0].timecode
+        };
+      }
+      const normalizedReason = (reason ?? "").trim();
+      if (normalizedReason) {
+        return {
+          expression: normalizedReason,
+          timecode: detectedTimecode
+        };
+      }
+      return {
+        expression: FALLBACK_DETECTED_TEXT,
+        timecode: detectedTimecode
+      };
+    },
+    [matchSocialFindings]
+  );
+  const flaggedExpressions = useMemo(() => {
+    const unique = new Set<string>();
+    const list: Array<{
+      tag: string;
+      subTag?: string;
+      expression: string;
+      sources: string[];
+      timecode?: string | null;
+    }> = [];
+    tagAssessments.forEach((tag) => {
+      const pushExpression = (
+        subTagObj: {
+          name?: string;
+          detected_text?: string | null;
+          detected_timecode?: string | null;
+          reason?: string | null;
+        } | null,
+        fallbackReason?: string | null
+      ) => {
+        const subName = subTagObj?.name;
+        const evidence = resolveDetectedEvidence(
+          tag.name,
+          subName,
+          subTagObj?.detected_text ?? tag.detected_text,
+          subTagObj?.reason ?? fallbackReason ?? tag.reason,
+          subTagObj?.detected_timecode ?? (tag as any).detected_timecode
+        );
+        const key = `${tag.name}-${subName ?? "main"}-${evidence.expression}`;
+        if (unique.has(key)) return;
+        unique.add(key);
+        const sources =
+          evidence.expression === FALLBACK_DETECTED_TEXT ? [] : detectSourceLabels(evidence.expression);
+        list.push({
+          tag: tag.name,
+          subTag: subName,
+          expression: evidence.expression,
+          sources,
+          timecode: evidence.timecode
+        });
+      };
+      pushExpression(
+        { name: undefined, detected_text: tag.detected_text, reason: tag.reason },
+        tag.reason
+      );
+      if (Array.isArray(tag.related_sub_tags)) {
+        tag.related_sub_tags.forEach((subTag) => pushExpression(subTag ?? null, tag.reason));
+      }
+    });
+    return list;
+  }, [detectSourceLabels, resolveDetectedEvidence, tagAssessments]);
+  useEffect(() => {
+    console.log("[PrintableSummary] flagged expressions", flaggedExpressions);
+  }, [flaggedExpressions]);
 
-  const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
+  const tagChartRef = useRef<HTMLDivElement | null>(null);
+  const [tagChartInView, setTagChartInView] = useState(false);
+
+type TagChartItem = {
+  tag: string;
+  subTag: string;
+  grade: keyof typeof EVAL_MAP;
+  reason?: string;
+  detectedText?: string;
+  detectedTimecode?: string;
+};
+
+type BurnRiskDetail = {
+  name: string;
+  risk: number;
+  label?: string;
+  type?: string;
+  detectedText?: string;
+  detectedTimecode?: string | null;
+  reason?: string;
+  parentTag?: string;
+};
+
+type DetectedEvidence = {
+  expression: string;
+  timecode?: string | null;
+};
+
+const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
     if (grade && grade in EVAL_MAP) {
       return grade as keyof typeof EVAL_MAP;
     }
@@ -447,7 +1000,8 @@ export function PrintableSummary({
           subTag: "総合評価",
           grade: toEvalGrade(tag.grade),
           reason: tag.reason,
-          detectedText: tag.detected_text
+          detectedText: tag.detected_text,
+          detectedTimecode: (tag as any).detected_timecode
         });
         return;
       }
@@ -458,7 +1012,8 @@ export function PrintableSummary({
           subTag: sub.name,
           grade: toEvalGrade(sub.grade ?? tag.grade),
           reason: sub.reason ?? tag.reason ?? "",
-          detectedText: sub.detected_text ?? tag.detected_text
+          detectedText: sub.detected_text ?? tag.detected_text,
+          detectedTimecode: (sub as any).detected_timecode ?? (tag as any).detected_timecode
         });
       });
     });
@@ -475,19 +1030,19 @@ export function PrintableSummary({
     });
     return map;
   }, [tagChartData]);
-
-  const tagMainMap = useMemo(() => {
-    const map = new Map<string, (typeof tagAssessments)[number]>();
-    tagAssessments.forEach((tag) => map.set(tag.name, tag));
-    return map;
-  }, [tagAssessments]);
-
+  const highRiskTagEntries = useMemo(() => {
+    return [...groupedTagData.entries()].filter(([_, items]) =>
+      items.some((item) => gradeToScore(item.grade) >= RISK_DISPLAY_THRESHOLD)
+    );
+  }, [groupedTagData]);
   const socialTagBars = useMemo(() => {
     const rows: Array<{
       tag: string;
       subTag: string;
       grade: keyof typeof EVAL_MAP;
       detectedText?: string;
+      detectedTimecode?: string;
+      reason?: string;
     }> = [];
     tagAssessments.forEach((tag) => {
       const subTags = Array.isArray(tag.related_sub_tags) ? tag.related_sub_tags : [];
@@ -497,7 +1052,9 @@ export function PrintableSummary({
             tag: tag.name,
             subTag: sub.name,
             grade: toEvalGrade(sub.grade ?? tag.grade),
-            detectedText: sub.detected_text ?? tag.detected_text
+            detectedText: sub.detected_text ?? tag.detected_text,
+            detectedTimecode: (sub as any)?.detected_timecode ?? (tag as any)?.detected_timecode,
+            reason: sub.reason ?? tag.reason
           });
         });
       } else {
@@ -505,12 +1062,33 @@ export function PrintableSummary({
           tag: tag.name,
           subTag: "総合評価",
           grade: toEvalGrade(tag.grade),
-          detectedText: tag.detected_text
+          detectedText: tag.detected_text,
+          detectedTimecode: (tag as any)?.detected_timecode,
+          reason: tag.reason
         });
       }
     });
+    // Remove the filter to show all tags, not just high-risk ones
     return rows.sort((a, b) => EVAL_SCORE[b.grade] - EVAL_SCORE[a.grade]);
   }, [tagAssessments]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setTagChartInView(entry.isIntersecting);
+      },
+      { threshold: 0.35 }
+    );
+    const target = tagChartRef.current;
+    if (!target) {
+      setTagChartInView(false);
+      return () => observer.disconnect();
+    }
+    observer.observe(target);
+    return () => {
+      observer.disconnect();
+    };
+  }, [socialTagBars.length]);
 
   const printableStyle: React.CSSProperties = { width: "100%", backgroundColor: "#ffffff" };
 
@@ -564,6 +1142,12 @@ export function PrintableSummary({
           transition: width 1s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.3s ease-in-out;
           will-change: width;
         }
+        .tag-bar-fill {
+          height: 100%;
+          border-radius: 9999px;
+          transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+          will-change: width;
+        }
         .matrix-cell {
           transition: transform 0.3s ease, background-color 0.3s ease;
           cursor: pointer;
@@ -593,7 +1177,7 @@ export function PrintableSummary({
       `}</style>
 
       <div className="printable-summary mx-auto flex w-full flex-col gap-6 rounded-lg bg-white p-6 shadow-lg">
-        <header className="flex flex-col gap-3 border-b border-slate-100 pb-4">
+        <header className="flex flex-col gap-4 border-b border-slate-100 pb-4 md:flex-row md:items-start md:justify-between">
           <div>
             <p className="text-xs uppercase tracking-wide text-slate-400">Creative Guard Report</p>
             <h1 className="text-2xl font-bold text-slate-900">{projectTitle}</h1>
@@ -602,11 +1186,11 @@ export function PrintableSummary({
             <p className="text-sm text-slate-600">メディア種別: {mediaLabel}</p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${actionStatus.bgColor} ${actionStatus.textColor}`}>
+          <div className="flex flex-col items-start gap-2 text-right md:items-end">
+            <span className={`inline-flex items-center gap-3 rounded-full px-4 py-2 text-base font-semibold ${actionStatus.bgColor} ${actionStatus.textColor}`}>
               {actionStatus.badge}
             </span>
-            <span className="text-xs text-slate-500">{actionStatus.description}</span>
+            <span className="text-xs text-slate-500 max-w-sm text-right">{actionStatus.description}</span>
           </div>
         </header>
 
@@ -614,60 +1198,37 @@ export function PrintableSummary({
           <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <h3 className="text-sm font-semibold text-slate-700">社会的リスク評価</h3>
             <p className={`mt-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold ${socialStyle.borderColor} ${socialStyle.textColor}`}>
-              {report.final_report.risk.social.grade} / {socialStyle.label}
+              {socialGrade} / {socialStyle.label}
             </p>
-            <p className="mt-2 text-xs text-slate-500">{report.final_report.risk.social.summary}</p>
-            {socialFindings.length > 0 && (
-              <ul className="mt-2 space-y-2 text-[11px] text-slate-600">
-                {socialFindings.map((finding, index) => (
-                  <li key={`social-${index}`} className="rounded bg-slate-50 p-2">
-                    {finding.timecode && (
-                      <span className="mr-2 font-semibold text-slate-500">
-                        [{finding.timecode}]
-                      </span>
-                    )}
-                    {finding.detail}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <p className="mt-2 text-xs text-slate-500">総評: {socialSummaryText}</p>
           </article>
 
           <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <h3 className="text-sm font-semibold text-slate-700">法務チェック</h3>
             <p className={`mt-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold ${legalStyle.borderColor} ${legalStyle.textColor}`}>
-              {report.final_report.risk.legal.grade}
+              {legalGrade}
             </p>
-            <p className="mt-2 text-xs text-slate-500">{report.final_report.risk.legal.summary}</p>
-            {legalFindings.length > 0 && (
-              <ul className="mt-2 space-y-2 text-[11px] text-slate-600">
-                {legalFindings.map((finding, index) => (
-                  <li key={`legal-${index}`} className="rounded bg-slate-50 p-2">
-                    {finding.timecode && (
-                      <span className="mr-2 font-semibold text-slate-500">
-                        [{finding.timecode}]
-                      </span>
-                    )}
-                    {finding.detail}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {legalViolations.length > 0 && (
-              <div className="mt-3 rounded border border-rose-200 bg-rose-50 p-3">
-                <h4 className="text-xs font-semibold text-rose-600">抵触可能性のある論点</h4>
-                <ul className="mt-2 space-y-1 text-[11px] text-rose-600">
-                  {legalViolations.map((violation, index) => (
-                    <li key={`violation-${index}`} className="leading-snug">
-                      {violation.reference && (
-                        <span className="font-semibold text-slate-700">[{violation.reference}]</span>
-                      )}{" "}
-                      {violation.expression}
-                      {violation.severity && (
-                        <span className="ml-1 rounded bg-slate-200 px-1 text-[9px] font-semibold text-slate-700">
-                          {violation.severity}
-                        </span>
-                      )}
+            <p className="mt-2 text-xs leading-relaxed text-slate-500">{legalSummaryText}</p>
+            {legalEvidenceItems.length > 0 && (
+              <div className="mt-3 rounded border border-slate-200 bg-slate-50 p-3">
+                <h4 className="text-xs font-semibold text-slate-600">該当文言とタイムコード</h4>
+                <ul className="mt-2 space-y-2 text-[11px] text-slate-600">
+                  {legalEvidenceItems.map((item) => (
+                    <li key={item.id} className="rounded bg-white/80 p-2">
+                      <div className="font-semibold text-slate-700">
+                        {item.reference && (
+                          <span className="mr-1 text-rose-500">[{item.reference}]</span>
+                        )}
+                        {item.label}
+                        {item.severity && (
+                          <span className="ml-2 inline-flex items-center rounded bg-rose-100 px-1 text-[9px] font-semibold text-rose-600">
+                            {item.severity}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-slate-500">
+                        タイムコード: <span className="font-mono">{item.timecode}</span>
+                      </p>
                     </li>
                   ))}
                 </ul>
@@ -681,27 +1242,108 @@ export function PrintableSummary({
           </article>
 
           {burnRiskCount > 0 && (
-            <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <article className="hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
               <h3 className="text-sm font-semibold text-slate-700">炎上可能性補正</h3>
               <p className="mt-2 text-2xl font-bold text-rose-600">{burnRisk?.grade ?? "-"}</p>
               <p className="mt-2 text-xs text-slate-500">
                 {burnRisk?.label ?? "-"}（平均リスク {burnRisk?.average ?? "-"} / 件数 {burnRiskCount}）
               </p>
               {burnRiskDetails.length > 0 && (
-                <ul className="mt-2 space-y-1 text-[11px] text-slate-600">
-                  {burnRiskDetails.map((detail, index) => (
-                    <li key={`${detail.name}-${index}`} className="leading-snug">
-                      <span className="font-semibold text-slate-700">{detail.name}</span>
-                      <span className="ml-2">リスクスコア: {detail.risk}</span>
-                      {detail.label && <span className="ml-2 text-slate-500">{detail.label}</span>}
-                      {detail.type && <span className="ml-2 text-slate-400">({detail.type})</span>}
-                    </li>
-                  ))}
+                <ul className="mt-2 space-y-3 text-[11px] text-slate-600">
+                  {burnRiskDetails.map((detail, index) => {
+                    const heading =
+                      detail.parentTag && detail.parentTag !== detail.name
+                        ? `${detail.parentTag} / ${detail.name}`
+                        : detail.name || `要素 ${index + 1}`;
+                    const possibilityLabel = detail.label ?? `リスクスコア ${detail.risk}`;
+                    const evidence = resolveDetectedEvidence(
+                      detail.parentTag ?? detail.name ?? "",
+                      detail.type === "subtag" ? detail.name : undefined,
+                      detail.detectedText,
+                      detail.reason
+                    );
+                    const relatedSources =
+                      evidence.expression === FALLBACK_DETECTED_TEXT
+                        ? []
+                        : detectSourceLabels(evidence.expression);
+                    const sourceLabel =
+                      relatedSources.length > 0
+                        ? relatedSources.join(" / ")
+                        : evidence.expression === FALLBACK_DETECTED_TEXT
+                        ? "データなし"
+                        : "音声・テロップ・映像分析の複合推定";
+                    const resolvedDetailReason =
+                      (detail.reason ?? detail.parentTag)?.trim() ||
+                      "検出された表現が炎上リスク要因と判断されたためです。";
+                    return (
+                      <li
+                        key={`${detail.name ?? "detail"}-${index}`}
+                        className="rounded border border-rose-100 bg-rose-50/60 p-3 leading-relaxed"
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-xs font-semibold text-slate-700">{heading}</p>
+                          {detail.type && (
+                            <span className="rounded-full bg-white/70 px-2 py-0.5 text-[10px] font-semibold text-rose-500">
+                              {detail.type}
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 text-[11px] text-slate-500">
+                          <span className="font-semibold text-rose-600">炎上する可能性:</span>{" "}
+                          {possibilityLabel}
+                        </p>
+                        <div className="mt-1 space-y-0.5 text-[11px] text-slate-500">
+                          <p>
+                            <span className="font-semibold text-slate-700">検知された表現:</span>{" "}
+                            <span className="font-mono text-[10px] text-slate-700">
+                              {evidence.expression}
+                            </span>
+                          </p>
+                          <p className="text-[10px] text-slate-500">
+                            <span className="font-semibold text-slate-600">理由:</span>{" "}
+                            <span className="font-mono text-[10px] text-slate-700">
+                              {evidence.expression}
+                            </span>{" "}
+                            が {resolvedDetailReason}
+                          </p>
+                          {mediaType === "video" && evidence.timecode && (
+                            <p className="text-[10px] text-slate-500">
+                              <span className="font-semibold text-slate-600">タイムコード:</span>{" "}
+                              {evidence.timecode}
+                            </p>
+                          )}
+                          <p className="text-[10px] text-slate-500">
+                            <span className="font-semibold text-slate-600">参照データ:</span>{" "}
+                            {sourceLabel}
+                          </p>
+                        </div>
+                        {detail.reason && (
+                          <p className="mt-1 text-[11px] text-slate-500">
+                            <span className="font-semibold text-slate-700">炎上なりうる理由:</span>{" "}
+                            {detail.reason}
+                          </p>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </article>
           )}
         </section>
+
+        {ocrAnnotations.length > 0 && (
+          <section className="mt-6" style={blockStyle}>
+            <h3 className="text-lg font-semibold text-slate-800">OCR 注釈（※を含む字幕）</h3>
+            <ul className="mt-3 space-y-1 rounded border border-slate-200 bg-slate-50 p-3 text-[11px] text-slate-600">
+              {ocrAnnotations.map((annotation, index) => (
+                <li key={`ocr-annotation-${index}`} className="leading-snug">
+                  {annotation}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section className="mt-6" style={blockStyle}>
           <h3 className="text-lg font-semibold text-slate-800">リスクマトリクス</h3>
@@ -719,87 +1361,193 @@ export function PrintableSummary({
           )}
         </section>
 
-        {ocrAnnotations.length > 0 && (
-          <section className="mt-6" style={blockStyle}>
-            <h3 className="text-lg font-semibold text-slate-800">OCR 注釈（※を含む字幕）</h3>
-            <ul className="mt-3 space-y-1 rounded border border-slate-200 bg-slate-50 p-3 text-[11px] text-slate-600">
-              {ocrAnnotations.map((annotation, index) => (
-                <li key={`ocr-annotation-${index}`} className="leading-snug">
-                  {annotation}
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        {groupedTagData.size > 0 && (
+        {highRiskTagEntries.length > 0 && (
           <section className="mt-6" style={blockStyle}>
             <h3 className="text-lg font-semibold text-slate-800">タグ別 詳細分析</h3>
+            {socialTagBars.length > 0 && (
+              <div className="mt-4" ref={tagChartRef}>
+                <h4 className="text-sm font-semibold text-slate-600">社会的感度タグサマリー</h4>
+                <div className="mt-3 space-y-3">
+                  {socialTagBars.map((entry) => {
+                    const style = EVAL_MAP[entry.grade] ?? EVAL_MAP["N/A"];
+                    return (
+                      <div
+                        key={`social-tag-bar-${entry.tag}-${entry.subTag}`}
+                        className="rounded-xl border border-slate-200 bg-white/80 p-3 shadow-sm"
+                      >
+                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <p className="text-xs font-semibold text-slate-900">{entry.tag}</p>
+                            <p className="text-[11px] text-slate-500">{entry.subTag}</p>
+                          </div>
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${style.borderColor} ${style.textColor}`}
+                          >
+                            {entry.grade} / {style.label}
+                          </span>
+                        </div>
+                        <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-slate-200/80">
+                          <div
+                            className={`tag-bar-fill ${style.color}`}
+                            style={{ width: tagChartInView ? `${style.width}%` : "0%" }}
+                          />
+                        </div>
+                        {(entry.detectedText || entry.reason || entry.detectedTimecode) && (
+                          <div className="mt-2 space-y-1 text-[10px] text-slate-500">
+                            {entry.detectedText && (
+                              <p>
+                                <span className="font-semibold text-slate-700">検出文言:</span>{" "}
+                                <span className="font-mono">{entry.detectedText}</span>
+                              </p>
+                            )}
+                            {entry.reason && (
+                              <p>
+                                <span className="font-semibold text-slate-700">理由:</span>{" "}
+                                {entry.reason}
+                              </p>
+                            )}
+                            {mediaType === "video" && entry.detectedTimecode && (
+                              <>
+                                <p>
+                                  <span className="font-semibold text-slate-700">タイムコード:</span>{" "}
+                                  {entry.detectedTimecode}
+                                </p>
+                                {/* フレーム画像を表示 */}
+                                {tagFramesInfo && (() => {
+                                  const frameInfo = tagFramesInfo.frames.find(
+                                    (f) => f.timecode === entry.detectedTimecode && f.tag === entry.tag
+                                  );
+                                  if (frameInfo) {
+                                    return (
+                                      <div className="mt-2">
+                                        <img
+                                          src={getTagFrameUrl(projectId, frameInfo.filename)}
+                                          alt={`フレーム at ${entry.detectedTimecode}`}
+                                          className="rounded border border-slate-300 max-w-full h-auto"
+                                          style={{ maxHeight: "200px" }}
+                                          onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = "none";
+                                          }}
+                                        />
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                })()}
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             <div className="space-y-4">
-              {[...groupedTagData.entries()].map(([tagName, items]) => {
+              {highRiskTagEntries.map(([tagName, items]) => {
                 const mainInfo = tagMainMap.get(tagName);
-                const subTags = Array.isArray(mainInfo?.related_sub_tags)
-                  ? mainInfo?.related_sub_tags
+                const subTags: RelatedSubTag[] = Array.isArray(mainInfo?.related_sub_tags)
+                  ? (mainInfo?.related_sub_tags as RelatedSubTag[])
                   : [];
                 const mainEval =
                   mainInfo?.grade && mainInfo.grade in EVAL_MAP ? mainInfo.grade : "N/A";
-                const mainStyle = EVAL_MAP[mainEval as keyof typeof EVAL_MAP];
+                const mainScore = gradeToScore(mainEval as keyof typeof EVAL_MAP);
+                const subScores = items.length
+                  ? items.map((item) => gradeToScore(item.grade))
+                  : [mainScore];
+                const maxSubScore = Math.max(mainScore, ...subScores);
+                const aggregateGrade = scoreToGrade(maxSubScore);
+                const aggregateStyle =
+                  EVAL_MAP[(aggregateGrade as keyof typeof EVAL_MAP) ?? "N/A"];
+                const filteredItems = items.filter(
+                  (item) => gradeToScore(item.grade) >= RISK_DISPLAY_THRESHOLD
+                );
 
                 return (
-                  <article key={tagName} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                    <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <article key={tagName} className="hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                       <div>
+                        <p className="text-[10px] uppercase tracking-wide text-slate-400">タグ</p>
                         <h4 className="text-sm font-semibold text-slate-700">{tagName}</h4>
-                        <p className="text-[11px] text-slate-500">
-                          評価: {mainEval} / {mainStyle.label}
-                        </p>
                       </div>
-                      <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${mainStyle.borderColor} ${mainStyle.textColor}`}>
-                        主要評価
+                      <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${aggregateStyle.borderColor} ${aggregateStyle.textColor}`}>
+                        総合評価: {aggregateGrade} / {aggregateStyle.label}
                       </span>
-                    </header>
-
-                    <div className="mt-3 space-y-3">
-                      {items.map((item) => {
-                        const style = EVAL_MAP[item.grade] ?? EVAL_MAP["N/A"];
-                        return (
-                          <div key={`${tagName}-${item.subTag}`} className="rounded border border-slate-200 bg-slate-50 p-3 text-[11px]">
-                            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                              <div>
-                                <p className="text-xs font-semibold text-slate-700">{item.subTag}</p>
-                                {item.reason && <p className="text-[11px] text-slate-500">{item.reason}</p>}
-                              </div>
-                              <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-semibold ${style.borderColor} ${style.textColor}`}>
-                                {item.grade} / {style.label}
-                              </span>
-                            </div>
-                            {item.detectedText && (
-                              <p className="mt-2 rounded bg-white px-2 py-1 text-[10px] text-slate-600">
-                                抽出テキスト: {item.detectedText}
-                              </p>
-                            )}
-                          </div>
-                        );
-                      })}
                     </div>
 
-                    {subTags.length > 0 && (
-                      <div className="mt-3 rounded border border-slate-200 bg-white p-3 text-[11px] text-slate-600">
-                        <h5 className="text-xs font-semibold text-slate-700">関連サブタグ</h5>
-                        <ul className="mt-2 space-y-1">
-                          {subTags.map((subTag, index) => {
-                            const style = EVAL_MAP[toEvalGrade(subTag.grade)] ?? EVAL_MAP["N/A"];
-                            return (
-                              <li key={`${tagName}-sub-${index}`} className="flex items-center justify-between rounded bg-slate-50 px-2 py-1">
-                                <span>{subTag.name}</span>
-                                <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${style.borderColor} ${style.textColor}`}>
-                                  {subTag.grade ?? "N/A"}
+                    {filteredItems.length > 0 ? (
+                      <ul className="mt-4 space-y-2">
+                        {filteredItems.map((item) => {
+                          const style = EVAL_MAP[item.grade] ?? EVAL_MAP["N/A"];
+                          const detectedText =
+                            item.detectedText ??
+                            subTags.find((sub) => sub.name === item.subTag)?.detected_text ??
+                            mainInfo?.detected_text;
+                          const detectedTimecode =
+                            item.detectedTimecode ??
+                            subTags.find((sub) => sub.name === item.subTag)?.detected_timecode ??
+                            (mainInfo as any)?.detected_timecode;
+                          const evidence = resolveDetectedEvidence(
+                            tagName,
+                            item.subTag,
+                            detectedText,
+                            item.reason ?? mainInfo?.reason,
+                            detectedTimecode
+                          );
+                          const resolvedReason =
+                            (item.reason ?? mainInfo?.reason)?.trim() ||
+                            "検出文言が社会的感度タグに該当するためです。";
+                          const sourceHints =
+                            evidence.expression === FALLBACK_DETECTED_TEXT
+                              ? []
+                              : detectSourceLabels(evidence.expression);
+                          const sourceLabel =
+                            sourceHints.length > 0
+                              ? sourceHints.join(" / ")
+                              : evidence.expression === FALLBACK_DETECTED_TEXT
+                              ? "データなし"
+                              : "音声・テロップ・映像分析の複合推定";
+                          return (
+                            <li
+                              key={`${tagName}-${item.subTag}`}
+                              className="rounded border border-slate-200 bg-slate-50 p-3 text-[11px]"
+                            >
+                              <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                                <p className="text-xs font-semibold text-slate-700">{item.subTag}</p>
+                                <span
+                                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${style.borderColor} ${style.textColor}`}
+                                >
+                                  {item.grade} / {style.label}
                                 </span>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
+                              </div>
+                              <div className="mt-1 rounded bg-indigo-900/50 p-2 text-[10px] text-white">
+                                <p>
+                                  検出文言:{" "}
+                                  <span className="font-mono">{evidence.expression}</span>
+                                </p>
+                                <p className="mt-0.5 text-[9px] text-indigo-200">
+                                  理由: <span className="font-mono">{evidence.expression}</span> が{" "}
+                                  {resolvedReason}
+                                </p>
+                                {mediaType === "video" && evidence.timecode && (
+                                  <p className="mt-0.5 text-[9px] text-indigo-200">
+                                    タイムコード: {evidence.timecode}
+                                  </p>
+                                )}
+                                <p className="mt-0.5 text-[9px] text-indigo-200">
+                                  参照データ: {sourceLabel}
+                                </p>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <p className="mt-4 text-[11px] text-slate-500">
+                        リスクのある細分化タグは検出されていません。
+                      </p>
                     )}
                   </article>
                 );
@@ -807,13 +1555,6 @@ export function PrintableSummary({
             </div>
           </section>
         )}
-
-        <section className="mt-6" style={blockStyle}>
-          <h3 className="text-lg font-semibold text-slate-800">アクション推奨事項</h3>
-          <p className="text-sm text-slate-600">
-            {report.final_report.recommendation?.action_plan ?? "追加のアクションプランはありません。"}
-          </p>
-        </section>
 
         <section className="mt-6" style={blockStyle}>
           <h3 className="text-lg font-semibold text-slate-800">参考情報</h3>
@@ -824,104 +1565,80 @@ export function PrintableSummary({
           </div>
         </section>
       </div>
-    </div>
-  );
-}
 
-type MatrixViewProps = {
-  xLabel: string;
-  yLabel: string;
-  position: number[] | undefined;
-};
-
-export function MatrixView({ xLabel, yLabel, position }: MatrixViewProps) {
-  const xLabels = MATRIX_X_LABELS;
-  const yLabels = MATRIX_Y_LABELS;
-  const isArray = Array.isArray(position);
-  const activeX = isArray ? position[0] : -1;
-  const activeY = isArray ? position[1] : -1;
-
-  return (
-    <div className="space-y-2">
-      <div className="flex flex-col md:flex-row items-stretch">
-        <div className="flex md:flex-col justify-around text-sm font-semibold text-center md:text-right mt-4 md:mt-0 md:mr-4 md:justify-start">
-          <div className="flex-1 p-2 md:p-0 md:text-center md:mb-4 md:h-16 flex items-center justify-center text-xs text-gray-300">
-            {yLabel}
-          </div>
-          {yLabels.map((label) => (
-            <div
-              key={label}
-              className="h-16 md:h-24 flex items-center justify-center text-lg font-bold"
-            >
-              <span
-                className={
-                  label === "E"
-                    ? "text-red-400"
-                    : label === "D"
-                    ? "text-orange-400"
-                    : label === "C"
-                    ? "text-yellow-400"
-                    : label === "B"
-                    ? "text-lime-400"
-                    : "text-green-400"
-                }
-              >
-                {label}
-              </span>
-            </div>
-          ))}
+      {/* 注釈分析セクション */}
+      {annotations && (
+        <div className="mt-8">
+          <AnnotationDisplay
+            annotations={annotations}
+            onSeekToTimecode={onSeekToTimecode}
+          />
         </div>
+      )}
 
-        <div className="flex-grow grid grid-cols-3 border border-gray-600 rounded-lg overflow-hidden">
-          {yLabels.map((yLabelValue, yIdx) =>
-            xLabels.map((xLabelValue, xIdx) => {
-              const isActive = activeX === xIdx && activeY === yIdx;
-              const profile = resolveMatrixCell(xLabelValue, yLabelValue);
-              const inactiveClasses = "bg-gray-800 text-gray-500";
-              const activeClasses = `${profile.bgClass} ${profile.textClass} border-4 border-amber-400 scale-105`;
-              return (
-                <div
-                  key={`${xLabelValue}-${yLabelValue}`}
-                  className={`matrix-cell border border-gray-700 p-3 flex items-center justify-center text-sm font-bold h-28 transition duration-300 ease-in-out ${
-                    isActive ? activeClasses : inactiveClasses
-                  }`}
-                >
-                  <div className="text-center leading-tight">
-                    <span className="block text-sm font-semibold">{profile.headline}</span>
-                    {profile.description && (
-                      <span className="mt-1 block text-[10px] font-normal">
-                        {profile.description}
-                      </span>
-                    )}
-                    {isActive && (
-                      <span className="mt-2 block text-[10px] font-semibold">
-                        現在位置: {yLabelValue} / {xLabelValue}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </div>
-      <div className="flex justify-around mt-4 text-sm font-semibold text-center md:ml-16 text-gray-200">
-        {xLabels.map((label) => (
-          <div
-            key={label}
-            className={
-              label === "抵触していない"
-                ? "w-1/3 text-green-400"
-                : label === "抵触する可能性がある"
-                ? "w-1/3 text-yellow-400"
-                : "w-1/3 text-red-400"
-            }
-          >
-            {label}
-          </div>
+      <div className="mt-8 rounded-lg bg-white p-6 text-slate-900 shadow-lg print:break-before-page">
+        <h2 className="text-xl font-semibold text-slate-900">付録: 取得データ全文</h2>
+        <p className="text-xs text-slate-500">取得した全文データを以下にまとめています。</p>
+        <div className="mt-4 space-y-6">
+          {detailSections.map((section, index) => (
+            <article key={`${section.title}-${index}`} className="rounded border border-slate-200 bg-slate-50 p-4">
+              <h3 className="text-sm font-semibold text-slate-700">{section.title}</h3>
+            <pre className="mt-2 max-h-[70vh] overflow-auto whitespace-pre-wrap rounded bg-white p-3 text-[11px] leading-relaxed text-slate-700">
+              {section.content?.trim() || "内容はまだ生成されていません。"}
+            </pre>
+          </article>
         ))}
       </div>
-      <div className="text-center mt-1 text-xs text-gray-400 md:ml-16">{xLabel}</div>
+
+      {flaggedExpressions.length > 0 && (
+        <section className="mt-6 rounded border border-slate-200 bg-slate-50 p-4 text-[11px] text-slate-700">
+          <h3 className="text-sm font-semibold text-slate-700">抽出された該当表現リスト</h3>
+          <p className="text-[10px] text-slate-500">
+            タグ別に音声内容・テロップ・映像分析から検出された表現を列挙しています。
+          </p>
+          <ul className="mt-3 space-y-2">
+            {flaggedExpressions.map((entry, index) => (
+              <li key={`flagged-${index}`} className="rounded border border-slate-200 bg-white px-3 py-2 leading-relaxed">
+                <p className="text-xs font-semibold text-slate-800">
+                  {entry.tag}
+                  {entry.subTag ? ` / ${entry.subTag}` : ""}
+                </p>
+                <p className="font-mono text-[10px] text-slate-700">{entry.expression}</p>
+                {mediaType === "video" && entry.timecode && (
+                  <p className="text-[10px] text-slate-500">
+                    タイムコード:{" "}
+                    {onSeekToTimecode ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const seconds = parseTimecode(entry.timecode);
+                          if (seconds !== null) {
+                            onSeekToTimecode(seconds);
+                          }
+                        }}
+                        className="font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                      >
+                        {entry.timecode}
+                      </button>
+                    ) : (
+                      <span>{entry.timecode}</span>
+                    )}
+                  </p>
+                )}
+                <p className="text-[10px] text-slate-500">
+                  参照データ:{" "}
+                  {entry.sources.length > 0
+                    ? entry.sources.join(" / ")
+                    : entry.expression === FALLBACK_DETECTED_TEXT
+                    ? "データなし"
+                    : "音声・テロップ・映像分析の複合推定"}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
+  </div>
   );
 }

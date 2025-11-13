@@ -1,0 +1,84 @@
+{
+  "social": {
+    "grade": "C",
+    "reason": "このCMでは、女性が年齢を重ねることへの焦りや、外見の変化に対する不安を表現しています。美しさの基準をアップデートするか、現状維持かを問う内容が含まれており、外見至上主義的な価値観を助長する可能性があります。過去の事例では、外見を過度に強調する広告が批判を浴びており、同様の懸念があります。",
+    "findings": [
+      {
+        "timecode": "00:13-00:47",
+        "detail": "25歳を迎えた女性が、恋愛や美に対する考えを語り合うシーンで、「カワイイという武器はもはやこの手にはない」という発言がある。"
+      },
+      {
+        "timecode": "00:38",
+        "detail": "「可愛いをアップデートできる女になるか、このままステイか」という台詞がある。"
+      }
+    ]
+  },
+  "legal": {
+    "grade": "N/A",
+    "reason": "提供された資料に照らし合わせましたが、本コンテンツが直接的に抵触する可能性のある法律やガイドラインは見当たりませんでした。",
+    "recommendations": "現時点では特になし",
+    "violations": [],
+    "NOTE": "violations array MUST be empty [] when grade is '抵触していない'. Only include violations when specific legal concerns are identified.",
+    "findings": []
+  },
+  "matrix": {
+    "x_axis": "法務評価",
+    "y_axis": "社会的感度",
+    "position": [
+      0,
+      2
+    ]
+  },
+  "tags": [
+    {
+      "name": "女性表現",
+      "grade": "C",
+      "reason": "CM内で、女性の価値を外見や若さに結びつけるような表現が見られます。これは、女性に対する固定観念を助長し、外見至上主義的な価値観を強化する可能性があります。",
+      "detected_text": "カワイイという武器はもはやこの手にはない。",
+      "detected_timecode": "00:31",
+      "related_sub_tags": [
+        {
+          "name": "外見による価値判断",
+          "grade": "C",
+          "reason": "「可愛い」という外見的な要素を女性の価値として捉えている点が問題です。",
+          "detected_text": "カワイイという武器",
+          "detected_timecode": "00:31"
+        },
+        {
+          "name": "美人基準強要",
+          "grade": "C",
+          "reason": "「#いい女なろう」というハッシュタグが、特定の美の基準を押し付ける印象を与えるため。",
+          "detected_text": "#いい女なろう",
+          "detected_timecode": "00:56"
+        },
+        {
+          "name": "容姿いじり",
+          "grade": "C",
+          "reason": "外見の変化をネガティブに捉える表現は、容姿を揶揄していると解釈される可能性があります。",
+          "detected_text": "カワイイという武器はもはやこの手にはない",
+          "detected_timecode": "00:24"
+        }
+      ]
+    },
+    {
+      "name": "社会規範",
+      "grade": "D",
+      "reason": "CM内で、美しさや若さを保つことが重要であるというメッセージが強調されています。これは、社会的なプレッシャーを女性に与え、ルッキズムを助長する可能性があります。",
+      "detected_text": "可愛いをアップデートできる女になるか、このままステイか。",
+      "detected_timecode": "00:38",
+      "related_sub_tags": [
+        {
+          "name": "ルッキズム助長",
+          "grade": "D",
+          "reason": "外見を重視する価値観を肯定し、容姿による差別を助長する恐れがあります。",
+          "detected_text": "可愛いをアップデート",
+          "detected_timecode": "00:38"
+        }
+      ]
+    }
+  ],
+  "burn_risk": {
+    "count": 0,
+    "details": []
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "existing_annotations": [],
+  "missing_annotations": [
+    {
+      "suggested_text": "個人の感想です。効果・効能を保証するものではありません。",
+      "reason": "動画内でおいしいという感想を述べているため、誤解を招かないよう個人の感想であり、効果・効能を保証するものではない旨を明記する必要がある。特に食品に関する感想は、薬機法に抵触する可能性がある。",
+      "severity": "推奨",
+      "suggested_timecode": "00:11",
+      "legal_basis": "医薬品、医療機器等の品質、有効性及び安全性の確保等に関する法律（薬機法）"
+    },
+    {
+      "suggested_text": "商品名：赤いきつねと緑のたぬき",
+      "reason": "動画内で商品名が紹介されているが、テロップのみで、音声での説明がないため、商品名を明示的に表示することで、視聴者の理解を助ける。",
+      "severity": "任意",
+      "suggested_timecode": "00:24",
+      "legal_basis": null
+    },
+    {
+      "suggested_text": "映像はイメージです。",
+      "reason": "映像の雰囲気が必ずしも商品の品質や効果を正確に反映しているとは限らないため、誤解を避けるために表示することを推奨。",
+      "severity": "任意",
+      "suggested_timecode": "00:00",
+      "legal_basis": null
+    }
+  ]
+}

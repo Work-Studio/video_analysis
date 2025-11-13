@@ -1,0 +1,276 @@
+{
+  "summary": "*本分析結果は参考用途のみを目的としており、社会的・法的リスクの不存在を保証するものではありません。",
+  "sections": {
+    "transcription": "🗣️ 音声文字起こし\nはい、承知しました。\n\nただいま。\nなんかリモートに慣れちゃってたらさあ、久しぶりに会社行ったらちょっと変な感じしちゃった。\n会社の先輩、産休明けて赤ちゃん連れてきてたんだけど、もうすっごいかわいくって。\nどっかの政治家が「ジェンダー平等」とかって今スローガン的に掲げてる時点で、何それ？\n時代遅れって感じ。\n化粧水買っちゃったの、もうすっごいいいやつ。\nにしてもちょっと消費税高くなったよね。\nこの国の借金って減ってないのよね。\nあ、9時54分。\nちょっとニュース見ていい？",
+    "ocr": "📝 OCR字幕抜粋\nはい、承知いたしました。以下に、動画から抽出したテキストを箇条書きで記載します。\n\n・これは報道ステーションのCMです。\n・リモートに慣れちゃってたら\n・ひさびさに会社行くと変な感じしちゃった\n・会社の先輩\n・産休あけて赤ちゃん連れてきてたんだけど\n・もうすっごいかわいくって\n・どっかの政治家が「ジェンダー平等」とかって\n・スローガン的にかかげてる時点で\n・時代遅れって感じ\n・化粧水買っちゃったの\n・もうすっごいいいやつ\n・それにしても消費税高くなったよね\n・国の借金って減ってないよね？\n・9時54分\n・こいつ報ステみてるな\n・ちょっとニュース見ていい？\n・報道\n・STATION\n・テレビ朝日系列\n・月～金よる 9:54",
+    "video_analysis": "🎬 映像解析レポート\nテレビ朝日「報道ステーション」のCM。リモートワークの経験や、社会のジェンダー平等に関する問題提起、消費税への関心など、日常的なテーマを率直に語る女性の様子を捉え、番組への興味を喚起する内容。\n\n📋 表現パターングループ\n- 日常会話風モノローグ\n  ・女性が視聴者に語りかけるような、自然な会話形式で進行するシーン。\n    - 00:00-00:27: 女性がリモートワークの感想、会社の先輩、ジェンダー平等、消費税について、カジュアルな口調で話す。\n- 番組告知\n  ・最後に番組名と放送時間を告知するシーン。\n    - 00:28-00:29: カラフルな背景に番組ロゴと放送時間が表示される。"
+  },
+  "files": {
+    "transcription": "/Users/lml25ogk/Desktop/video_analysis/backend/uploads/Creative Guard Admin_y_ko/transcription.txt",
+    "ocr": "/Users/lml25ogk/Desktop/video_analysis/backend/uploads/Creative Guard Admin_y_ko/ocr.txt",
+    "video_analysis": "/Users/lml25ogk/Desktop/video_analysis/backend/uploads/Creative Guard Admin_y_ko/video_analysis.json",
+    "risk_assessment": "/Users/lml25ogk/Desktop/video_analysis/backend/uploads/Creative Guard Admin_y_ko/risk_assessment.json"
+  },
+  "metadata": {
+    "transcription_source": "gemini",
+    "burn_risk": {
+      "count": 0,
+      "details": []
+    }
+  },
+  "risk": {
+    "social": {
+      "grade": "B",
+      "reason": "この広告は、社会的な固定観念やジェンダーに関する問題提起を含むため、注意が必要です。特に、「ジェンダー平等」という言葉に対する否定的な反応は、ジェンダーに関する議論を軽視していると捉えられかねません。また、消費税や国の借金といった社会問題に触れることで、視聴者の共感を呼ぶ一方で、不快感を抱く人もいる可能性があります。過去の事例では、ジェンダーに関するステレオタイプを助長する表現や、社会問題を軽視するような表現が批判を浴びています。",
+      "findings": [
+        {
+          "timecode": "00:10",
+          "detail": "「どっかの政治家が『ジェンダー平等』とかって今スローガン的に掲げてる時点で、何それ？時代遅れって感じ。」という発言は、ジェンダー平等の重要性を軽視していると解釈される可能性があります。"
+        },
+        {
+          "timecode": "00:15",
+          "detail": "「にしてもちょっと消費税高くなったよね。この国の借金って減ってないのよね。」という発言は、社会問題に対する不満を表明していますが、不快感を覚える視聴者もいる可能性があります。"
+        }
+      ]
+    },
+    "legal": {
+      "grade": "N/A",
+      "reason": "現在のところ、提供された情報からは、消費者契約法や景品表示法などの関連法令に直接抵触する可能性は低いと判断されます。ただし、広告表現によっては、優良誤認や有利誤認に該当する可能性があるため、注意が必要です。",
+      "recommendations": "広告表現においては、客観的な事実に基づいた情報を提供し、断定的な表現や誤解を招く可能性のある表現は避けるようにしてください。また、消費者の誤解を招かないように、重要な情報については明確かつ分かりやすく表示することが重要です。",
+      "violations": [],
+      "NOTE": "violations array MUST be empty [] when grade is '抵触していない'. Only include violations when specific legal concerns are identified.",
+      "findings": []
+    },
+    "matrix": {
+      "x_axis": "法務評価",
+      "y_axis": "社会的感度",
+      "position": [
+        0,
+        1
+      ]
+    },
+    "tags": [],
+    "burn_risk": {
+      "count": 0,
+      "details": []
+    }
+  },
+  "iterations": [
+    {
+      "index": 1,
+      "transcription": "はい、承知しました。\n\nただいま。\nなんかリモートに慣れちゃってたらさあ、久しぶりに会社行ったらちょっと変な感じしちゃった。\n会社の先輩、産休明けて赤ちゃん連れてきてたんだけど、もうすっごいかわいくって。\nどっかの政治家が「ジェンダー平等」とかって今スローガン的に掲げてる時点で、何それ？\n時代遅れって感じ。\n化粧水買っちゃったの、もうすっごいいいやつ。\nにしてもちょっと消費税高くなったよね。\nこの国の借金って減ってないのよね。\nあ、9時54分。\nちょっとニュース見ていい？",
+      "ocr": "はい、承知いたしました。以下に、動画から抽出したテキストを箇条書きで記載します。\n\n・これは報道ステーションのCMです。\n・リモートに慣れちゃってたら\n・ひさびさに会社行くと変な感じしちゃった\n・会社の先輩\n・産休あけて赤ちゃん連れてきてたんだけど\n・もうすっごいかわいくって\n・どっかの政治家が「ジェンダー平等」とかって\n・スローガン的にかかげてる時点で\n・時代遅れって感じ\n・化粧水買っちゃったの\n・もうすっごいいいやつ\n・それにしても消費税高くなったよね\n・国の借金って減ってないよね？\n・9時54分\n・こいつ報ステみてるな\n・ちょっとニュース見ていい？\n・報道\n・STATION\n・テレビ朝日系列\n・月～金よる 9:54",
+      "video_analysis": {
+        "summary": "テレビ朝日「報道ステーション」のCM。リモートワークの経験や、社会のジェンダー平等に関する問題提起、消費税への関心など、日常的なテーマを率直に語る女性の様子を捉え、番組への興味を喚起する内容。",
+        "segments": [
+          {
+            "label": "日常会話風モノローグ",
+            "description": "女性が視聴者に語りかけるような、自然な会話形式で進行するシーン。",
+            "shots": [
+              {
+                "timecode": "00:00-00:27",
+                "description": "女性がリモートワークの感想、会社の先輩、ジェンダー平等、消費税について、カジュアルな口調で話す。"
+              }
+            ]
+          },
+          {
+            "label": "番組告知",
+            "description": "最後に番組名と放送時間を告知するシーン。",
+            "shots": [
+              {
+                "timecode": "00:28-00:29",
+                "description": "カラフルな背景に番組ロゴと放送時間が表示される。"
+              }
+            ]
+          }
+        ]
+      },
+      "risk": {
+        "social": {
+          "grade": "B",
+          "reason": "この広告は、社会的な固定観念やジェンダーに関する問題提起を含むため、注意が必要です。特に、「ジェンダー平等」という言葉に対する否定的な反応は、ジェンダーに関する議論を軽視していると捉えられかねません。また、消費税や国の借金といった社会問題に触れることで、視聴者の共感を呼ぶ一方で、不快感を抱く人もいる可能性があります。過去の事例では、ジェンダーに関するステレオタイプを助長する表現や、社会問題を軽視するような表現が批判を浴びています。",
+          "findings": [
+            {
+              "timecode": "00:10",
+              "detail": "「どっかの政治家が『ジェンダー平等』とかって今スローガン的に掲げてる時点で、何それ？時代遅れって感じ。」という発言は、ジェンダー平等の重要性を軽視していると解釈される可能性があります。"
+            },
+            {
+              "timecode": "00:15",
+              "detail": "「にしてもちょっと消費税高くなったよね。この国の借金って減ってないのよね。」という発言は、社会問題に対する不満を表明していますが、不快感を覚える視聴者もいる可能性があります。"
+            }
+          ]
+        },
+        "legal": {
+          "grade": "N/A",
+          "reason": "現在のところ、提供された情報からは、消費者契約法や景品表示法などの関連法令に直接抵触する可能性は低いと判断されます。ただし、広告表現によっては、優良誤認や有利誤認に該当する可能性があるため、注意が必要です。",
+          "recommendations": "広告表現においては、客観的な事実に基づいた情報を提供し、断定的な表現や誤解を招く可能性のある表現は避けるようにしてください。また、消費者の誤解を招かないように、重要な情報については明確かつ分かりやすく表示することが重要です。",
+          "violations": [],
+          "NOTE": "violations array MUST be empty [] when grade is '抵触していない'. Only include violations when specific legal concerns are identified.",
+          "findings": []
+        },
+        "matrix": {
+          "x_axis": "法務評価",
+          "y_axis": "社会的感度",
+          "position": [
+            0,
+            1
+          ]
+        },
+        "tags": [
+          {
+            "name": "女性表現",
+            "grade": "C",
+            "reason": "「会社の先輩、産休明けて赤ちゃん連れてきてたんだけど、もうすっごいかわいくって。」という発言は、一見すると単なる感想ですが、女性の役割を母親として捉える固定観念を助長する可能性があります。また、容姿への言及も、外見による価値判断を助長する可能性があります。",
+            "detected_text": "会社の先輩、産休明けて赤ちゃん連れてきてたんだけど、もうすっごいかわいくって。",
+            "detected_timecode": "00:07",
+            "related_sub_tags": [
+              {
+                "name": "結婚出産固定観念",
+                "grade": "C",
+                "reason": "産休明けの先輩に言及することで、女性は出産・育児をするものだという固定観念を連想させる可能性があります。",
+                "detected_text": "産休明けて赤ちゃん連れてきてたんだけど",
+                "detected_timecode": "00:07"
+              }
+            ]
+          },
+          {
+            "name": "社会規範",
+            "grade": "C",
+            "reason": "「どっかの政治家が『ジェンダー平等』とかって今スローガン的に掲げてる時点で、何それ？時代遅れって感じ。」という発言は、社会的に重要なテーマであるジェンダー平等を軽視していると捉えられる可能性があります。過去の事例では、社会問題に対する配慮不足が批判を招いています。",
+            "detected_text": "どっかの政治家が「ジェンダー平等」とかって今スローガン的に掲げてる時点で、何それ？時代遅れって感じ。",
+            "detected_timecode": "00:10",
+            "related_sub_tags": [
+              {
+                "name": "不謹慎",
+                "grade": "C",
+                "reason": "ジェンダー平等という社会的に重要なテーマを軽視する発言は、不謹慎と捉えられる可能性があります。",
+                "detected_text": "時代遅れって感じ",
+                "detected_timecode": "00:12"
+              }
+            ]
+          }
+        ],
+        "burn_risk": {
+          "count": 0,
+          "details": []
+        }
+      }
+    },
+    {
+      "index": 2,
+      "transcription": "はい、承知しました。\n\nただいま。\nなんかリモートに慣れちゃってたらさあ、久しぶりに会社行ったらちょっと変な感じしちゃった。\n会社の先輩、産休明けて赤ちゃん連れてきてたんだけど、もうすっごいかわいくって。\nどっかの政治家が「ジェンダー平等」とかって今スローガン的に掲げてる時点で、何それ？\n時代遅れって感じ。\n化粧水買っちゃったの、もうすっごいいいやつ。\nにしてもちょっと消費税高くなったよね。\nこの国の借金って減ってないのよね。\nあ、9時54分。\nちょっとニュース見ていい？",
+      "ocr": "はい、承知いたしました。以下に、動画から抽出したテキストを箇条書きで記載します。\n\n・これは報道ステーションのCMです。\n・リモートに慣れちゃってたら\n・ひさびさに会社行くと変な感じしちゃった\n・会社の先輩\n・産休あけて赤ちゃん連れてきてたんだけど\n・もうすっごいかわいくって\n・どっかの政治家が「ジェンダー平等」とかって\n・スローガン的にかかげてる時点で\n・時代遅れって感じ\n・化粧水買っちゃったの\n・もうすっごいいいやつ\n・それにしても消費税高くなったよね\n・国の借金って減ってないよね？\n・9時54分\n・こいつ報ステみてるな\n・ちょっとニュース見ていい？\n・報道\n・STATION\n・テレビ朝日系列\n・月～金よる 9:54",
+      "video_analysis": {
+        "summary": "テレビ朝日「報道ステーション」のCM。リモートワークの経験や、社会のジェンダー平等に関する問題提起、消費税への関心など、日常的なテーマを率直に語る女性の様子を捉え、番組への興味を喚起する内容。",
+        "segments": [
+          {
+            "label": "日常会話風モノローグ",
+            "description": "女性が視聴者に語りかけるような、自然な会話形式で進行するシーン。",
+            "shots": [
+              {
+                "timecode": "00:00-00:27",
+                "description": "女性がリモートワークの感想、会社の先輩、ジェンダー平等、消費税について、カジュアルな口調で話す。"
+              }
+            ]
+          },
+          {
+            "label": "番組告知",
+            "description": "最後に番組名と放送時間を告知するシーン。",
+            "shots": [
+              {
+                "timecode": "00:28-00:29",
+                "description": "カラフルな背景に番組ロゴと放送時間が表示される。"
+              }
+            ]
+          }
+        ]
+      },
+      "risk": {
+        "social": {
+          "grade": "C",
+          "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+          "findings": []
+        },
+        "legal": {
+          "grade": "抵触する可能性がある",
+          "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+          "recommendations": "Gemini の設定を確認し、再度実行してください。",
+          "violations": [],
+          "findings": []
+        },
+        "matrix": {
+          "x_axis": "法務評価",
+          "y_axis": "社会的感度",
+          "position": [
+            1,
+            2
+          ]
+        },
+        "note": "429 {'error': {'code': 429, 'message': 'You exceeded your current quota. Please migrate to Gemini 2.0 Flash Preview (Image Generation) (models/gemini-2.0-flash-preview-image-generation) for higher quota limits. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_requests_per_model', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash-exp'}, 'quotaValue': '10'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '4s'}]}}",
+        "tags": [],
+        "burn_risk": {
+          "count": 0,
+          "details": []
+        }
+      }
+    },
+    {
+      "index": 3,
+      "transcription": "はい、承知しました。\n\nただいま。\nなんかリモートに慣れちゃってたらさあ、久しぶりに会社行ったらちょっと変な感じしちゃった。\n会社の先輩、産休明けて赤ちゃん連れてきてたんだけど、もうすっごいかわいくって。\nどっかの政治家が「ジェンダー平等」とかって今スローガン的に掲げてる時点で、何それ？\n時代遅れって感じ。\n化粧水買っちゃったの、もうすっごいいいやつ。\nにしてもちょっと消費税高くなったよね。\nこの国の借金って減ってないのよね。\nあ、9時54分。\nちょっとニュース見ていい？",
+      "ocr": "はい、承知いたしました。以下に、動画から抽出したテキストを箇条書きで記載します。\n\n・これは報道ステーションのCMです。\n・リモートに慣れちゃってたら\n・ひさびさに会社行くと変な感じしちゃった\n・会社の先輩\n・産休あけて赤ちゃん連れてきてたんだけど\n・もうすっごいかわいくって\n・どっかの政治家が「ジェンダー平等」とかって\n・スローガン的にかかげてる時点で\n・時代遅れって感じ\n・化粧水買っちゃったの\n・もうすっごいいいやつ\n・それにしても消費税高くなったよね\n・国の借金って減ってないよね？\n・9時54分\n・こいつ報ステみてるな\n・ちょっとニュース見ていい？\n・報道\n・STATION\n・テレビ朝日系列\n・月～金よる 9:54",
+      "video_analysis": {
+        "summary": "テレビ朝日「報道ステーション」のCM。リモートワークの経験や、社会のジェンダー平等に関する問題提起、消費税への関心など、日常的なテーマを率直に語る女性の様子を捉え、番組への興味を喚起する内容。",
+        "segments": [
+          {
+            "label": "日常会話風モノローグ",
+            "description": "女性が視聴者に語りかけるような、自然な会話形式で進行するシーン。",
+            "shots": [
+              {
+                "timecode": "00:00-00:27",
+                "description": "女性がリモートワークの感想、会社の先輩、ジェンダー平等、消費税について、カジュアルな口調で話す。"
+              }
+            ]
+          },
+          {
+            "label": "番組告知",
+            "description": "最後に番組名と放送時間を告知するシーン。",
+            "shots": [
+              {
+                "timecode": "00:28-00:29",
+                "description": "カラフルな背景に番組ロゴと放送時間が表示される。"
+              }
+            ]
+          }
+        ]
+      },
+      "risk": {
+        "social": {
+          "grade": "C",
+          "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+          "findings": []
+        },
+        "legal": {
+          "grade": "抵触する可能性がある",
+          "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+          "recommendations": "Gemini の設定を確認し、再度実行してください。",
+          "violations": [],
+          "findings": []
+        },
+        "matrix": {
+          "x_axis": "法務評価",
+          "y_axis": "社会的感度",
+          "position": [
+            1,
+            2
+          ]
+        },
+        "note": "429 {'error': {'code': 429, 'message': 'You exceeded your current quota. Please migrate to Gemini 2.0 Flash Preview (Image Generation) (models/gemini-2.0-flash-preview-image-generation) for higher quota limits. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_requests_per_model', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash-exp'}, 'quotaValue': '10'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '3s'}]}}",
+        "tags": [],
+        "burn_risk": {
+          "count": 0,
+          "details": []
+        }
+      }
+    }
+  ]
+}
