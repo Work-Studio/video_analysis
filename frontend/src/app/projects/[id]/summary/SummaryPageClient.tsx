@@ -10,9 +10,13 @@ import {
   API_BASE_URL,
   fetchAnalysisStatus,
   fetchProjectReport,
+  fetchAnnotationAnalysis,
+  fetchTagFramesInfo,
   AnalysisStep,
   ProcessFlowState,
   ProjectReportResponse,
+  AnnotationAnalysisResponse,
+  TagFramesInfoResponse,
 } from "@/lib/apiClient";
 import { formatSecondsHuman, MediaPreview, PrintableSummary } from "./shared";
 
@@ -49,6 +53,8 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
   const [report, setReport] = useState<ProjectReportResponse | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
   const [isFetchingReport, setIsFetchingReport] = useState(false);
+  const [annotations, setAnnotations] = useState<AnnotationAnalysisResponse | null>(null);
+  const [tagFramesInfo, setTagFramesInfo] = useState<TagFramesInfoResponse | null>(null);
   const [orientation, setOrientation] = useState<"portrait" | "landscape">("portrait");
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -135,6 +141,75 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
       console.warn("[SummaryPage] report error", reportError);
     }
   }, [reportError]);
+
+  // 注釈分析の取得
+  useEffect(() => {
+    if (!isCompleted) {
+      setAnnotations(null);
+      return;
+    }
+    if (annotations) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadAnnotations = async () => {
+      try {
+        const result = await fetchAnnotationAnalysis(id);
+        if (isMounted) {
+          setAnnotations(result);
+          console.log("[SummaryPage] fetched annotation analysis", result);
+        }
+      } catch (err) {
+        console.error("Failed to fetch annotations:", err);
+        // 注釈が存在しない場合はエラーとせず、単に表示しない
+        if (isMounted) {
+          setAnnotations(null);
+        }
+      }
+    };
+
+    void loadAnnotations();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, isCompleted, annotations]);
+
+  // タグフレーム情報の取得
+  useEffect(() => {
+    if (!isCompleted) {
+      setTagFramesInfo(null);
+      return;
+    }
+    if (tagFramesInfo) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadTagFramesInfo = async () => {
+      try {
+        const result = await fetchTagFramesInfo(id);
+        if (isMounted) {
+          setTagFramesInfo(result);
+          console.log("[SummaryPage] fetched tag frames info", result);
+        }
+      } catch (err) {
+        console.error("Failed to fetch tag frames info:", err);
+        if (isMounted) {
+          setTagFramesInfo(null);
+        }
+      }
+    };
+
+    void loadTagFramesInfo();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, isCompleted, tagFramesInfo]);
 
   const handleSeekToTimecode = (seconds: number) => {
     const video = videoRef.current;
@@ -432,6 +507,9 @@ function SummaryPageClient({ params }: SummaryPageClientProps) {
                     productName={report.product_name}
                     orientation={orientation}
                     mediaType={report.media_type}
+                    projectId={params.id}
+                    annotations={annotations}
+                    tagFramesInfo={tagFramesInfo}
                     onSeekToTimecode={handleSeekToTimecode}
                   />
                 </div>

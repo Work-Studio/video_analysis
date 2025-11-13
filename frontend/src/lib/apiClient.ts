@@ -11,6 +11,9 @@ export const API_PATH = {
   ANALYZE: (id: string) => `/projects/${id}/analyze`,
   STATUS: (id: string) => `/projects/${id}/analysis-status`,
   REPORT: (id: string) => `/projects/${id}/report`,
+  ANNOTATIONS: (id: string) => `/projects/${id}/annotations`,
+  TAG_FRAMES_INFO: (id: string) => `/projects/${id}/tag-frames-info`,
+  TAG_FRAME: (id: string, filename: string) => `/projects/${id}/tag-frames/${filename}`,
   LOGIN: "/auth/login",
   CHANGE_PASSWORD: "/auth/change-password",
   ME: "/auth/me",
@@ -205,6 +208,36 @@ export interface ProjectSummary {
   updated_at: string;
 }
 
+export interface ExistingAnnotation {
+  text: string;
+  purpose: string;
+  adequacy: "適切" | "不十分" | "不明確";
+}
+
+export interface MissingAnnotation {
+  suggested_text: string;
+  reason: string;
+  severity: "必須" | "推奨" | "任意";
+  suggested_timecode: string;
+  legal_basis?: string;
+}
+
+export interface AnnotationAnalysisResponse {
+  existing_annotations: ExistingAnnotation[];
+  missing_annotations: MissingAnnotation[];
+}
+
+export interface TagFrameInfo {
+  timecode: string;
+  tag: string;
+  sub_tag: string | null;
+  filename: string;
+}
+
+export interface TagFramesInfoResponse {
+  frames: TagFrameInfo[];
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     cache: "no-cache",
@@ -251,6 +284,22 @@ export async function fetchProjectReport(
 
 export async function fetchProjects(): Promise<ProjectSummary[]> {
   return apiFetch<ProjectSummary[]>(API_PATH.PROJECTS);
+}
+
+export async function fetchAnnotationAnalysis(
+  projectId: string
+): Promise<AnnotationAnalysisResponse> {
+  return apiFetch<AnnotationAnalysisResponse>(API_PATH.ANNOTATIONS(projectId));
+}
+
+export async function fetchTagFramesInfo(
+  projectId: string
+): Promise<TagFramesInfoResponse> {
+  return apiFetch<TagFramesInfoResponse>(API_PATH.TAG_FRAMES_INFO(projectId));
+}
+
+export function getTagFrameUrl(projectId: string, filename: string): string {
+  return `${API_BASE_URL}${API_PATH.TAG_FRAME(projectId, filename)}`;
 }
 
 // ========== Authentication APIs ==========

@@ -406,3 +406,90 @@ class GeminiClient:
                 },
             ],
         }
+
+    async def analyze_annotations(
+        self,
+        video_path: Path,
+        ocr_text: str,
+        transcript: str,
+        video_summary: dict
+    ) -> dict:
+        """注釈の分析と不足している注釈の提案を行う."""
+
+        if not self.api_key:
+            return {
+                "existing_annotations": [],
+                "missing_annotations": []
+            }
+
+        # OCRテキストから※を含む文を抽出
+        existing_annotations = []
+        for line in ocr_text.split("\n"):
+            if "※" in line or "注" in line or "＊" in line:
+                existing_annotations.append(line.strip())
+
+        instruction = f"""
+以下の動画コンテンツを分析し、法的に必要な注釈や免責事項が不足していないかチェックしてください。
+
+## 既に表示されている注釈
+{chr(10).join(existing_annotations) if existing_annotations else "（なし）"}
+
+## 音声文字起こし
+{transcript[:2000]}
+
+## OCR字幕抽出
+{ocr_text[:2000]}
+
+## 映像解析
+{str(video_summary)[:1000]}
+
+以下のJSON形式で回答してください：
+{{
+  "existing_annotations": [
+    {{
+      "text": "検出された注釈文",
+      "purpose": "この注釈の目的・役割",
+      "adequacy": "適切|不十分|不明確"
+    }}
+  ],
+  "missing_annotations": [
+    {{
+      "suggested_text": "追加すべき注釈の文言",
+      "reason": "なぜこの注釈が必要か",
+      "severity": "必須|推奨|任意",
+      "suggested_timecode": "表示すべきタイムコード（mm:ss形式）",
+      "legal_basis": "根拠となる法律・規制（該当する場合）"
+    }}
+  ]
+}}
+
+注釈が必要となる可能性があるケース：
+- 効果・効能の表示（個人の感想である旨）
+- 価格表示（税込/税抜、期間限定など）
+- 画像はイメージであること
+- 撮影協力・許諾
+- 使用条件・制約事項
+- 景品・特典の条件
+- サービス提供地域・対象の制限
+"""
+
+        try:
+            response_text = await self.generate_text(instruction)
+            # JSONをパース
+            import json
+            import re
+            # コードブロックを除去
+            json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+            if json_match:
+                result = json.loads(json_match.group())
+                return result
+            return {
+                "existing_annotations": [],
+                "missing_annotations": []
+            }
+        except Exception as e:
+            print(f"注釈分析エラー: {e}")
+            return {
+                "existing_annotations": [],
+                "missing_annotations": []
+            }

@@ -54,6 +54,15 @@ class AnalysisPipeline:
             workspace_dir = Path(project.workspace_dir)
             media_type = project.media_type
 
+            # プロジェクトのmodelを使用して新しいGeminiClientインスタンスを作成
+            allowed_models = ["gemini-2.5-flash", "gemini-2.0-flash-exp", "gemini-2.0-flash"]
+            gemini_model = project.model if project.model in allowed_models else "gemini-2.5-flash"
+            self.logger.info(f"Using Gemini model: {gemini_model} for project {project_id}")
+
+            # 一時的にgemini_clientを置き換える
+            original_gemini_client = self.gemini_client
+            self.gemini_client = GeminiClient(model=gemini_model)
+
             await self.store.update_iteration_state(
                 project_id,
                 current_iteration=0,
@@ -129,6 +138,26 @@ class AnalysisPipeline:
             # リスク分析結果を統合（ハイブリッド戦略）
             aggregated_risk = self._aggregate_risk_results(risk_results)
 
+            # 注釈分析を実行
+            self.logger.info("Starting annotation analysis for project %s", project_id)
+            annotation_result = await self.gemini_client.analyze_annotations(
+                video_path,
+                ocr_text,
+                transcript,
+                video_result
+            )
+            # 注釈分析結果を保存
+            annotation_path = workspace_dir / "annotation_analysis.json"
+            async with aiofiles.open(annotation_path, "w", encoding="utf-8") as f:
+                import json
+                await f.write(json.dumps(annotation_result, ensure_ascii=False, indent=2))
+            self.logger.info("Annotation analysis completed for project %s", project_id)
+
+            # タグのタイムコードからフレームを抽出
+            if media_type == "video" and aggregated_risk.get("tags"):
+                self.logger.info("Extracting frames for risk tags in project %s", project_id)
+                await self._extract_tag_frames(project_id, workspace_dir, video_path, aggregated_risk)
+
             aggregation = await self._finalize_with_single_extraction(
                 project_id,
                 workspace_dir,
@@ -158,6 +187,9 @@ class AnalysisPipeline:
             self.logger.exception("Pipeline execution failed for %s", project_id)
             await self.store.mark_pipeline_failed(project_id, str(exc))
             raise
+        finally:
+            # 元のgemini_clientに戻す
+            self.gemini_client = original_gemini_client
 
     async def _execute_iteration(
         self,
@@ -1002,3 +1034,114 @@ class AnalysisPipeline:
         except Exception as e:
             self.logger.warning(f"Failed to get Gemini selection: {e}, defaulting to more detailed video analysis")
             return run1 if len1 >= len2 else run2
+
+    async def _extract_tag_frames(
+        self,
+        project_id: str,
+        workspace_dir: Path,
+        video_path: Path,
+        risk_data: dict
+    ) -> None:
+        """リスクタグのタイムコードからフレームを抽出してサムネイルを保存する."""
+        import subprocess
+        import shutil
+
+        frames_dir = workspace_dir / "tag_frames"
+        frames_dir.mkdir(exist_ok=True)
+
+        # タイムコードを収集
+        timecodes_to_extract = []
+        tags = risk_data.get("tags", [])
+
+        for tag in tags:
+            tag_name = tag.get("name", "unknown")
+
+            # メインタグのタイムコード
+            if tag.get("detected_timecode"):
+                timecodes_to_extract.append({
+                    "timecode": tag["detected_timecode"],
+                    "tag": tag_name,
+                    "sub_tag": None
+                })
+
+            # サブタグのタイムコード
+            for sub_tag in tag.get("related_sub_tags", []):
+                if sub_tag.get("detected_timecode"):
+                    timecodes_to_extract.append({
+                        "timecode": sub_tag["detected_timecode"],
+                        "tag": tag_name,
+                        "sub_tag": sub_tag.get("name")
+                    })
+
+        # 重複を削除
+        seen = set()
+        unique_timecodes = []
+        for item in timecodes_to_extract:
+            tc = item["timecode"]
+            if tc not in seen:
+                seen.add(tc)
+                unique_timecodes.append(item)
+
+        self.logger.info(f"Extracting {len(unique_timecodes)} unique frames for tags")
+
+        # フレームを抽出
+        for item in unique_timecodes:
+            timecode = item["timecode"]
+            tag = item["tag"]
+            sub_tag = item["sub_tag"]
+
+            # タイムコードをファイル名に使える形式に変換 (例: 00:31 -> 00-31)
+            tc_safe = timecode.replace(":", "-")
+
+            # ファイル名を生成
+            if sub_tag:
+                filename = f"{tag}_{sub_tag}_{tc_safe}.jpg"
+            else:
+                filename = f"{tag}_{tc_safe}.jpg"
+
+            # 安全なファイル名に変換（スペースや特殊文字を置換）
+            filename = filename.replace(" ", "_").replace("/", "_")
+
+            output_path = frames_dir / filename
+
+            try:
+                # ffmpegでフレームを抽出
+                subprocess.run(
+                    [
+                        "ffmpeg",
+                        "-ss", timecode,
+                        "-i", str(video_path),
+                        "-vframes", "1",
+                        "-q:v", "2",
+                        "-y",
+                        str(output_path)
+                    ],
+                    check=True,
+                    capture_output=True,
+                    timeout=10
+                )
+                self.logger.info(f"Extracted frame at {timecode} for tag '{tag}' -> {filename}")
+            except subprocess.CalledProcessError as e:
+                self.logger.error(f"Failed to extract frame at {timecode}: {e.stderr.decode()}")
+            except subprocess.TimeoutExpired:
+                self.logger.error(f"Timeout extracting frame at {timecode}")
+            except Exception as e:
+                self.logger.error(f"Error extracting frame at {timecode}: {e}")
+
+        # フレーム情報をJSONに保存
+        frames_info = {
+            "frames": [
+                {
+                    "timecode": item["timecode"],
+                    "tag": item["tag"],
+                    "sub_tag": item["sub_tag"],
+                    "filename": f"{item['tag']}_{item['sub_tag'] or ''}{('_' if item['sub_tag'] else '')}{item['timecode'].replace(':', '-')}.jpg".replace(" ", "_").replace("/", "_")
+                }
+                for item in unique_timecodes
+            ]
+        }
+
+        frames_info_path = workspace_dir / "tag_frames_info.json"
+        async with aiofiles.open(frames_info_path, "w", encoding="utf-8") as f:
+            import json
+            await f.write(json.dumps(frames_info, ensure_ascii=False, indent=2))

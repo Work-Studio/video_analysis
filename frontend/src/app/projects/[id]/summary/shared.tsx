@@ -3,7 +3,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 
-import { ProjectReportResponse } from "@/lib/apiClient";
+import { ProjectReportResponse, AnnotationAnalysisResponse, TagFramesInfoResponse, getTagFrameUrl } from "@/lib/apiClient";
+import { AnnotationDisplay } from "@/components/AnnotationDisplay";
 
 const FALLBACK_DETECTED_TEXT = "検出文言データ未取得";
 
@@ -561,6 +562,9 @@ type PrintableSummaryProps = {
   productName: string;
   orientation: "portrait" | "landscape";
   mediaType: string;
+  projectId: string;
+  annotations?: AnnotationAnalysisResponse | null;
+  tagFramesInfo?: TagFramesInfoResponse | null;
   onSeekToTimecode?: (seconds: number) => void;
 };
 
@@ -571,6 +575,9 @@ export function PrintableSummary({
   productName,
   orientation,
   mediaType,
+  projectId,
+  annotations,
+  tagFramesInfo,
   onSeekToTimecode
 }: PrintableSummaryProps) {
   const tagAssessments = useMemo<RiskTagItem[]>(() => {
@@ -1400,10 +1407,35 @@ const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
                               </p>
                             )}
                             {mediaType === "video" && entry.detectedTimecode && (
-                              <p>
-                                <span className="font-semibold text-slate-700">タイムコード:</span>{" "}
-                                {entry.detectedTimecode}
-                              </p>
+                              <>
+                                <p>
+                                  <span className="font-semibold text-slate-700">タイムコード:</span>{" "}
+                                  {entry.detectedTimecode}
+                                </p>
+                                {/* フレーム画像を表示 */}
+                                {tagFramesInfo && (() => {
+                                  const frameInfo = tagFramesInfo.frames.find(
+                                    (f) => f.timecode === entry.detectedTimecode && f.tag === entry.tag
+                                  );
+                                  if (frameInfo) {
+                                    return (
+                                      <div className="mt-2">
+                                        <img
+                                          src={getTagFrameUrl(projectId, frameInfo.filename)}
+                                          alt={`フレーム at ${entry.detectedTimecode}`}
+                                          className="rounded border border-slate-300 max-w-full h-auto"
+                                          style={{ maxHeight: "200px" }}
+                                          onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.style.display = "none";
+                                          }}
+                                        />
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                })()}
+                              </>
                             )}
                           </div>
                         )}
@@ -1533,6 +1565,16 @@ const toEvalGrade = (grade?: string): keyof typeof EVAL_MAP => {
           </div>
         </section>
       </div>
+
+      {/* 注釈分析セクション */}
+      {annotations && (
+        <div className="mt-8">
+          <AnnotationDisplay
+            annotations={annotations}
+            onSeekToTimecode={onSeekToTimecode}
+          />
+        </div>
+      )}
 
       <div className="mt-8 rounded-lg bg-white p-6 text-slate-900 shadow-lg print:break-before-page">
         <h2 className="text-xl font-semibold text-slate-900">付録: 取得データ全文</h2>

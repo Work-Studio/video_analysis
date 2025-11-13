@@ -1,0 +1,307 @@
+{
+  "project_id": "5e364e3ccfc5471ca7cd05642d4257a9",
+  "company_name": "Creative Guard Admin",
+  "product_name": "d",
+  "title": "d",
+  "status": "completed",
+  "media_type": "video",
+  "created_at": "2025-11-12T10:06:27.838743+00:00",
+  "analysis_completed_at": "2025-11-12T10:07:44.069918+00:00",
+  "archived_at": "2025-11-12T10:07:44.132406+00:00",
+  "final_report": {
+    "summary": "*本分析結果は参考用途のみを目的としており、社会的・法的リスクの不存在を保証するものではありません。",
+    "sections": {
+      "transcription": "🗣️ 音声文字起こし\nお誕生日おめでとう。\nめでたくない。\nめでたくない。\nかほ。\nいっちゃって。\nぺ。\n今日からあんたは女の子じゃない。\nINTEGRATE GIRL'S STORY Unhappy Birthday?\n25歳が目の前だよ。\n世の中いつのまにかリアルワールド。\nもうちやほやされないし、褒めてもくれない。\n下にはキラッキラした後輩。週末ごとにアップされる結婚式の写真。\n白いタキシード受ける。\n元カレ。このままで私やばい。\nなんで？いつからこうなった？\n可愛いという武器はもはやこの手には。\nでも可愛い大人の人だっているんでしょ。\nいるよね。\nどっちよ。\nだ からあれじゃん？\n可愛いをアップデートできる女になるか？このままステイか。\nってこと？\nかも。\n私こっち。\n私も。\n私も。\nなんか。\n燃えてきた。\n生き方が、これからの顔になる。\nいい女なろう。\nINTEGRATE all new!",
+      "ocr": "📝 OCR字幕抜粋\nはい、承知いたしました。動画内のテキストを抽出します。\n\n* MAiDiGi TV\n* 「インテグレート」新CM\n* INTEGRATE GIRL’S STORY 「生き方が、これからの顔になる編」\n* Happy Birthday\n* 25 ans\n* INTEGRATE GIRL’S STORY\n* “UnHappy Birthday?”\n* 25歳の\n* が目んの前よ\n* 世の中一気にリアルワールド\n* もうチヤホヤされないし褒めてもくれない\n* 下にはキラッキラした後輩\n* 週末ごとにアップされる結婚式の写真\n* 白いタキシード\n* 白いタキシードうける（←元カレ）\n* このままじゃやばい\n* なんて？\n* いつからこうなった？\n* カワイイという武器はもはやこの手には\n* 白いタキシードうける（←元カレ）\n* このままじゃやばい\n* なんで？\n* いつからこうなった？\n* カワイイという武器はもはやこの手には\n* 生き方が、これからの顔になる。\n* #いい女なろう\n* ラブリーに生きろ\n* INTEGRATE\n* all new!\n* インテグレート",
+      "video_analysis": "🎬 映像解析レポート\nこの映像は、25歳を迎えた女性が、友人たちと誕生日を祝う中で、自身の将来について悩む姿を描いています。友人との会話を通じて、女性は「可愛い」という武器をアップデートし、新しい自分になることを決意します。全体的に、女性の心情の変化と成長を表現したCMです。\n\n📋 表現パターングループ\n- 誕生日のシーン\n  ・25歳の誕生日を祝うシーン。主人公の憂鬱な表情が印象的。\n    - 0:03-0:09: 誕生日ケーキとシャンパン、友人たちとの会話。主人公は誕生日を素直に喜べない。\n- 自己嫌悪と将来への不安\n  ・主人公が自身の現状に不満を持ち、将来への不安を感じるシーン。\n    - 0:14-0:24: 友人との会話で、自身の現状に対する不満を吐露する。\n- 変化への決意\n  ・友人との会話を通じて、新しい自分になることを決意するシーン。\n    - 0:38-0:46: 可愛いのアップデートかステイかという会話から決意を新たにする。\n    - 0:47-0:51: 主人公の手元がアップになり、決意表明。\n- 新しいスタート\n  ・新しい自分になることを決意し、友人たちと街へ繰り出すシーン。\n    - 0:57-1:02: 街を走り出す3人。INTEGRATEのロゴが表示され、CM終了。"
+    },
+    "files": {
+      "transcription": "/Users/lml25ogk/Desktop/video_analysis/backend/uploads/Creative Guard Admin_d_d_01/transcription.txt",
+      "ocr": "/Users/lml25ogk/Desktop/video_analysis/backend/uploads/Creative Guard Admin_d_d_01/ocr.txt",
+      "video_analysis": "/Users/lml25ogk/Desktop/video_analysis/backend/uploads/Creative Guard Admin_d_d_01/video_analysis.json",
+      "risk_assessment": "/Users/lml25ogk/Desktop/video_analysis/backend/uploads/Creative Guard Admin_d_d_01/risk_assessment.json"
+    },
+    "metadata": {
+      "transcription_source": "gemini",
+      "burn_risk": {
+        "count": 0,
+        "details": []
+      }
+    },
+    "risk": {
+      "social": {
+        "grade": "C",
+        "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+        "findings": []
+      },
+      "legal": {
+        "grade": "抵触する可能性がある",
+        "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+        "recommendations": "Gemini の設定を確認し、再度実行してください。",
+        "violations": [],
+        "findings": []
+      },
+      "matrix": {
+        "x_axis": "法務評価",
+        "y_axis": "社会的感度",
+        "position": [
+          1,
+          2
+        ]
+      },
+      "tags": [],
+      "burn_risk": {
+        "count": 0,
+        "details": []
+      }
+    },
+    "iterations": [
+      {
+        "index": 1,
+        "transcription": "お誕生日おめでとう。\nめでたくない。\nめでたくない。\nかほ。\nいっちゃって。\nぺ。\n今日からあんたは女の子じゃない。\nINTEGRATE GIRL'S STORY Unhappy Birthday?\n25歳が目の前だよ。\n世の中いつのまにかリアルワールド。\nもうちやほやされないし、褒めてもくれない。\n下にはキラッキラした後輩。週末ごとにアップされる結婚式の写真。\n白いタキシード受ける。\n元カレ。このままで私やばい。\nなんで？いつからこうなった？\n可愛いという武器はもはやこの手には。\nでも可愛い大人の人だっているんでしょ。\nいるよね。\nどっちよ。\nだ からあれじゃん？\n可愛いをアップデートできる女になるか？このままステイか。\nってこと？\nかも。\n私こっち。\n私も。\n私も。\nなんか。\n燃えてきた。\n生き方が、これからの顔になる。\nいい女なろう。\nINTEGRATE all new!",
+        "ocr": "はい、承知いたしました。動画内のテキストを抽出します。\n\n* MAiDiGi TV\n* 「インテグレート」新CM\n* INTEGRATE GIRL’S STORY 「生き方が、これからの顔になる編」\n* Happy Birthday\n* 25 ans\n* INTEGRATE GIRL’S STORY\n* “UnHappy Birthday?”\n* 25歳の\n* が目んの前よ\n* 世の中一気にリアルワールド\n* もうチヤホヤされないし褒めてもくれない\n* 下にはキラッキラした後輩\n* 週末ごとにアップされる結婚式の写真\n* 白いタキシード\n* 白いタキシードうける（←元カレ）\n* このままじゃやばい\n* なんて？\n* いつからこうなった？\n* カワイイという武器はもはやこの手には\n* 白いタキシードうける（←元カレ）\n* このままじゃやばい\n* なんで？\n* いつからこうなった？\n* カワイイという武器はもはやこの手には\n* 生き方が、これからの顔になる。\n* #いい女なろう\n* ラブリーに生きろ\n* INTEGRATE\n* all new!\n* インテグレート",
+        "video_analysis": {
+          "summary": "この映像は、25歳を迎えた女性が、友人たちと誕生日を祝う中で、自身の将来について悩む姿を描いています。友人との会話を通じて、女性は「可愛い」という武器をアップデートし、新しい自分になることを決意します。全体的に、女性の心情の変化と成長を表現したCMです。",
+          "segments": [
+            {
+              "label": "誕生日のシーン",
+              "description": "25歳の誕生日を祝うシーン。主人公の憂鬱な表情が印象的。",
+              "shots": [
+                {
+                  "timecode": "0:03-0:09",
+                  "description": "誕生日ケーキとシャンパン、友人たちとの会話。主人公は誕生日を素直に喜べない。"
+                }
+              ]
+            },
+            {
+              "label": "自己嫌悪と将来への不安",
+              "description": "主人公が自身の現状に不満を持ち、将来への不安を感じるシーン。",
+              "shots": [
+                {
+                  "timecode": "0:14-0:24",
+                  "description": "友人との会話で、自身の現状に対する不満を吐露する。"
+                }
+              ]
+            },
+            {
+              "label": "変化への決意",
+              "description": "友人との会話を通じて、新しい自分になることを決意するシーン。",
+              "shots": [
+                {
+                  "timecode": "0:38-0:46",
+                  "description": "可愛いのアップデートかステイかという会話から決意を新たにする。"
+                },
+                {
+                  "timecode": "0:47-0:51",
+                  "description": "主人公の手元がアップになり、決意表明。"
+                }
+              ]
+            },
+            {
+              "label": "新しいスタート",
+              "description": "新しい自分になることを決意し、友人たちと街へ繰り出すシーン。",
+              "shots": [
+                {
+                  "timecode": "0:57-1:02",
+                  "description": "街を走り出す3人。INTEGRATEのロゴが表示され、CM終了。"
+                }
+              ]
+            }
+          ]
+        },
+        "risk": {
+          "social": {
+            "grade": "C",
+            "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+            "findings": []
+          },
+          "legal": {
+            "grade": "抵触する可能性がある",
+            "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+            "recommendations": "Gemini の設定を確認し、再度実行してください。",
+            "violations": [],
+            "findings": []
+          },
+          "matrix": {
+            "x_axis": "法務評価",
+            "y_axis": "社会的感度",
+            "position": [
+              1,
+              2
+            ]
+          },
+          "note": "429 {'error': {'code': 429, 'message': 'You exceeded your current quota. Please migrate to Gemini 2.0 Flash Preview (Image Generation) (models/gemini-2.0-flash-preview-image-generation) for higher quota limits. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_requests_per_model', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash-exp'}, 'quotaValue': '10'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '19s'}]}}",
+          "tags": [],
+          "burn_risk": {
+            "count": 0,
+            "details": []
+          }
+        }
+      },
+      {
+        "index": 2,
+        "transcription": "お誕生日おめでとう。\nめでたくない。\nめでたくない。\nかほ。\nいっちゃって。\nぺ。\n今日からあんたは女の子じゃない。\nINTEGRATE GIRL'S STORY Unhappy Birthday?\n25歳が目の前だよ。\n世の中いつのまにかリアルワールド。\nもうちやほやされないし、褒めてもくれない。\n下にはキラッキラした後輩。週末ごとにアップされる結婚式の写真。\n白いタキシード受ける。\n元カレ。このままで私やばい。\nなんで？いつからこうなった？\n可愛いという武器はもはやこの手には。\nでも可愛い大人の人だっているんでしょ。\nいるよね。\nどっちよ。\nだ からあれじゃん？\n可愛いをアップデートできる女になるか？このままステイか。\nってこと？\nかも。\n私こっち。\n私も。\n私も。\nなんか。\n燃えてきた。\n生き方が、これからの顔になる。\nいい女なろう。\nINTEGRATE all new!",
+        "ocr": "はい、承知いたしました。動画内のテキストを抽出します。\n\n* MAiDiGi TV\n* 「インテグレート」新CM\n* INTEGRATE GIRL’S STORY 「生き方が、これからの顔になる編」\n* Happy Birthday\n* 25 ans\n* INTEGRATE GIRL’S STORY\n* “UnHappy Birthday?”\n* 25歳の\n* が目んの前よ\n* 世の中一気にリアルワールド\n* もうチヤホヤされないし褒めてもくれない\n* 下にはキラッキラした後輩\n* 週末ごとにアップされる結婚式の写真\n* 白いタキシード\n* 白いタキシードうける（←元カレ）\n* このままじゃやばい\n* なんて？\n* いつからこうなった？\n* カワイイという武器はもはやこの手には\n* 白いタキシードうける（←元カレ）\n* このままじゃやばい\n* なんで？\n* いつからこうなった？\n* カワイイという武器はもはやこの手には\n* 生き方が、これからの顔になる。\n* #いい女なろう\n* ラブリーに生きろ\n* INTEGRATE\n* all new!\n* インテグレート",
+        "video_analysis": {
+          "summary": "この映像は、25歳を迎えた女性が、友人たちと誕生日を祝う中で、自身の将来について悩む姿を描いています。友人との会話を通じて、女性は「可愛い」という武器をアップデートし、新しい自分になることを決意します。全体的に、女性の心情の変化と成長を表現したCMです。",
+          "segments": [
+            {
+              "label": "誕生日のシーン",
+              "description": "25歳の誕生日を祝うシーン。主人公の憂鬱な表情が印象的。",
+              "shots": [
+                {
+                  "timecode": "0:03-0:09",
+                  "description": "誕生日ケーキとシャンパン、友人たちとの会話。主人公は誕生日を素直に喜べない。"
+                }
+              ]
+            },
+            {
+              "label": "自己嫌悪と将来への不安",
+              "description": "主人公が自身の現状に不満を持ち、将来への不安を感じるシーン。",
+              "shots": [
+                {
+                  "timecode": "0:14-0:24",
+                  "description": "友人との会話で、自身の現状に対する不満を吐露する。"
+                }
+              ]
+            },
+            {
+              "label": "変化への決意",
+              "description": "友人との会話を通じて、新しい自分になることを決意するシーン。",
+              "shots": [
+                {
+                  "timecode": "0:38-0:46",
+                  "description": "可愛いのアップデートかステイかという会話から決意を新たにする。"
+                },
+                {
+                  "timecode": "0:47-0:51",
+                  "description": "主人公の手元がアップになり、決意表明。"
+                }
+              ]
+            },
+            {
+              "label": "新しいスタート",
+              "description": "新しい自分になることを決意し、友人たちと街へ繰り出すシーン。",
+              "shots": [
+                {
+                  "timecode": "0:57-1:02",
+                  "description": "街を走り出す3人。INTEGRATEのロゴが表示され、CM終了。"
+                }
+              ]
+            }
+          ]
+        },
+        "risk": {
+          "social": {
+            "grade": "C",
+            "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+            "findings": []
+          },
+          "legal": {
+            "grade": "抵触する可能性がある",
+            "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+            "recommendations": "Gemini の設定を確認し、再度実行してください。",
+            "violations": [],
+            "findings": []
+          },
+          "matrix": {
+            "x_axis": "法務評価",
+            "y_axis": "社会的感度",
+            "position": [
+              1,
+              2
+            ]
+          },
+          "note": "429 {'error': {'code': 429, 'message': 'You exceeded your current quota. Please migrate to Gemini 2.0 Flash Preview (Image Generation) (models/gemini-2.0-flash-preview-image-generation) for higher quota limits. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_requests_per_model', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash-exp'}, 'quotaValue': '10'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '17s'}]}}",
+          "tags": [],
+          "burn_risk": {
+            "count": 0,
+            "details": []
+          }
+        }
+      },
+      {
+        "index": 3,
+        "transcription": "お誕生日おめでとう。\nめでたくない。\nめでたくない。\nかほ。\nいっちゃって。\nぺ。\n今日からあんたは女の子じゃない。\nINTEGRATE GIRL'S STORY Unhappy Birthday?\n25歳が目の前だよ。\n世の中いつのまにかリアルワールド。\nもうちやほやされないし、褒めてもくれない。\n下にはキラッキラした後輩。週末ごとにアップされる結婚式の写真。\n白いタキシード受ける。\n元カレ。このままで私やばい。\nなんで？いつからこうなった？\n可愛いという武器はもはやこの手には。\nでも可愛い大人の人だっているんでしょ。\nいるよね。\nどっちよ。\nだ からあれじゃん？\n可愛いをアップデートできる女になるか？このままステイか。\nってこと？\nかも。\n私こっち。\n私も。\n私も。\nなんか。\n燃えてきた。\n生き方が、これからの顔になる。\nいい女なろう。\nINTEGRATE all new!",
+        "ocr": "はい、承知いたしました。動画内のテキストを抽出します。\n\n* MAiDiGi TV\n* 「インテグレート」新CM\n* INTEGRATE GIRL’S STORY 「生き方が、これからの顔になる編」\n* Happy Birthday\n* 25 ans\n* INTEGRATE GIRL’S STORY\n* “UnHappy Birthday?”\n* 25歳の\n* が目んの前よ\n* 世の中一気にリアルワールド\n* もうチヤホヤされないし褒めてもくれない\n* 下にはキラッキラした後輩\n* 週末ごとにアップされる結婚式の写真\n* 白いタキシード\n* 白いタキシードうける（←元カレ）\n* このままじゃやばい\n* なんて？\n* いつからこうなった？\n* カワイイという武器はもはやこの手には\n* 白いタキシードうける（←元カレ）\n* このままじゃやばい\n* なんで？\n* いつからこうなった？\n* カワイイという武器はもはやこの手には\n* 生き方が、これからの顔になる。\n* #いい女なろう\n* ラブリーに生きろ\n* INTEGRATE\n* all new!\n* インテグレート",
+        "video_analysis": {
+          "summary": "この映像は、25歳を迎えた女性が、友人たちと誕生日を祝う中で、自身の将来について悩む姿を描いています。友人との会話を通じて、女性は「可愛い」という武器をアップデートし、新しい自分になることを決意します。全体的に、女性の心情の変化と成長を表現したCMです。",
+          "segments": [
+            {
+              "label": "誕生日のシーン",
+              "description": "25歳の誕生日を祝うシーン。主人公の憂鬱な表情が印象的。",
+              "shots": [
+                {
+                  "timecode": "0:03-0:09",
+                  "description": "誕生日ケーキとシャンパン、友人たちとの会話。主人公は誕生日を素直に喜べない。"
+                }
+              ]
+            },
+            {
+              "label": "自己嫌悪と将来への不安",
+              "description": "主人公が自身の現状に不満を持ち、将来への不安を感じるシーン。",
+              "shots": [
+                {
+                  "timecode": "0:14-0:24",
+                  "description": "友人との会話で、自身の現状に対する不満を吐露する。"
+                }
+              ]
+            },
+            {
+              "label": "変化への決意",
+              "description": "友人との会話を通じて、新しい自分になることを決意するシーン。",
+              "shots": [
+                {
+                  "timecode": "0:38-0:46",
+                  "description": "可愛いのアップデートかステイかという会話から決意を新たにする。"
+                },
+                {
+                  "timecode": "0:47-0:51",
+                  "description": "主人公の手元がアップになり、決意表明。"
+                }
+              ]
+            },
+            {
+              "label": "新しいスタート",
+              "description": "新しい自分になることを決意し、友人たちと街へ繰り出すシーン。",
+              "shots": [
+                {
+                  "timecode": "0:57-1:02",
+                  "description": "街を走り出す3人。INTEGRATEのロゴが表示され、CM終了。"
+                }
+              ]
+            }
+          ]
+        },
+        "risk": {
+          "social": {
+            "grade": "C",
+            "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+            "findings": []
+          },
+          "legal": {
+            "grade": "抵触する可能性がある",
+            "reason": "リスク評価に失敗したため暫定評価を返却しています。",
+            "recommendations": "Gemini の設定を確認し、再度実行してください。",
+            "violations": [],
+            "findings": []
+          },
+          "matrix": {
+            "x_axis": "法務評価",
+            "y_axis": "社会的感度",
+            "position": [
+              1,
+              2
+            ]
+          },
+          "note": "429 {'error': {'code': 429, 'message': 'You exceeded your current quota. Please migrate to Gemini 2.0 Flash Preview (Image Generation) (models/gemini-2.0-flash-preview-image-generation) for higher quota limits. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_requests_per_model', 'quotaId': 'GenerateRequestsPerMinutePerProjectPerModel', 'quotaDimensions': {'location': 'global', 'model': 'gemini-2.0-flash-exp'}, 'quotaValue': '10'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '15s'}]}}",
+          "tags": [],
+          "burn_risk": {
+            "count": 0,
+            "details": []
+          }
+        }
+      }
+    ]
+  }
+}

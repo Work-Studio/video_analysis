@@ -1,0 +1,33 @@
+{
+  "existing_annotations": [],
+  "missing_annotations": [
+    {
+      "suggested_text": "個人の感想であり、効果効能を保証するものではありません。",
+      "reason": "CMの内容が、視聴者に誤解を与える可能性があるため。特に「生き方が、これからの顔になる。」というコピーは、化粧品の効果を暗示する可能性がある。",
+      "severity": "推奨",
+      "suggested_timecode": "0:57",
+      "legal_basis": "医薬品、医療機器等の品質、有効性及び安全性の確保等に関する法律（薬機法）"
+    },
+    {
+      "suggested_text": "使用状況により、効果には個人差があります。",
+      "reason": "化粧品の効果には個人差があることを明示することで、誤解を避けるため。",
+      "severity": "推奨",
+      "suggested_timecode": "0:57",
+      "legal_basis": "景品表示法"
+    },
+    {
+      "suggested_text": "著作権について：この動画コンテンツは、株式会社資生堂の著作物であり、無断転載・複製を禁じます。",
+      "reason": "著作権保護のため。",
+      "severity": "任意",
+      "suggested_timecode": "0:57",
+      "legal_basis": "著作権法"
+    },
+    {
+      "suggested_text": "映像はイメージです。",
+      "reason": "映像と実際の商品のイメージが異なる可能性があるため。",
+      "severity": "任意",
+      "suggested_timecode": "0:00",
+      "legal_basis": ""
+    }
+  ]
+}

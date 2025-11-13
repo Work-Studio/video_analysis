@@ -1,0 +1,7 @@
+{
+  "summary": "映像解析を実行できませんでした。Gemini API キーの設定を確認し再度実行してください。",
+  "segments": [],
+  "risk_flags": [
+    "analysis-unavailable"
+  ]
+}

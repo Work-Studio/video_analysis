@@ -14,9 +14,9 @@ import {
 } from "@/lib/apiClient";
 
 const MODEL_OPTIONS = [
-  { value: "standard", label: "標準分析" },
-  { value: "strict", label: "リスク重視" },
-  { value: "light", label: "高速サマリー" }
+  { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash (安定・推奨)" },
+  { value: "gemini-2.0-flash-exp", label: "Gemini 2.0 Flash Exp (高速・実験版)" },
+  { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash (標準)" }
 ];
 
 type UploadMode = "single" | "csv";
@@ -27,7 +27,7 @@ export default function ProjectsPage() {
   const [companyName, setCompanyName] = useState("");
   const [productName, setProductName] = useState("");
   const [title, setTitle] = useState("");
-  const [model] = useState("standard");
+  const [model, setModel] = useState("gemini-2.5-flash");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -343,6 +343,29 @@ export default function ProjectsPage() {
                 className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/40"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="model" className="block text-sm font-semibold text-slate-700">
+              AIモデル <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="model"
+              name="model"
+              value={model}
+              onChange={(event) => setModel(event.target.value)}
+              required
+              className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/40"
+            >
+              {MODEL_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-slate-500">
+              Gemini 2.5 Flash は安定性が高く、RPM制限が緩和されています（推奨）
+            </p>
           </div>
 
           <div className="space-y-2">
